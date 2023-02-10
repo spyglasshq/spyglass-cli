@@ -1,5 +1,5 @@
 import {Args, Command} from '@oclif/core'
-import { stringify } from 'yaml'
+import {stringify} from 'yaml'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
 
@@ -13,15 +13,13 @@ export default class Import extends Command {
   async run(): Promise<void> {
     const {args} = await this.parse(Import)
 
-    const {teamId, personalAccessToken} = await getConfig(this.config.configDir)
+    const cfg = await getConfig(this.config.configDir)
 
     const payload = {
       action: 'import',
-      teamId,
-      personalAccessToken,
       accountId: args.accountId,
     }
-    const res = await apiCall(payload)
+    const res = await apiCall(cfg, payload)
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return

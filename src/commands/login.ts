@@ -12,12 +12,14 @@ export default class Login extends Command {
     this.log('First, go to https://demo.spyglass.software/connect and find your personal access token.')
     const personalAccessToken = await ux.prompt('Next, paste the token', {type: 'mask'})
 
-    const payload = {
-      action: 'auth',
+    const cfg = {
       teamId,
       personalAccessToken,
     }
-    const res = await apiCall(payload)
+    const payload = {
+      action: 'auth',
+    }
+    const res = await apiCall(cfg, payload)
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return

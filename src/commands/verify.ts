@@ -1,25 +1,30 @@
-import {Args, Command, Flags} from '@oclif/core'
+import {Args, Command} from '@oclif/core'
+import {stringify} from 'yaml'
+import {apiCall} from '../lib/api'
+import {getConfig} from '../lib/config'
 
-export default class Login extends Command {
-  static description = 'Check current Spyglass configuration for any issues and provide recommendations.'
-
-  static examples = [
-    `$ oex Login friend --from oclif
-Login friend from oclif! (./src/commands/Login/index.ts)
-`,
-  ]
-
-  static flags = {
-    from: Flags.string({char: 'f', description: 'Who is saying Login', required: true}),
-  }
+export default class Verify extends Command {
+  static description = 'Translate a database\'s current configuration into Spyglass format.'
 
   static args = {
-    person: Args.string({description: 'Person to say Login to', required: true}),
+    accountId: Args.string({description: 'Account id to fetch configuration for.', required: true}),
   }
 
   async run(): Promise<void> {
-    const {args, flags} = await this.parse(Login)
+    const {args} = await this.parse(Verify)
 
-    this.log(`hello ${args.person} from ${flags.from}! (./src/commands/hello/index.ts)`)
+    const cfg = await getConfig(this.config.configDir)
+
+    const payload = {
+      action: 'verify',
+      accountId: args.accountId,
+    }
+    const res = await apiCall(cfg, payload)
+    if (res.data.error) {
+      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      return
+    }
+
+    this.log(stringify(res.data.roles))
   }
 }
