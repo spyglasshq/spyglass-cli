@@ -1,15 +1,9 @@
 import {Args, Command} from '@oclif/core'
-import { apiCall } from '../lib/api'
+import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
 
 export default class Import extends Command {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
-
-  static examples = [
-    `$ oex Login friend --from oclif
-Login friend from oclif! (./src/commands/Login/index.ts)
-`,
-  ]
 
   static args = {
     accountId: Args.string({description: 'Account id to fetch configuration for.', required: true}),
