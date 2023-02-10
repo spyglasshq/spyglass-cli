@@ -1,8 +1,8 @@
 /* eslint-disable unicorn/import-style */
 import {Command, ux} from '@oclif/core'
-import axios from 'axios'
 import * as fs from 'fs-extra'
 import * as path from 'path'
+import { apiCall } from './api'
 
 export default class Login extends Command {
   static description = 'Log in to your Spyglass account.'
@@ -18,15 +18,7 @@ export default class Login extends Command {
       teamId,
       personalAccessToken,
     }
-    const res = await axios.post(
-      'http://127.0.0.1:5001/deft-falcon-367614/us-central1/cli',
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    )
+    const res = await apiCall(payload)
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return
