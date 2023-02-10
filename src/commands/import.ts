@@ -1,4 +1,5 @@
 import {Args, Command} from '@oclif/core'
+import { stringify } from 'yaml'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
 
@@ -26,6 +27,6 @@ export default class Import extends Command {
       return
     }
 
-    this.log(res.data)
+    this.log(stringify(res.data.roles))
   }
 }
