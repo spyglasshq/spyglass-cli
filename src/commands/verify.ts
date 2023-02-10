@@ -4,7 +4,7 @@ import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
 
 export default class Verify extends Command {
-  static description = 'Translate a database\'s current configuration into Spyglass format.'
+  static description = 'Check currenet Spyglass configuration for any issues and provide recommendations.'
 
   static args = {
     accountId: Args.string({description: 'Account id to fetch configuration for.', required: true}),
