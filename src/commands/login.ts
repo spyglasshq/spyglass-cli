@@ -1,25 +1,72 @@
-import {Args, Command, Flags} from '@oclif/core'
+/* eslint-disable unicorn/import-style */
+import {Command, ux} from '@oclif/core'
+import axios from 'axios'
+import * as fs from 'fs-extra'
+import * as path from 'path'
 
 export default class Login extends Command {
   static description = 'Log in to your Spyglass account.'
 
-  static examples = [
-    `$ oex Login friend --from oclif
-Login friend from oclif! (./src/commands/Login/index.ts)
-`,
-  ]
-
-  static flags = {
-    from: Flags.string({char: 'f', description: 'Who is saying Login', required: true}),
-  }
-
-  static args = {
-    person: Args.string({description: 'Person to say Login to', required: true}),
-  }
-
   async run(): Promise<void> {
-    const {args, flags} = await this.parse(Login)
+    const teamId = await ux.prompt('What is your team id? (e.g. "example.com")')
 
-    this.log(`hello ${args.person} from ${flags.from}! (./src/commands/hello/index.ts)`)
+    this.log('First, go to https://demo.spyglass.software/connect and find your personal access token.')
+    const personalAccessToken = await ux.prompt('Next, paste the token', {type: 'mask'})
+
+    const payload = {
+      action: 'auth',
+      teamId,
+      personalAccessToken,
+    }
+    const res = await axios.post(
+      'http://127.0.0.1:5001/deft-falcon-367614/us-central1/cli',
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    if (res.data.error) {
+      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      return
+    }
+
+    this.log('Verified personal access token is valid!')
+
+    await createOrUpdateConfig(this.config.configDir, {personalAccessToken, teamId})
+
+    this.log('Successfully updated your access token!')
+  }
+}
+
+const configFile = 'config.json'
+
+interface Config {
+  teamId?: string;
+  personalAccessToken?: string;
+}
+
+async function createOrUpdateConfig(configDir: string, config: Config) {
+  const filepath = path.join(configDir, configFile)
+  try {
+    const userConfig = await fs.readJSON(filepath)
+
+    if (config.personalAccessToken) {
+      userConfig.personalAccessToken = config.personalAccessToken
+    }
+
+    if (config.teamId) {
+      userConfig.teamId = config.teamId
+    }
+
+    await fs.writeJSON(filepath, config)
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      await fs.mkdir(configDir, {recursive: true})
+      await fs.writeJSON(filepath, config)
+    } else {
+      throw error
+    }
   }
 }
