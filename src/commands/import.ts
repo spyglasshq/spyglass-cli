@@ -1,6 +1,8 @@
-import {Args, Command, Flags} from '@oclif/core'
+import {Args, Command} from '@oclif/core'
+import { apiCall } from '../lib/api'
+import {getConfig} from '../lib/config'
 
-export default class Login extends Command {
+export default class Import extends Command {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
 
   static examples = [
@@ -9,17 +11,27 @@ Login friend from oclif! (./src/commands/Login/index.ts)
 `,
   ]
 
-  static flags = {
-    from: Flags.string({char: 'f', description: 'Who is saying Login', required: true}),
-  }
-
   static args = {
-    person: Args.string({description: 'Person to say Login to', required: true}),
+    accountId: Args.string({description: 'Account id to fetch configuration for.', required: true}),
   }
 
   async run(): Promise<void> {
-    const {args, flags} = await this.parse(Login)
+    const {args} = await this.parse(Import)
 
-    this.log(`hello ${args.person} from ${flags.from}! (./src/commands/hello/index.ts)`)
+    const {teamId, personalAccessToken} = await getConfig(this.config.configDir)
+
+    const payload = {
+      action: 'import',
+      teamId,
+      personalAccessToken,
+      accountId: args.accountId,
+    }
+    const res = await apiCall(payload)
+    if (res.data.error) {
+      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      return
+    }
+
+    this.log(res.data)
   }
 }
