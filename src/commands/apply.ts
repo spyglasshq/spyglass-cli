@@ -71,7 +71,7 @@ export default class Apply extends Command {
           }
 
           if (hasDiffs) {
-            this.log(color.cyan(`@@ ${roleName} @@`))
+            this.log(color.cyan(`@@ role:${roleName} @@`))
 
             // HACK: stringify yaml ourselves, it only goes one level deep, only displays arrays
             for (const [grantName, grants] of Object.entries(role)) {
