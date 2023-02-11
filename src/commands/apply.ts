@@ -74,7 +74,7 @@ export default class Apply extends Command {
     ux.action.stop()
 
     if (res2.data.error) {
-      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      this.log(`Encountered an error: ${res2.data.error}, code: ${res2.data.code}`)
       return
     }
 
