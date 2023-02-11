@@ -33,6 +33,7 @@ export default class Apply extends Command {
       },
     }
 
+    const now = Math.floor((Date.now() / 1000)) // we should return timestamp from API instead
     const res = await apiCall(cfg, payload)
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
@@ -47,8 +48,8 @@ export default class Apply extends Command {
 
     const yamlDiffs: YamlDiff = res.data.yamlDiffs
     for (const [filename, yamlDiff] of Object.entries(yamlDiffs)) {
-      this.log(color.bold(`diff --spyglass a/snowflake:current b/${filename}`))
-      this.log(color.bold('--- a/snowflake:current'))
+      this.log(color.bold(`diff --spyglass a/snowflake:${now} b/${filename}`))
+      this.log(color.bold(`--- a/snowflake:${now}`))
       this.log(color.bold(`--- b/${filename}`))
 
       for (const [roleName, role] of Object.entries(contents)) {
