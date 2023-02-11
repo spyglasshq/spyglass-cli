@@ -40,7 +40,12 @@ export default class Apply extends Command {
     }
 
     // Print SQL differences.
-    this.log(res.data.sqlToExecute)
+    for (const [accountId, commands] of Object.entries(res.data.sqlCommands)) {
+      this.log(color.bold(`Account ${accountId} SQL updates:`))
+      for (const command of commands as string[]) {
+        this.log(color.cyan(`  ${command}`))
+      }
+    }
 
     // We can exit if this is a dry run.
     if (flags['dry-run']) {
