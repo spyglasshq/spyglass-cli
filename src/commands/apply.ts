@@ -75,8 +75,3 @@ interface YamlRole {
   view?: string[];
   inherits?: string[];
 }
-
-interface YamlDiff {
-  added: YamlRoles;
-  deleted: YamlRoles
-}
