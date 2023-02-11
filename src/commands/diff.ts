@@ -1,5 +1,5 @@
 /* eslint-disable max-depth */
-import {Args, Command, Flags} from '@oclif/core'
+import {Args, Command, ux} from '@oclif/core'
 import {readFile} from 'node:fs/promises'
 import color from '@oclif/color';
 import {parse } from 'yaml'
@@ -29,7 +29,10 @@ export default class Diff extends Command {
     }
 
     const now = Math.floor((Date.now() / 1000)) // we should return timestamp from API instead
+    ux.action.start('Fetching current Snowflake configuration')
     const res = await apiCall(cfg, payload)
+    ux.action.stop()
+
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return

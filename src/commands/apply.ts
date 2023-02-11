@@ -1,4 +1,4 @@
-import {Args, Command, Flags} from '@oclif/core'
+import {Args, Command, Flags, ux} from '@oclif/core'
 import {readFile} from 'node:fs/promises'
 import color from '@oclif/color';
 import {parse} from 'yaml'
@@ -33,7 +33,10 @@ export default class Apply extends Command {
       },
     }
 
+    ux.action.start('Fetching current Snowflake configuration')
     const res = await apiCall(cfg, payload)
+    ux.action.stop()
+
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return
@@ -49,21 +52,33 @@ export default class Apply extends Command {
 
     // We can exit if this is a dry run.
     if (flags['dry-run']) {
+      this.log('Exit: User specified dry run.')
       return
     }
 
-    // If confirm isn't provided, get interactive confirmation from user.
-    if (!flags.confirm) {
-      return
+    if (flags.confirm) {
+      this.log('Execution confirmed by command line flag, skipping interactive prompt (this is normal in CI environments).')
+    } else if (!flags.confirm) {
+      // If --confirm isn't provided, get interactive confirmation from user.
+      const confirm = await ux.confirm('Execute these commands? (y/n)')
+      if (!confirm) {
+        this.log('Exit: Cancelled by user.')
+        return
+      }
     }
 
     // Apply configuration to production.
     payload.dryRun = false
-    // const res = await apiCall(cfg, payload)
-    // if (res.data.error) {
-    //   this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
-    //   return
-    // }
+    ux.action.start('Applying updated Snowflake configuration')
+    const res2 = await apiCall(cfg, payload)
+    ux.action.stop()
+
+    if (res2.data.error) {
+      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      return
+    }
+
+    this.log(color.bold('Success!'))
   }
 }
 
