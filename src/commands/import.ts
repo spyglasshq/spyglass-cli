@@ -1,7 +1,8 @@
-import {Args, Command} from '@oclif/core'
-import {stringify} from 'yaml'
+import {Args, Command, ux} from '@oclif/core'
+import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
+import {writeYamlFile} from '../lib/yaml'
 
 export default class Import extends Command {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
@@ -19,12 +20,19 @@ export default class Import extends Command {
       action: 'import',
       accountId: args.accountId,
     }
+
+    ux.action.start('Fetching current Snowflake configuration')
     const res = await apiCall(cfg, payload)
+    ux.action.stop()
+
     if (res.data.error) {
       this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       return
     }
 
-    this.log(stringify(res.data.roles))
+    const filename = args.accountId + '.yaml'
+    writeYamlFile(filename, res.data)
+
+    this.log(color.bold(`Successfully wrote current configuration to ${filename}.`))
   }
 }

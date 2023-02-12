@@ -1,9 +1,8 @@
 import {Args, Command, Flags, ux} from '@oclif/core'
-import {readFile} from 'node:fs/promises'
 import color from '@oclif/color';
-import {parse} from 'yaml'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
+import {readYamlFile} from '../lib/yaml';
 
 export default class Apply extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
@@ -22,8 +21,7 @@ export default class Apply extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const file = await readFile(args.filename)
-    const contents = parse(file.toString()) as YamlRoles
+    const contents = await readYamlFile(args.filename)
 
     const payload = {
       action: 'apply',
@@ -79,6 +77,8 @@ export default class Apply extends Command {
     }
 
     this.log(color.bold('Success!'))
+
+    this.log(JSON.stringify(res2.data))
   }
 }
 

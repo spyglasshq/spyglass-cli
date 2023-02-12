@@ -1,10 +1,9 @@
 /* eslint-disable max-depth */
 import {Args, Command, ux} from '@oclif/core'
-import {readFile} from 'node:fs/promises'
 import color from '@oclif/color';
-import {parse } from 'yaml'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
+import {readYamlFile} from '../lib/yaml';
 
 export default class Diff extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
@@ -18,8 +17,7 @@ export default class Diff extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const file = await readFile(args.filename)
-    const contents = parse(file.toString()) as YamlRoles
+    const contents = await readYamlFile(args.filename)
 
     const payload = {
       action: 'diff',
@@ -44,7 +42,7 @@ export default class Diff extends Command {
       this.log(color.bold(`--- a/snowflake:${now}`))
       this.log(color.bold(`--- b/${filename}`))
 
-      for (const [roleName, role] of Object.entries(contents)) {
+      for (const [roleName, role] of Object.entries(contents.roles)) {
         let hasDiffs = false
 
         for (const [grantName, grants] of Object.entries(role)) {
