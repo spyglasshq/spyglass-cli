@@ -81,12 +81,3 @@ export default class Apply extends Command {
     this.log(JSON.stringify(res2.data))
   }
 }
-
-interface YamlRoles {
-  [role: string]: YamlRole;
-}
-
-interface YamlRole {
-  view?: string[];
-  inherits?: string[];
-}

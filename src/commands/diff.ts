@@ -3,7 +3,7 @@ import {Args, Command, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
-import {readYamlFile} from '../lib/yaml';
+import {readYamlFile, YamlDiff} from '../lib/yaml';
 
 export default class Diff extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
@@ -77,18 +77,4 @@ export default class Diff extends Command {
       }
     }
   }
-}
-
-interface YamlRoles {
-  [role: string]: YamlRole;
-}
-
-interface YamlRole {
-  view?: string[];
-  inherits?: string[];
-}
-
-interface YamlDiff {
-  added: YamlRoles;
-  deleted: YamlRoles
 }

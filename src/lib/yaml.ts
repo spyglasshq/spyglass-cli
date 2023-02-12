@@ -23,6 +23,11 @@ export interface YamlRole {
   inherits?: string[];
 }
 
+export interface YamlDiff {
+  added: YamlRoles;
+  deleted: YamlRoles
+}
+
 export async function readYamlFile(filename: string): Promise<Yaml> {
   const file = await readFile(filename)
   const contents = parse(file.toString())
