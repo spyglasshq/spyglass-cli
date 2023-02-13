@@ -43,7 +43,7 @@ export default class Diff extends Command {
     }
 
     const yamlDiffs: YamlDiff[] = res.data.yamlDiffs
-    // this.log(stringify(yamlDiffs))
+
     for (const yamlDiff of yamlDiffs) {
       this.log(color.bold(`diff --spyglass a/${currentFile} b/${proposedFile}`))
       this.log(color.bold(`--- a/${currentFile}`))
