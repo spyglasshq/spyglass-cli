@@ -2,24 +2,27 @@ import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
-import { readYamlFile, writeYamlFile, Yaml } from '../lib/yaml';
+import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
+
+interface IssueType {
+  id: string;
+  name: string;
+}
 
 interface Issue {
-  issueId: string;
-  issueName: string;
+  id: string;
+  issue: IssueType;
   category: string;
   data: DatabasePrivilege | SchemaPrivilege;
 }
 
 interface DatabasePrivilege {
-  id: string;
   database: string;
   role: string;
   privilege: string;
 }
 
 interface SchemaPrivilege {
-  id: string;
   schema: string;
   role: string;
   privilege: string;
@@ -41,9 +44,11 @@ export default class Verify extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
+    const contents = await readYamlFile(args.filename)
+
     const payload = {
       action: 'verify',
-      filename: args.filename,
+      files: [contents],
     }
 
     ux.action.start('Verifying configuration')
@@ -86,16 +91,16 @@ export default class Verify extends Command {
   }
 
   formatIssue(issue: Issue): void {
-    this.log(color.yellow(`${issue.issueId}: ${issue.issueName}`))
-    if (issue.issueId === 'SR1001') {
+    this.log(color.yellow(`${issue.issue.id}: ${issue.issue.name}`))
+    if (issue.issue.id === 'SR1001') {
       const data = issue.data as DatabasePrivilege
-      this.log(`  ${color.gray('ID:')}                ${data.id}`)
+      this.log(`  ${color.gray('ID:')}                ${issue.id}`)
       this.log(`  ${color.gray('Role:')}              ${data.role}`)
       this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
       this.log(`  ${color.gray('On Database:')}       ${data.database}`)
-    } else if (issue.issueId === 'SR1002') {
+    } else if (issue.issue.id === 'SR1002') {
       const data = issue.data as SchemaPrivilege
-      this.log(`  ${color.gray('ID:')}                ${data.id}`)
+      this.log(`  ${color.gray('ID:')}                ${issue.id}`)
       this.log(`  ${color.gray('Role:')}              ${data.role}`)
       this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
       this.log(`  ${color.gray('On Schema:')}         ${data.schema}`)
@@ -106,7 +111,7 @@ export default class Verify extends Command {
 
   proposedChanges(issue: Issue): ((filename: string) => Promise<void>) | null {
     this.log(color.yellow('Proposed Changes:'))
-    if (issue.issueId === 'SR1001') {
+    if (issue.issue.id === 'SR1001') {
       const data = issue.data as DatabasePrivilege
 
       // print proposed changes
