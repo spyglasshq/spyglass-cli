@@ -36,6 +36,10 @@ export async function readYamlFile(filename: string): Promise<Yaml> {
   return contents
 }
 
+export async function parseYamlFile(contents: string): Promise<Yaml> {
+  return parse(contents)
+}
+
 export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void> {
   await writeFile(filename, stringify(yaml, {sortMapEntries: true}))
 }

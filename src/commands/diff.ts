@@ -1,31 +1,34 @@
 /* eslint-disable max-depth */
-import {Args, Command, ux} from '@oclif/core'
+import {Args, Flags, Command, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
-import {readYamlFile, YamlDiff, YamlRole} from '../lib/yaml'
+import {parseYamlFile, readYamlFile, YamlDiff, YamlRole} from '../lib/yaml'
 import {stringify} from 'yaml'
+import {readFileAtBranch} from '../lib/git'
 
 const replacer = (key: string, value: unknown) => value === undefined ? null : value
 
 export default class Diff extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
 
+  static flags = {
+    branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master'}),
+  }
+
   static args = {
-    'current-file': Args.string({description: 'Current account configuration yaml.', required: true}),
-    'proposed-file': Args.string({description: 'Proposed changes to account configuration yaml.', required: true}),
+    filepath: Args.string({description: 'Current account configuration yaml.', required: true}),
   }
 
   async run(): Promise<void> {
-    const {args} = await this.parse(Diff)
+    const {args, flags} = await this.parse(Diff)
 
     const cfg = await getConfig(this.config.configDir)
 
-    const currentFile = args['current-file']
-    const proposedFile = args['proposed-file']
+    const filepath = args.filepath
 
-    const current = await readYamlFile(currentFile)
-    const proposed = await readYamlFile(proposedFile)
+    const proposed = await readYamlFile(filepath)
+    const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
 
     const payload = {
       action: 'diff',
@@ -45,9 +48,9 @@ export default class Diff extends Command {
     const yamlDiffs: YamlDiff[] = res.data.yamlDiffs
 
     for (const yamlDiff of yamlDiffs) {
-      this.log(color.bold(`diff --spyglass a/${currentFile} b/${proposedFile}`))
-      this.log(color.bold(`--- a/${currentFile}`))
-      this.log(color.bold(`--- b/${proposedFile}`))
+      this.log(color.bold(`diff --spyglass a/${filepath} b/${filepath}`))
+      this.log(color.bold(`--- a/${filepath}`))
+      this.log(color.bold(`--- b/${filepath}`))
 
       // TODO(tyler): we should really print "current" and then only +/- for the removed/added lines
 

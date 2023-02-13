@@ -2,7 +2,8 @@ import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
-import {readYamlFile} from '../lib/yaml';
+import {parseYamlFile, readYamlFile} from '../lib/yaml'
+import {readFileAtBranch} from '../lib/git'
 
 export default class Apply extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
@@ -10,11 +11,11 @@ export default class Apply extends Command {
   static flags = {
     'dry-run': Flags.boolean({description: 'Dry run', default: false}),
     confirm: Flags.boolean({description: 'Skip the interactive prompt (used in CI)', default: false}),
+    branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master'}),
   }
 
   static args = {
-    'current-file': Args.string({description: 'Current account configuration yaml.', required: true}),
-    'proposed-file': Args.string({description: 'Proposed changes to account configuration yaml.', required: true}),
+    filepath: Args.string({description: 'Current account configuration yaml.', required: true}),
   }
 
   async run(): Promise<void> {
@@ -22,11 +23,10 @@ export default class Apply extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const currentFile = args['current-file']
-    const proposedFile = args['proposed-file']
+    const filepath = args.filepath
 
-    const current = await readYamlFile(currentFile)
-    const proposed = await readYamlFile(proposedFile)
+    const proposed = await readYamlFile(filepath)
+    const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
 
     const payload = {
       action: 'apply',
