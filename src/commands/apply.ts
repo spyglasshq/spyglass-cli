@@ -13,7 +13,8 @@ export default class Apply extends Command {
   }
 
   static args = {
-    filename: Args.string({description: 'File to apply configuration for.', required: true}),
+    'current-file': Args.string({description: 'Current account configuration yaml.', required: true}),
+    'proposed-file': Args.string({description: 'Proposed changes to account configuration yaml.', required: true}),
   }
 
   async run(): Promise<void> {
@@ -21,14 +22,17 @@ export default class Apply extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const contents = await readYamlFile(args.filename)
+    const currentFile = args['current-file']
+    const proposedFile = args['proposed-file']
+
+    const current = await readYamlFile(currentFile)
+    const proposed = await readYamlFile(proposedFile)
 
     const payload = {
       action: 'apply',
       dryRun: true, // first run is always dry, so we can show user what will happen
-      files: {
-        [args.filename]: contents,
-      },
+      currentFiles: [current],
+      proposedFiles: [proposed],
     }
 
     ux.action.start('Fetching current Snowflake configuration')
