@@ -61,7 +61,7 @@ export default class Verify extends Command {
     }
 
     if (flags.fix) {
-      const issue = res.data.issues.find((issue: any) => issue?.data?.id === flags.fix)
+      const issue = res.data.issues.find((issue: any) => issue.id === flags.fix)
       if (!issue) {
         this.log('Issue not found')
         return
