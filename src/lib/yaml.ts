@@ -2,6 +2,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 
 export type Platform = 'snowflake' | 'unspecified';
+export type ObjectId = string;
 
 export interface Yaml {
   spyglass: YamlSpyglass;
@@ -19,8 +20,9 @@ export interface YamlRoles {
 }
 
 export interface YamlRole {
-  view?: string[];
-  inherits?: string[];
+  [privilege: string]: {
+    [objectType: string]: ObjectId[];
+  };
 }
 
 export interface YamlDiff {
