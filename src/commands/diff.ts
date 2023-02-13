@@ -3,7 +3,7 @@ import {Args, Command, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
-import {readYamlFile, YamlDiff} from '../lib/yaml'
+import {readYamlFile, YamlDiff, YamlRole} from '../lib/yaml'
 import {stringify} from 'yaml'
 
 const replacer = (key: string, value: unknown) => value === undefined ? null : value
@@ -49,31 +49,32 @@ export default class Diff extends Command {
       this.log(color.bold(`--- a/${currentFile}`))
       this.log(color.bold(`--- b/${proposedFile}`))
 
-      for (const [roleName, role] of Object.entries(yamlDiff.added)) {
-        this.log(color.cyan(`@@ role:${roleName} @@`))
-        const yamlRoleLines = stringify(role, replacer).split('\n')
-        const printRole = yamlRoleLines.map((line, i) => {
-          if (i === yamlRoleLines.length - 1) {
-            return '  ' + line
-          }
+      // TODO(tyler): we should really print "current" and then only +/- for the removed/added lines
 
+      for (const [roleName, role] of Object.entries(yamlDiff.added)) {
+        this.stringifyYamlDiff(roleName, role, line => {
           return color.green('+ ' + line)
-        }).join('\n')
-        this.log(printRole)
+        })
       }
 
       for (const [roleName, role] of Object.entries(yamlDiff.deleted)) {
-        this.log(color.cyan(`@@ role:${roleName} @@`))
-        const yamlRoleLines = stringify(role, replacer).split('\n')
-        const printRole = yamlRoleLines.map((line, i) => {
-          if (i === yamlRoleLines.length - 1) {
-            return '  ' + line
-          }
-
+        this.stringifyYamlDiff(roleName, role, line => {
           return color.red('- ' + line)
-        }).join('\n')
-        this.log(printRole)
+        })
       }
     }
+  }
+
+  stringifyYamlDiff(roleName: string, role: YamlRole, printer: (line: string) => string): void {
+    this.log(color.cyan(`@@ role:${roleName} @@`))
+    const yamlRoleLines = stringify(role, replacer).split('\n')
+    const printRole = yamlRoleLines.map((line, i) => {
+      if (i === yamlRoleLines.length - 1) {
+        return '  ' + line
+      }
+
+      return printer(line)
+    }).join('\n')
+    this.log(printRole)
   }
 }
