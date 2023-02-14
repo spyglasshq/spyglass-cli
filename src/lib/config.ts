@@ -36,11 +36,11 @@ export async function createOrUpdateConfig(configDir: string, config: Config): P
       userConfig.teamId = config.teamId
     }
 
-    await fs.writeJSON(filepath, config)
+    await fs.writeJSON(filepath, config, {spaces: 2})
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       await fs.mkdir(configDir, {recursive: true})
-      await fs.writeJSON(filepath, config)
+      await fs.writeJSON(filepath, config, {spaces: 2})
     } else {
       throw error
     }
