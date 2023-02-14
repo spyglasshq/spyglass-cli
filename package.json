@@ -1,6 +1,6 @@
 {
   "name": "spyglass-cli",
-  "version": "0.1.0",
+  "version": "0.1.1-dev",
   "description": "Spyglass command-line interface",
   "author": "Spyglass Software, Inc.",
   "bin": {
@@ -54,7 +54,10 @@
     },
     "plugins": [
       "@oclif/plugin-help"
-    ]
+    ],
+    "macos": {
+      "identifier": "software.spyglass.cli"
+    }
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
