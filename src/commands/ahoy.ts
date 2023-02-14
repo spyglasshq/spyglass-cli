@@ -2,7 +2,7 @@ import {Command} from '@oclif/core'
 import color from '@oclif/color';
 
 export default class Ahoy extends Command {
-  static description = 'The story behind Spyglass.'
+  static description = 'Getting started with Spyglass.'
 
   async run(): Promise<void> {
     this.log(color.cyan.bold('███████╗██████╗ ██╗   ██╗ ██████╗ ██╗      █████╗ ███████╗███████╗'))
@@ -28,5 +28,10 @@ export default class Ahoy extends Command {
     this.log('')
     this.log('Set sail,')
     this.log('Spyglass')
+    this.log('')
+    this.log(color.bold('Getting Started'))
+    this.log('')
+    this.log('  Run "spyglass login" to get started!')
+    this.log('')
   }
 }

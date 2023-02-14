@@ -15,6 +15,7 @@ export default class Login extends Command {
     const cfg = {
       teamId,
       personalAccessToken,
+      dev: Boolean(process.env.SPYGLASS_DEV),
     }
     const payload = {
       action: 'auth',
@@ -27,7 +28,7 @@ export default class Login extends Command {
 
     this.log('Verified personal access token is valid!')
 
-    await createOrUpdateConfig(this.config.configDir, {personalAccessToken, teamId})
+    await createOrUpdateConfig(this.config.configDir, cfg)
 
     this.log('Successfully updated your access token!')
   }

@@ -5,6 +5,7 @@ import * as path from 'path'
 const configFile = 'config.json'
 
 export interface Config {
+  dev?: boolean;
   teamId?: string;
   personalAccessToken?: string;
 }
