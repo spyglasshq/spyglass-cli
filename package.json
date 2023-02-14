@@ -31,6 +31,7 @@
     "@types/fs-extra": "^11.0.1",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.11",
+    "@types/supports-color": "^8.1.1",
     "chai": "^4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4",
@@ -47,7 +48,9 @@
     "dirname": "spyglass",
     "commands": "./dist/commands",
     "topics": {
-      "accounts": { "description": "Manage accounts." }
+      "accounts": {
+        "description": "Manage accounts."
+      }
     },
     "plugins": [
       "@oclif/plugin-help"
