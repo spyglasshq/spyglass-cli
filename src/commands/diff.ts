@@ -10,7 +10,7 @@ import {readFileAtBranch} from '../lib/git'
 const replacer = (key: string, value: unknown) => value === undefined ? null : value
 
 export default class Diff extends Command {
-  static description = 'Convert Spyglass configuration to native database commands and execute them.'
+  static description = 'Check the difference between Spyglass config across git branches.'
 
   static flags = {
     branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master'}),
