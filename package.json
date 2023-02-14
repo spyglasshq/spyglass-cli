@@ -46,6 +46,9 @@
     "bin": "spyglass",
     "dirname": "spyglass",
     "commands": "./dist/commands",
+    "topics": {
+      "accounts": { "description": "Manage accounts." }
+    },
     "plugins": [
       "@oclif/plugin-help"
     ]
