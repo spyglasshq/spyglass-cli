@@ -6,7 +6,7 @@ export type ObjectId = string;
 
 export interface Yaml {
   spyglass: YamlSpyglass;
-  roles: YamlRoles;
+  roleGrants: YamlRoles;
 }
 
 export interface YamlSpyglass {

@@ -110,7 +110,7 @@ export default class Verify extends Command {
   }
 
   proposedChanges(issue: Issue): ((filename: string) => Promise<void>) | null {
-    this.log(color.yellow('Proposed Changes:'))
+    this.log(color.yellow('Recommended Changes:'))
     if (issue.issue.id === 'SR1001') {
       const data = issue.data as DatabasePrivilege
 
@@ -124,15 +124,15 @@ export default class Verify extends Command {
       // function that applies the fix
       return async (filename: string): Promise<void> => {
         const contents = await readYamlFile(filename) as Yaml
-        if (!contents.roles[data.role][data.privilege]) {
-          contents.roles[data.role][data.privilege] = {}
+        if (!contents.roleGrants[data.role][data.privilege]) {
+          contents.roleGrants[data.role][data.privilege] = {}
         }
 
-        if (!contents.roles[data.role][data.privilege].database) {
-          contents.roles[data.role][data.privilege].database = []
+        if (!contents.roleGrants[data.role][data.privilege].database) {
+          contents.roleGrants[data.role][data.privilege].database = []
         }
 
-        contents.roles[data.role][data.privilege].database.push(data.database)
+        contents.roleGrants[data.role][data.privilege].database.push(data.database)
         await writeYamlFile(filename, contents)
       }
     }
