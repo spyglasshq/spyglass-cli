@@ -115,7 +115,7 @@ export default class Verify extends Command {
       const data = issue.data as DatabasePrivilege
 
       // print proposed changes
-      this.log(color.cyan('@@ role:acme_prod_call_center_reader @@'))
+      this.log(color.cyan(`@@ role:${issue.data.role} @@`))
       this.log(color.green(`+ ${data.privilege}:`))
       this.log(color.green('+   database:'))
       this.log(color.green(`+     - ${data.database}`))
