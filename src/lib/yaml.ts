@@ -7,6 +7,7 @@ export type ObjectId = string;
 export interface Yaml {
   spyglass: YamlSpyglass;
   roleGrants: YamlRoles;
+  warehouses: YamlWarehouses;
 }
 
 export interface YamlSpyglass {
@@ -23,6 +24,17 @@ export interface YamlRole {
   [privilege: string]: {
     [objectType: string]: ObjectId[];
   };
+}
+
+export interface YamlWarehouses {
+  [warehouse: string]: YamlWarehouse;
+}
+
+export interface YamlWarehouse {
+  name: string;
+  size: string;
+  // eslint-disable-next-line camelcase
+  auto_suspend: number;
 }
 
 export interface YamlDiff {

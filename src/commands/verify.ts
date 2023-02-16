@@ -13,7 +13,7 @@ interface Issue {
   id: string;
   issue: IssueType;
   category: string;
-  data: DatabasePrivilege | SchemaPrivilege;
+  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize;
 }
 
 interface DatabasePrivilege {
@@ -26,6 +26,12 @@ interface SchemaPrivilege {
   schema: string;
   role: string;
   privilege: string;
+}
+
+interface WarehouseResize {
+  warehouse: string;
+  currentSize: string;
+  recommendedSize: string;
 }
 
 export default class Verify extends Command {
@@ -92,30 +98,53 @@ export default class Verify extends Command {
 
   formatIssue(issue: Issue): void {
     this.log(color.yellow(`${issue.issue.id}: ${issue.issue.name}`))
-    if (issue.issue.id === 'SR1001') {
+
+    switch (issue.issue.id) {
+    case 'SR1001': {
       const data = issue.data as DatabasePrivilege
       this.log(`  ${color.gray('ID:')}                ${issue.id}`)
       this.log(`  ${color.gray('Role:')}              ${data.role}`)
       this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
       this.log(`  ${color.gray('On Database:')}       ${data.database}`)
-    } else if (issue.issue.id === 'SR1002') {
+
+      break
+    }
+
+    case 'SR1002': {
       const data = issue.data as SchemaPrivilege
       this.log(`  ${color.gray('ID:')}                ${issue.id}`)
       this.log(`  ${color.gray('Role:')}              ${data.role}`)
       this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
       this.log(`  ${color.gray('On Schema:')}         ${data.schema}`)
+
+      break
+    }
+
+    case 'SR1003': {
+      const data = issue.data as WarehouseResize
+      this.log(`  ${color.gray('ID:')}                     ${issue.id}`)
+      this.log(`  ${color.gray('Warehouse:')}              ${data.warehouse}`)
+      this.log(`  ${color.gray('Current Size:')}           ${data.currentSize}`)
+      this.log(`  ${color.gray('Recommended Size:')}       ${data.recommendedSize}`)
+
+      break
+    }
+
+    default: {
+      this.log(`   ${color.gray(JSON.stringify(issue.data))}`)
+    }
     }
 
     this.log('')
   }
 
   proposedChanges(issue: Issue): ((filename: string) => Promise<void>) | null {
-    this.log(color.yellow('Recommended Changes:'))
+    this.log(color.underline('Recommended Changes'))
     if (issue.issue.id === 'SR1001') {
       const data = issue.data as DatabasePrivilege
 
       // print proposed changes
-      this.log(color.cyan(`@@ role:${issue.data.role} @@`))
+      this.log(color.cyan(`@@ role:${data.role} @@`))
       this.log(color.green(`+ ${data.privilege}:`))
       this.log(color.green('+   database:'))
       this.log(color.green(`+     - ${data.database}`))
@@ -137,7 +166,62 @@ export default class Verify extends Command {
       }
     }
 
-    this.log(color.gray('An automated fix isn\'t yet available for this issue, sorry!'))
+    if (issue.issue.id === 'SR1003') {
+      const data = issue.data as WarehouseResize
+
+      const utilizationData = [
+        {date: '2023-2-9', avgUtilization: '23%', peakUtilization: '36%', minsQueued: '0'},
+        {date: '2023-2-10', avgUtilization: '22%', peakUtilization: '45%', minsQueued: '0'},
+        {date: '2023-2-11', avgUtilization: '17%', peakUtilization: '38%', minsQueued: '0'},
+        {date: '2023-2-12', avgUtilization: '32%', peakUtilization: '54%', minsQueued: '0'},
+        {date: '2023-2-13', avgUtilization: '25%', peakUtilization: '36%', minsQueued: '0'},
+        {date: '2023-2-14', avgUtilization: '29%', peakUtilization: '40%', minsQueued: '0'},
+        {date: '2023-2-15', avgUtilization: '31%', peakUtilization: '41%', minsQueued: '0'},
+      ]
+
+      // print proposed changes
+      this.log(color.cyan(`@@ warehouse:${data.warehouse} @@`))
+      this.log(color.green('+   size:'))
+      this.log(color.red(`-     - ${data.currentSize}`))
+      this.log(color.green(`+     - ${data.recommendedSize}`))
+      this.log('')
+      this.log(color.underline('Details'))
+      this.log(color.white('Projected Impact:'))
+      this.log(`  ${color.gray('Roles:')}                   customer_support, product_managers`)
+      this.log(`  ${color.gray('Number of Users:')}         37`)
+      this.log(`  ${color.gray('Monthly Savings:')}         $ 522`)
+      this.log('')
+      this.log(color.white('Detection Data:'))
+      ux.table(utilizationData, {
+        date: {
+          header: 'Date',
+          minWidth: 18,
+        },
+        avgUtilization: {
+          header: 'Avg. Utilization',
+        },
+        peakUtilization: {
+          header: 'Peak Utilization',
+        },
+        minsQueued: {
+          header: 'Mins. Queued',
+        },
+      }, {
+        printLine: this.log.bind(this),
+      })
+      this.log('')
+
+      // function that applies the fix
+      return async (filename: string): Promise<void> => {
+        const contents = await readYamlFile(filename) as Yaml
+
+        contents.warehouses[data.warehouse].size = data.recommendedSize
+
+        await writeYamlFile(filename, contents)
+      }
+    }
+
+    this.log(color.gray(' . An automated fix isn\'t yet available for this issue, sorry!'))
     return null
   }
 }
