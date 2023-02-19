@@ -1,5 +1,4 @@
 import {Command, ux} from '@oclif/core'
-import color from '@oclif/color';
 
 export default class List extends Command {
   static description = 'List acccounts.'

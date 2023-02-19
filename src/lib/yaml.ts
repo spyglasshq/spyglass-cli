@@ -7,6 +7,7 @@ export type ObjectId = string;
 export interface Yaml {
   spyglass: YamlSpyglass;
   roleGrants: YamlRoles;
+  userGrants: YamlUserGrants;
   warehouses: YamlWarehouses;
 }
 
@@ -35,6 +36,14 @@ export interface YamlWarehouse {
   size: string;
   // eslint-disable-next-line camelcase
   auto_suspend: number;
+}
+
+export interface YamlUserGrants {
+  [username: string]: YamlUserGrant;
+}
+
+export interface YamlUserGrant {
+  roles: string[];
 }
 
 export interface YamlDiff {
