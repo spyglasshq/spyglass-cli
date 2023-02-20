@@ -87,8 +87,6 @@ export interface ObjectAccess {
   users: Record<string, unknown>[];
 }
 
-type Privileges = { [privilege: string]: Role[] }
-
 export function objectAccessFromYaml(yaml: Yaml, targetObjectId: string): ObjectAccess {
   const res = {
     objectId: targetObjectId,
