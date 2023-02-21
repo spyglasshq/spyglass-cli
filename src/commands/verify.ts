@@ -65,6 +65,10 @@ export default class Verify extends Command {
     }
 
     for (const issue of res.data.issues) {
+      if (issue.status === 'resolved') {
+        continue
+      }
+
       this.formatIssue(issue)
     }
   }

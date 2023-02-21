@@ -13,11 +13,14 @@ export interface IssueType {
   name: string;
 }
 
+export type IssueStatus = 'open' | 'resolved' | 'exempted'
+
 export interface Issue {
   id: string;
   issue: IssueType;
   category: string;
   data: DatabasePrivilege | SchemaPrivilege | WarehouseResize;
+  status: IssueStatus;
 }
 
 export interface DatabasePrivilege {
