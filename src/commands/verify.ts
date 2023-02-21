@@ -3,36 +3,8 @@ import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {getConfig} from '../lib/config'
 import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
-
-interface IssueType {
-  id: string;
-  name: string;
-}
-
-interface Issue {
-  id: string;
-  issue: IssueType;
-  category: string;
-  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize;
-}
-
-interface DatabasePrivilege {
-  database: string;
-  role: string;
-  privilege: string;
-}
-
-interface SchemaPrivilege {
-  schema: string;
-  role: string;
-  privilege: string;
-}
-
-interface WarehouseResize {
-  warehouse: string;
-  currentSize: string;
-  recommendedSize: string;
-}
+import {DatabasePrivilege, IssueDetail, ISSUE_HANDLERS, SchemaPrivilege, WarehouseResize} from '../lib/issues'
+import {printYamlDiff} from '../lib/print'
 
 export default class Verify extends Command {
   static description = 'Scan Spyglass configuration for any issues and provide recommendations.'
@@ -55,6 +27,7 @@ export default class Verify extends Command {
     const payload = {
       action: 'verify',
       files: [contents],
+      issueId: flags.fix,
     }
 
     ux.action.start('Verifying configuration')
@@ -67,7 +40,7 @@ export default class Verify extends Command {
     }
 
     if (flags.fix) {
-      const issue = res.data.issues.find((issue: any) => issue.id === flags.fix)
+      const issue = res.data
       if (!issue) {
         this.log('Issue not found')
         return
@@ -96,7 +69,7 @@ export default class Verify extends Command {
     }
   }
 
-  formatIssue(issue: Issue): void {
+  formatIssue(issue: IssueDetail): void {
     this.log(color.yellow(`${issue.issue.id}: ${issue.issue.name}`))
 
     switch (issue.issue.id) {
@@ -138,37 +111,12 @@ export default class Verify extends Command {
     this.log('')
   }
 
-  proposedChanges(issue: Issue): ((filename: string) => Promise<void>) | null {
+  proposedChanges(issue: IssueDetail): ((filename: string) => Promise<void>) | null {
     this.log(color.underline('Recommended Changes'))
-    if (issue.issue.id === 'SR1001') {
-      const data = issue.data as DatabasePrivilege
 
-      // print proposed changes
-      this.log(color.cyan(`@@ role:${data.role} @@`))
-      this.log(color.green(`+ ${data.privilege}:`))
-      this.log(color.green('+   database:'))
-      this.log(color.green(`+     - ${data.database}`))
-      this.log('')
-
-      // function that applies the fix
-      return async (filename: string): Promise<void> => {
-        const contents = await readYamlFile(filename) as Yaml
-        if (!contents.roleGrants[data.role][data.privilege]) {
-          contents.roleGrants[data.role][data.privilege] = {}
-        }
-
-        if (!contents.roleGrants[data.role][data.privilege].database) {
-          contents.roleGrants[data.role][data.privilege].database = []
-        }
-
-        contents.roleGrants[data.role][data.privilege].database.push(data.database)
-        await writeYamlFile(filename, contents)
-      }
-    }
+    printYamlDiff(this, issue.yamlDiff)
 
     if (issue.issue.id === 'SR1003') {
-      const data = issue.data as WarehouseResize
-
       const utilizationData = [
         {date: '2023-2-9', avgUtilization: '23%', peakUtilization: '36%', minsQueued: '0'},
         {date: '2023-2-10', avgUtilization: '22%', peakUtilization: '45%', minsQueued: '0'},
@@ -179,12 +127,6 @@ export default class Verify extends Command {
         {date: '2023-2-15', avgUtilization: '31%', peakUtilization: '41%', minsQueued: '0'},
       ]
 
-      // print proposed changes
-      this.log(color.cyan(`@@ warehouse:${data.warehouse} @@`))
-      this.log(color.green('+   size:'))
-      this.log(color.red(`-     - ${data.currentSize}`))
-      this.log(color.green(`+     - ${data.recommendedSize}`))
-      this.log('')
       this.log(color.underline('Details'))
       this.log(color.white('Projected Impact:'))
       this.log(`  ${color.gray('Roles:')}                   customer_support, product_managers`)
@@ -210,18 +152,20 @@ export default class Verify extends Command {
         printLine: this.log.bind(this),
       })
       this.log('')
+    }
 
-      // function that applies the fix
+    const handler = ISSUE_HANDLERS[issue.issue.id]
+    if (handler) {
       return async (filename: string): Promise<void> => {
         const contents = await readYamlFile(filename) as Yaml
 
-        contents.warehouses[data.warehouse].size = data.recommendedSize
+        const updatedContents = handler.fixYaml(contents, issue.data)
 
-        await writeYamlFile(filename, contents)
+        await writeYamlFile(filename, updatedContents)
       }
     }
 
-    this.log(color.gray(' . An automated fix isn\'t yet available for this issue, sorry!'))
+    this.log(color.gray('  An automated fix isn\'t yet available for this issue, sorry!'))
     return null
   }
 }

@@ -47,8 +47,9 @@ export interface YamlUserGrant {
 }
 
 export interface YamlDiff {
-  added: YamlRoles;
-  deleted: YamlRoles
+  added: Yaml;
+  deleted: Yaml;
+  updated: Yaml;
 }
 
 export async function readYamlFile(filename: string): Promise<Yaml> {
