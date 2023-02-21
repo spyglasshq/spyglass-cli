@@ -40,6 +40,7 @@ export interface WarehouseResize {
 
 export interface IssueDetail extends Issue {
   yamlDiff: YamlDiff;
+  sqlCommands: string[];
 }
 
 export const ISSUE_HANDLERS: IssueHandlers = {
