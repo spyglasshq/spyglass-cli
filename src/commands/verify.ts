@@ -72,40 +72,14 @@ export default class Verify extends Command {
   formatIssue(issue: IssueDetail): void {
     this.log(color.yellow(`${issue.issue.id}: ${issue.issue.name}`))
 
-    switch (issue.issue.id) {
-    case 'SR1001': {
-      const data = issue.data as DatabasePrivilege
-      this.log(`  ${color.gray('ID:')}                ${issue.id}`)
-      this.log(`  ${color.gray('Role:')}              ${data.role}`)
-      this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
-      this.log(`  ${color.gray('On Database:')}       ${data.database}`)
-
-      break
+    let columnWidth = 0
+    for (const key of Object.keys(issue.data)) {
+      columnWidth = Math.max(columnWidth, key.length + 1)
     }
 
-    case 'SR1002': {
-      const data = issue.data as SchemaPrivilege
-      this.log(`  ${color.gray('ID:')}                ${issue.id}`)
-      this.log(`  ${color.gray('Role:')}              ${data.role}`)
-      this.log(`  ${color.gray('Needs Privilege:')}   ${data.privilege}`)
-      this.log(`  ${color.gray('On Schema:')}         ${data.schema}`)
-
-      break
-    }
-
-    case 'SR1003': {
-      const data = issue.data as WarehouseResize
-      this.log(`  ${color.gray('ID:')}                     ${issue.id}`)
-      this.log(`  ${color.gray('Warehouse:')}              ${data.warehouse}`)
-      this.log(`  ${color.gray('Current Size:')}           ${data.currentSize}`)
-      this.log(`  ${color.gray('Recommended Size:')}       ${data.recommendedSize}`)
-
-      break
-    }
-
-    default: {
-      this.log(`   ${color.gray(JSON.stringify(issue.data))}`)
-    }
+    for (const [key, value] of Object.entries(issue.data)) {
+      const name = key[0].toUpperCase() + key.slice(1) + ':'
+      this.log(`  ${color.gray(name.padEnd(columnWidth, ' '))}   ${value}`)
     }
 
     this.log('')
