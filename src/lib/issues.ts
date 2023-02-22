@@ -19,7 +19,7 @@ export interface Issue {
   id: string;
   issue: IssueType;
   category: string;
-  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize;
+  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize | RecreatedObjectAccess;
   status: IssueStatus;
 }
 
@@ -39,6 +39,12 @@ export interface WarehouseResize {
   warehouse: string;
   currentSize: string;
   recommendedSize: string;
+}
+
+export interface RecreatedObjectAccess {
+  objectType: string;
+  objectId: string;
+  rolePermissions: [string, string][];
 }
 
 export interface IssueDetail extends Issue {
@@ -73,5 +79,25 @@ export const ISSUE_HANDLERS: IssueHandlers = {
 
       return contents
     },
-  }
+  },
+
+  SR1008: {
+    fixYaml: (contents: Yaml, _data: unknown) => {
+      const data = _data as RecreatedObjectAccess
+
+      for (const [role, permission] of data.rolePermissions) {
+        if (!contents.roleGrants[role][permission]) {
+          contents.roleGrants[role][permission] = {}
+        }
+
+        if (!contents.roleGrants[role][permission][data.objectType]) {
+          contents.roleGrants[role][permission][data.objectType] = []
+        }
+
+        contents.roleGrants[role][permission][data.objectType].push(data.objectId);
+      }
+
+      return contents
+    },
+  },
 }
