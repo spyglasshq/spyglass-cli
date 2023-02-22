@@ -81,7 +81,9 @@ export default class Verify extends Command {
       columnWidth = Math.max(columnWidth, key.length + 1)
     }
 
-    for (const [key, value] of Object.entries(issue.data)) {
+    const keyValues = [['id', issue.id], ...Object.entries(issue.data)]
+
+    for (const [key, value] of keyValues) {
       const name = key[0].toUpperCase() + key.slice(1) + ':'
       this.log(`  ${color.gray(name.padEnd(columnWidth, ' '))}   ${value}`)
     }
