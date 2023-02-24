@@ -1,14 +1,20 @@
 import git = require('isomorphic-git')
 import fs = require('fs')
+import path = require('path')
 
 export async function readFileAtBranch(filepath: string, branch: string): Promise<string> {
-  const commitOid = await git.resolveRef({fs, dir: '.', ref: branch})
+  const gitRoot = await git.findRoot({
+    fs,
+    filepath: path.resolve('.'),
+  })
+
+  const commitOid = await git.resolveRef({fs, dir: gitRoot, ref: branch})
 
   const {blob} = await git.readBlob({
     fs,
-    dir: '.',
+    dir: gitRoot,
     oid: commitOid,
-    filepath: filepath,
+    filepath,
   })
 
   return Buffer.from(blob).toString('utf8')

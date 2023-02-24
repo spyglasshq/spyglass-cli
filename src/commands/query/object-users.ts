@@ -3,7 +3,7 @@ import {objectAccessFromYaml} from '../../lib/query'
 import {readYamlFile} from '../../lib/yaml'
 
 export default class ObjectUsers extends Command {
-  static description = 'Get a list of roles a user has access to.'
+  static description = 'Get a list of users that have access to an object.'
 
   static args = {
     filepath: Args.string({description: 'Current account configuration yaml.', required: true}),
