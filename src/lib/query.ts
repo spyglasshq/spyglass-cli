@@ -117,7 +117,7 @@ export function objectAccessFromYaml(yaml: Yaml, targetObjectId: string): Object
 
         for (const objectId of objectIds) {
           if (objectId === targetObjectId) {
-            const finalRole = role.parents[0]
+            const finalRole = role.parents[0] ?? role.name
 
             for (const username of rolesToUsers?.[finalRole]?.users ?? []) {
               res.users.push({
