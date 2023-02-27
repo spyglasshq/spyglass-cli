@@ -1,3 +1,5 @@
+import {webcrypto} from 'node:crypto'
+import {IssueType, ISSUES} from './issue-list'
 import {Yaml, YamlDiff} from './yaml'
 
 interface IssueHandlers {
@@ -6,19 +8,14 @@ interface IssueHandlers {
 
 interface IssueHandler {
   fixYaml: (original: Yaml, data: unknown) => Yaml;
-}
-
-export interface IssueType {
-  id: string;
-  name: string;
+  findIssues: (yaml: Yaml) => Issue[];
 }
 
 export type IssueStatus = 'open' | 'resolved' | 'exempted'
 
 export interface Issue {
-  id: string;
+  id?: string;
   issue: IssueType;
-  category: string;
   data: DatabasePrivilege | SchemaPrivilege | WarehouseResize | RecreatedObjectAccess;
   status: IssueStatus;
 }
@@ -69,6 +66,31 @@ export const ISSUE_HANDLERS: IssueHandlers = {
 
       return contents
     },
+
+    findIssues: (yaml: Yaml): Issue[] => {
+      const issues: Issue[] = []
+
+      // TODO(tyler): make this work for all objects (not just views) and all privs (not just select)
+
+      for (const [roleName, role] of Object.entries(yaml.roleGrants)) {
+        for (const objectId of (role?.select?.view ?? [])) {
+          const [database] = objectId.split('.')
+          if (!role.usage?.database?.includes(database)) {
+            issues.push({
+              issue: ISSUES.SR1001,
+              data: {
+                role: roleName,
+                privilege: 'usage',
+                database,
+              },
+              status: 'open',
+            })
+          }
+        }
+      }
+
+      return issues
+    },
   },
 
   SR1003: {
@@ -78,6 +100,10 @@ export const ISSUE_HANDLERS: IssueHandlers = {
       contents.warehouses[data.warehouse].size = data.recommendedSize
 
       return contents
+    },
+
+    findIssues: (): Issue[] => {
+      return []
     },
   },
 
@@ -94,10 +120,37 @@ export const ISSUE_HANDLERS: IssueHandlers = {
           contents.roleGrants[role][permission][data.objectType] = []
         }
 
-        contents.roleGrants[role][permission][data.objectType].push(data.objectId);
+        contents.roleGrants[role][permission][data.objectType].push(data.objectId)
       }
 
       return contents
     },
+
+    findIssues: (): Issue[] => {
+      return []
+    },
   },
+}
+
+export async function findIssues(yaml: Yaml): Promise<Issue[]> {
+  let issues: Issue[] = []
+
+  for (const issueHandler of Object.values(ISSUE_HANDLERS)) {
+    issues = [...issues, ...issueHandler.findIssues(yaml)]
+  }
+
+  for (const issue of issues) {
+    // eslint-disable-next-line no-await-in-loop
+    issue.id = (await sha256(issue.data)).slice(0, 12)
+  }
+
+  return issues.sort((a, b) => (a.id ?? 0) > (b.id ?? 0) ? -1 : 1)
+}
+
+async function sha256(obj: unknown): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(JSON.stringify(obj))
+  const hash = await webcrypto.subtle.digest('SHA-256', data)
+  const hashArray = [...new Uint8Array(hash)]
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }

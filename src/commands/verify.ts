@@ -1,10 +1,11 @@
 import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
-import {getConfig} from '../lib/config'
+import {Config, getConfig} from '../lib/config'
 import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
-import {DatabasePrivilege, IssueDetail, ISSUE_HANDLERS, SchemaPrivilege, WarehouseResize} from '../lib/issues'
+import {Issue, IssueDetail, ISSUE_HANDLERS} from '../lib/issues'
 import {printYamlDiff} from '../lib/print'
+import {verifySnowflake} from '../lib/spyglass'
 
 export default class Verify extends Command {
   static description = 'Scan Spyglass configuration for any issues and provide recommendations.'
@@ -20,27 +21,24 @@ export default class Verify extends Command {
   async run(): Promise<void> {
     const {args, flags} = await this.parse(Verify)
 
-    const cfg = await getConfig(this.config.configDir)
-
-    const contents = await readYamlFile(args.filename)
-
-    const payload = {
-      action: 'verify',
-      files: [contents],
-      issueId: flags.fix,
-    }
+    let res
 
     ux.action.start('Verifying configuration')
-    const res = await apiCall(cfg, payload)
-    ux.action.stop()
+    try {
+      const cfg = await getConfig(this.config.configDir)
+      const yaml = await readYamlFile(args.filename)
+      res = await this.fetchVerify(cfg, yaml, flags.fix)
 
-    if (res.data.error) {
-      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
-      return
+      ux.action.stop()
+    } catch (error: any) {
+      ux.action.stop()
+      this.log(`Encountered an error: ${error.message}`)
     }
 
+    ux.action.stop()
+
     if (flags.fix) {
-      const issue = res.data
+      const issue = res as IssueDetail
       if (!issue) {
         this.log('Issue not found')
         return
@@ -64,7 +62,7 @@ export default class Verify extends Command {
       return
     }
 
-    for (const issue of res.data.issues) {
+    for (const issue of res as Issue[]) {
       if (issue.status === 'resolved') {
         continue
       }
@@ -73,7 +71,26 @@ export default class Verify extends Command {
     }
   }
 
-  formatIssue(issue: IssueDetail): void {
+  async fetchVerify(cfg: Config, yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
+    if (cfg?.cloudMode) {
+      const payload = {
+        action: 'verify',
+        files: [yaml],
+        issueId,
+      }
+      const res = await apiCall(cfg, payload)
+
+      if (res.data.error) {
+        throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      }
+
+      return res.data
+    }
+
+    return verifySnowflake(yaml, issueId)
+  }
+
+  formatIssue(issue: IssueDetail | Issue): void {
     this.log(color.yellow(`${issue.issue.id}: ${issue.issue.name}`))
 
     let columnWidth = 0
@@ -84,6 +101,8 @@ export default class Verify extends Command {
     const keyValues = [['id', issue.id], ...Object.entries(issue.data)]
 
     for (const [key, value] of keyValues) {
+      if (!key) continue
+
       const name = key[0].toUpperCase() + key.slice(1) + ':'
       this.log(`  ${color.gray(name.padEnd(columnWidth, ' '))}   ${value}`)
     }

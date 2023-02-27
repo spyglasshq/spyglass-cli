@@ -1,3 +1,4 @@
+import {findIssues, Issue, IssueDetail} from './issues'
 import {getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses} from './snowflake'
 import {Yaml, yamlFromRoleGrants} from './yaml'
 
@@ -14,4 +15,14 @@ export async function importSnowflake(accountId: string): Promise<Yaml> {
   }
 
   return yamlFromRoleGrants(accountId, grants.roleGrants, grants.userGrants, grants.warehouses)
+}
+
+export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
+  if (issueId) {
+    throw new Error('issue detail not implemented')
+    // const issue = await getIssueDetail(yaml, issueId)
+    // return issue
+  }
+
+  return findIssues(yaml)
 }
