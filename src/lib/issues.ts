@@ -1,6 +1,6 @@
 import {webcrypto} from 'node:crypto'
 import {IssueType, ISSUES} from './issue-list'
-import {Yaml, YamlDiff} from './yaml'
+import {diffYaml, Yaml, YamlDiff} from './yaml'
 
 interface IssueHandlers {
   [id: string]: IssueHandler;
@@ -153,4 +153,28 @@ async function sha256(obj: unknown): Promise<string> {
   const hash = await webcrypto.subtle.digest('SHA-256', data)
   const hashArray = [...new Uint8Array(hash)]
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+export async function getIssueDetail(yaml: Yaml, issueId: string): Promise<IssueDetail> {
+  const issues = await findIssues(yaml)
+  const foundIssue = issues.filter(issue => issue.id === issueId)
+  if (!foundIssue || foundIssue.length === 0) {
+    throw new Error('issue not found')
+  }
+
+  const issue = foundIssue[0];
+  const yamlDiff = getYamlDiff(yaml, issue)
+  const sqlCommands: string[] = []
+
+  return {
+    yamlDiff,
+    sqlCommands,
+    ...issue,
+  }
+}
+
+function getYamlDiff(current: Yaml, issue: Issue): YamlDiff {
+  const currentCopy = JSON.parse(JSON.stringify(current));
+  const proposed = ISSUE_HANDLERS[issue.issue.id]?.fixYaml(currentCopy, issue.data) ?? currentCopy;
+  return diffYaml(current, proposed)
 }
