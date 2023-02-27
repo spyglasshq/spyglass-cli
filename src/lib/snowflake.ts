@@ -43,7 +43,7 @@ export interface ConnectionConfig {
   authenticator?: string;
 }
 
-export async function getConfig(): Promise<Config | null> {
+export async function getSnowflakeConfig(): Promise<Config | null> {
   try {
     const data = await readFile(SNOWSQL_CONFIG_FILE)
     return toml.parse(data.toString())
@@ -65,18 +65,22 @@ export async function saveConfig(config: any): Promise<void> {
   await fs.chmod(SNOWSQL_CONFIG_FILE, 0o600)
 }
 
-export async function checkConnection(account: string): Promise<void> {
-  const config = await getConfig()
-  const connConfig = config?.connections?.[account]
+export async function getConn(accountId: string): Promise<Connection> {
+  const config = await getSnowflakeConfig()
+  const connConfig = config?.connections?.[accountId]
   if (!connConfig) {
-    throw new Error(`Failed to find connection config for account "${account}", please run "spyglass accounts:auth ${account}"`)
+    throw new Error(`Failed to find connection config for account "${accountId}", please run "spyglass accounts:auth ${accountId}"`)
   }
 
-  const conn = await getConnection(connConfig)
-  await _sqlQuery(conn, 'SELECT 1;', [])
+  return getConnection(connConfig)
 }
 
-async function _sqlQuery(conn: Connection, sqlText: string, binds: Binds): Promise<any[]> {
+export async function checkConnection(accountId: string): Promise<void> {
+  const conn = await getConn(accountId)
+  await sqlQuery(conn, 'SELECT 1;', [])
+}
+
+async function sqlQuery(conn: Connection, sqlText: string, binds: Binds): Promise<any[]> {
   return new Promise((resolve, reject) => {
     conn.execute({
       sqlText,
@@ -93,6 +97,50 @@ async function _sqlQuery(conn: Connection, sqlText: string, binds: Binds): Promi
           reject(new Error('no rows'))
         }
       },
-    });
-  });
+    })
+  })
+}
+
+const grantsToRolesQuery = 'select * from snowflake.account_usage.grants_to_roles;'
+
+export interface RoleGrant {
+  PRIVILEGE: string;
+  TABLE_CATALOG: string;
+  TABLE_SCHEMA: string;
+  NAME: string;
+  GRANTED_ON: string;
+  GRANTED_TO: string;
+  GRANTEE_NAME: string;
+}
+
+export async function listGrantsToRoles(conn: Connection): Promise<RoleGrant[]> {
+  return sqlQuery(conn, grantsToRolesQuery, [])
+}
+
+const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users;'
+
+export interface UserGrant {
+  CREATED_ON: string;
+  DELETED_ON: string;
+  ROLE: string;
+  GRANTED_TO: string;
+  GRANTEE_NAME: string;
+  GRANTED_BY: string;
+}
+
+export async function listGrantsToUsers(conn: Connection): Promise<UserGrant[]> {
+  return sqlQuery(conn, grantsToUsersQuery, [])
+}
+
+const showWarehousesQuery = 'show warehouses;'
+
+export interface Warehouse {
+  name: string;
+  size: string;
+  // eslint-disable-next-line camelcase
+  auto_suspend: number;
+}
+
+export async function showWarehouses(conn: Connection): Promise<Warehouse[]> {
+  return sqlQuery(conn, showWarehousesQuery, [])
 }

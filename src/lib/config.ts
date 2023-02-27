@@ -6,6 +6,7 @@ const configFile = 'config.json'
 
 export interface Config {
   dev?: boolean;
+  cloudMode?: boolean;
   teamId?: string;
   personalAccessToken?: string;
 }
