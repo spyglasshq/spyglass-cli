@@ -1,5 +1,5 @@
 import {Args, Command, Flags, ux} from '@oclif/core'
-import {AUTHENTICATOR_PASSWORD, checkConnection, Config, getConfig, saveConfig} from '../../lib/snowflake'
+import {AUTHENTICATOR_PASSWORD, checkConnection, Config, getSnowflakeConfig, saveConfig} from '../../lib/snowflake'
 
 export default class Auth extends Command {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
@@ -15,7 +15,7 @@ export default class Auth extends Command {
   async run(): Promise<void> {
     const {args, flags} = await this.parse(Auth)
 
-    const config = await getConfig()
+    const config = await getSnowflakeConfig()
 
     const existingConn = Object.values(config?.connections ?? {})?.find(conn => conn?.accountname === args.accountId)
     if (existingConn) {
