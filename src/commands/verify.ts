@@ -84,7 +84,7 @@ export default class Verify extends Command {
         throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
       }
 
-      return res.data
+      return res.data.issues ?? res.data
     }
 
     return verifySnowflake(yaml, issueId)
