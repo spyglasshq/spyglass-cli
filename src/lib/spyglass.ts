@@ -24,3 +24,12 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
 
   return findIssues(yaml)
 }
+
+export async function syncSnowflake(yaml: Yaml): Promise<Yaml> {
+  const latestYaml = await importSnowflake(yaml.spyglass.accountId)
+
+  latestYaml.spyglass = yaml.spyglass
+  latestYaml.spyglass.lastSyncedMs = Date.now()
+
+  return latestYaml
+}
