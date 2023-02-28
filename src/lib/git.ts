@@ -14,7 +14,7 @@ export async function readFileAtBranch(filepath: string, branch: string): Promis
     fs,
     dir: gitRoot,
     oid: commitOid,
-    filepath,
+    filepath: path.relative(gitRoot, filepath),
   })
 
   return Buffer.from(blob).toString('utf8')

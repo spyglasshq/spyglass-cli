@@ -1,9 +1,11 @@
 import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
-import {getConfig} from '../lib/config'
-import {parseYamlFile, readYamlFile} from '../lib/yaml'
+import {Config, getConfig} from '../lib/config'
+import {parseYamlFile, readYamlFile, Yaml} from '../lib/yaml'
 import {readFileAtBranch} from '../lib/git'
+import {applySnowflake} from '../lib/spyglass';
+import { AppliedCommand } from '../lib/snowflake';
 
 export default class Apply extends Command {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
@@ -21,35 +23,28 @@ export default class Apply extends Command {
   async run(): Promise<void> {
     const {args, flags} = await this.parse(Apply)
 
-    const cfg = await getConfig(this.config.configDir)
-
     const filepath = args.filepath
+
+    let sqlCommands: AppliedCommand[] = []
 
     const proposed = await readYamlFile(filepath)
     const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
 
-    const payload = {
-      action: 'apply',
-      dryRun: true, // first run is always dry, so we can show user what will happen
-      currentFiles: [current],
-      proposedFiles: [proposed],
-    }
+    ux.action.start('Checking current Snowflake configuration')
+    try {
+      const cfg = await getConfig(this.config.configDir)
+      sqlCommands = await this.fetchApply(cfg, current, proposed, true /* dryRun */) // first run is always dry, so we can show user what will happen
 
-    ux.action.start('Fetching current Snowflake configuration')
-    const res = await apiCall(cfg, payload)
-    ux.action.stop()
-
-    if (res.data.error) {
-      this.log(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
-      return
+      ux.action.stop()
+    } catch (error: any) {
+      ux.action.stop()
+      this.log(`Encountered an error: ${error.message}`)
     }
 
     // Print SQL differences.
-    for (const [accountId, commands] of Object.entries(res.data.sqlCommands)) {
-      this.log(color.bold(`Account ${accountId} SQL updates:`))
-      for (const command of commands as string[]) {
-        this.log(color.cyan(`  ${command}`))
-      }
+    for (const command of sqlCommands) {
+      this.log(color.bold(`Account ${current.spyglass.accountId} SQL updates:`))
+      this.log(color.cyan(`  ${command.sql}`))
     }
 
     // We can exit if this is a dry run.
@@ -70,18 +65,43 @@ export default class Apply extends Command {
     }
 
     // Apply configuration to production.
-    payload.dryRun = false
-    ux.action.start('Applying updated Snowflake configuration')
-    const res2 = await apiCall(cfg, payload)
-    ux.action.stop()
+    let res2
 
-    if (res2.data.error) {
-      this.log(`Encountered an error: ${res2.data.error}, code: ${res2.data.code}`)
-      return
+    ux.action.start('Applying updated Snowflake configuration')
+    try {
+      const cfg = await getConfig(this.config.configDir)
+      const proposed = await readYamlFile(filepath)
+      const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
+      res2 = await this.fetchApply(cfg, current, proposed, false /* dryRun */)
+
+      ux.action.stop()
+    } catch (error: any) {
+      ux.action.stop()
+      this.log(`Encountered an error: ${error.message}`)
     }
 
     this.log(color.bold('Success!'))
 
-    this.log(JSON.stringify(res2.data))
+    this.log(JSON.stringify(res2))
+  }
+
+  async fetchApply(cfg: Config, current: Yaml, proposed: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
+    if (cfg?.cloudMode) {
+      const payload = {
+        action: 'apply',
+        dryRun,
+        currentFiles: [current],
+        proposedFiles: [proposed],
+      }
+
+      const res = await apiCall(cfg, payload)
+      if (res.data.error) {
+        throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+      }
+
+      return res.data
+    }
+
+    return applySnowflake(current, proposed, dryRun)
   }
 }

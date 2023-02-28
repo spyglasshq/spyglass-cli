@@ -1,6 +1,6 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses} from './snowflake'
-import {Yaml, yamlFromRoleGrants} from './yaml'
+import {AppliedCommand, executeCommands, getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
+import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
 export async function importSnowflake(accountId: string): Promise<Yaml> {
   const conn = await getConn(accountId)
@@ -32,4 +32,16 @@ export async function syncSnowflake(yaml: Yaml): Promise<Yaml> {
   latestYaml.spyglass.lastSyncedMs = Date.now()
 
   return latestYaml
+}
+
+export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
+  // Compute raw yaml differences.
+  const yamlDiff = diffYaml(currentYaml, proposedYaml)
+
+  // Convert differences to SQL commands.
+  const sqlDiff = sqlCommandsFromYamlDiff(yamlDiff)
+
+  // TODO(tyler): do we need to fetch current objects in order to decide whether to create or alter?
+
+  return executeCommands(currentYaml.spyglass.accountId, sqlDiff, dryRun)
 }
