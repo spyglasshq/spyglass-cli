@@ -1,0 +1,14 @@
+name: 'Spyglass'
+description: 'Apply Spyglass configuration changes.'
+inputs:
+  filepath:
+    description: 'Filepath of Spyglass config YAML.'
+    required: true
+outputs:
+  result:
+    description: 'The result of the apply run.'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.filepath }}
