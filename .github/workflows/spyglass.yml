@@ -1,0 +1,19 @@
+on: [push]
+
+jobs:
+  spyglass_job:
+    runs-on: ubuntu-latest
+    name: Spyglass apply job
+    steps:
+      # To use this repository's private action,
+      # you must check out the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Spyglass apply step
+        uses: ./github-action # Uses an action in the root directory
+        id: spyglass
+        with:
+          filepath: 'testfilename.txt'
+      # Use the output from the `spyglass` step
+      - name: Get the result
+        run: echo "${{ steps.spyglass.outputs.result }}"
