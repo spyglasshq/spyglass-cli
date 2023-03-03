@@ -4,6 +4,8 @@ import {apiCall} from '../lib/api'
 import {createOrUpdateConfig} from '../lib/config'
 
 export default class Login extends Command {
+  static hidden = true
+
   static description = 'Log in to your Spyglass account.'
 
   async run(): Promise<void> {

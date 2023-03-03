@@ -3,10 +3,10 @@ import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
-import { syncSnowflake } from '../lib/spyglass';
+import {syncSnowflake} from '../lib/spyglass'
 
 export default class Sync extends Command {
-  static description = 'Update an existing yaml file using database\' current configuration.'
+  static description = 'Update an existing yaml file using the database\'s current configuration.'
 
   static args = {
     filename: Args.string({description: 'File to sync to.', required: true}),
