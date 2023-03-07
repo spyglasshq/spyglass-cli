@@ -1,11 +1,12 @@
-import {Args, Command, ux} from '@oclif/core'
+import {Args, ux} from '@oclif/core'
+import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
 import {syncSnowflake} from '../lib/spyglass'
 
-export default class Sync extends Command {
+export default class Sync extends BaseCommand {
   static description = 'Update an existing yaml file using the database\'s current configuration.'
 
   static args = {
@@ -13,18 +14,18 @@ export default class Sync extends Command {
   }
 
   async run(): Promise<void> {
-    const {args} = await this.parse(Sync)
+    const {args, flags} = await this.parse(Sync)
 
     const cfg = await getConfig(this.config.configDir)
 
-    const yaml = await readYamlForAccountId(args['account-id'])
+    const yaml = await readYamlForAccountId(args['account-id'], flags.dir)
 
     ux.action.start('Fetching current Snowflake configuration')
     try {
       const newYaml = await this.fetchSync(cfg, yaml)
       ux.action.stop()
 
-      writeYamlForAccountId(args['account-id'], newYaml)
+      writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
 
       this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {

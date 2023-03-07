@@ -1,4 +1,5 @@
-import {Args, Command, Flags, ux} from '@oclif/core'
+import {Args, Flags, ux} from '@oclif/core'
+import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
@@ -7,7 +8,7 @@ import {Issue, IssueDetail, ISSUE_HANDLERS} from '../lib/issues'
 import {printYamlDiff} from '../lib/print'
 import {verifySnowflake} from '../lib/spyglass'
 
-export default class Verify extends Command {
+export default class Verify extends BaseCommand {
   static description = 'Scan Spyglass configuration for any issues and provide recommendations.'
 
   static flags = {
@@ -26,7 +27,7 @@ export default class Verify extends Command {
     ux.action.start('Verifying configuration')
     try {
       const cfg = await getConfig(this.config.configDir)
-      const yaml = await readYamlForAccountId(args['account-id'])
+      const yaml = await readYamlForAccountId(args['account-id'], flags.dir)
       res = await this.fetchVerify(cfg, yaml, flags.fix)
 
       ux.action.stop()
@@ -46,7 +47,7 @@ export default class Verify extends Command {
       }
 
       this.formatIssue(issue)
-      const fixit = this.proposedChanges(issue)
+      const fixit = this.proposedChanges(issue, flags.dir)
 
       if (!fixit) {
         return
@@ -111,7 +112,7 @@ export default class Verify extends Command {
     this.log('')
   }
 
-  proposedChanges(issue: IssueDetail): ((accountId: string) => Promise<void>) | null {
+  proposedChanges(issue: IssueDetail, dir = '.'): ((accountId: string) => Promise<void>) | null {
     this.log(color.underline('Recommended Changes'))
 
     printYamlDiff(this, issue.yamlDiff)
@@ -161,7 +162,7 @@ export default class Verify extends Command {
 
         const updatedContents = handler.fixYaml(contents, issue.data)
 
-        await writeYamlForAccountId(accountId, updatedContents)
+        await writeYamlForAccountId(accountId, updatedContents, dir)
       }
     }
 

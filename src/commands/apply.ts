@@ -1,4 +1,5 @@
-import {Args, Command, Flags, ux} from '@oclif/core'
+import {Args, Flags, ux} from '@oclif/core'
+import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
@@ -7,7 +8,7 @@ import {readYamlAtBranch} from '../lib/git'
 import {applySnowflake} from '../lib/spyglass'
 import {AppliedCommand} from '../lib/snowflake'
 
-export default class Apply extends Command {
+export default class Apply extends BaseCommand {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
 
   static flags = {
@@ -25,8 +26,8 @@ export default class Apply extends Command {
 
     let sqlCommands: AppliedCommand[] = []
 
-    const proposed = await readYamlForAccountId(args['account-id'])
-    const current = await readYamlAtBranch(args['account-id'], flags['git-ref'])
+    const proposed = await readYamlForAccountId(args['account-id'], flags.dir)
+    const current = await readYamlAtBranch(args['account-id'], flags['git-ref'], flags.dir)
 
     ux.action.start('Checking current Snowflake configuration')
     try {
@@ -69,7 +70,7 @@ export default class Apply extends Command {
     try {
       const cfg = await getConfig(this.config.configDir)
       const proposed = await readYamlForAccountId(args['account-id'])
-      const current = await readYamlAtBranch(args['account-id'], flags['git-ref'])
+      const current = await readYamlAtBranch(args['account-id'], flags['git-ref'], flags.dir)
       res2 = await this.fetchApply(cfg, current, proposed, false /* dryRun */)
 
       ux.action.stop()

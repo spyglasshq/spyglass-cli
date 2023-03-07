@@ -1,8 +1,9 @@
-import {Command, Args, ux} from '@oclif/core'
+import {Args, ux} from '@oclif/core'
+import {BaseCommand} from '../../lib/cmd'
 import {userRolesFromYaml} from '../../lib/query'
 import {readYamlForAccountId} from '../../lib/yaml'
 
-export default class UserObjects extends Command {
+export default class UserObjects extends BaseCommand {
   static description = 'Get a list of roles a user has access to.'
 
   static args = {
@@ -11,9 +12,9 @@ export default class UserObjects extends Command {
   }
 
   async run(): Promise<void> {
-    const {args} = await this.parse(UserObjects)
+    const {args, flags} = await this.parse(UserObjects)
 
-    const yaml = await readYamlForAccountId(args.accountId)
+    const yaml = await readYamlForAccountId(args.accountId, flags.dir)
 
     const userRoles = userRolesFromYaml(yaml, args.username)
 

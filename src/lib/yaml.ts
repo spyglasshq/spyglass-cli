@@ -3,7 +3,8 @@ import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
 import {RoleGrant, UserGrant, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
-import { exists } from 'fs-extra'
+import {exists} from 'fs-extra'
+import path = require('node:path')
 
 export type Platform = 'snowflake' | 'unspecified';
 export type ObjectId = string;
@@ -57,8 +58,8 @@ export interface YamlDiff {
   updated: Yaml;
 }
 
-export async function readYamlForAccountId(accountId: string): Promise<Yaml> {
-  const singleYamlFilename = `${accountId}.yaml`
+export async function readYamlForAccountId(accountId: string, dir = '.'): Promise<Yaml> {
+  const singleYamlFilename = path.join(dir, `${accountId}.yaml`)
 
   if (await exists(singleYamlFilename)) {
     return readYamlFile(singleYamlFilename)
@@ -77,8 +78,8 @@ export async function parseYamlFile(contents: string): Promise<Yaml> {
   return parse(contents)
 }
 
-export async function writeYamlForAccountId(accountId: string, yaml: Yaml): Promise<void> {
-  const singleYamlFilename = `${accountId}.yaml`
+export async function writeYamlForAccountId(accountId: string, yaml: Yaml, dir = '.'): Promise<void> {
+  const singleYamlFilename = path.join(dir, `${accountId}.yaml`)
   // HACK: doesn't yet support multi file
   return writeYamlFile(singleYamlFilename, yaml)
 }

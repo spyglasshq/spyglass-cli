@@ -1,8 +1,9 @@
-import {Command, Args, ux} from '@oclif/core'
+import {Args, ux} from '@oclif/core'
+import {BaseCommand} from '../../lib/cmd'
 import {objectAccessFromYaml} from '../../lib/query'
 import {readYamlForAccountId} from '../../lib/yaml'
 
-export default class ObjectUsers extends Command {
+export default class ObjectUsers extends BaseCommand {
   static description = 'Get a list of users that have access to an object.'
 
   static args = {
@@ -11,9 +12,9 @@ export default class ObjectUsers extends Command {
   }
 
   async run(): Promise<void> {
-    const {args} = await this.parse(ObjectUsers)
+    const {args, flags} = await this.parse(ObjectUsers)
 
-    const yaml = await readYamlForAccountId(args.accountId)
+    const yaml = await readYamlForAccountId(args.accountId, flags.dir)
 
     const objectAccess = objectAccessFromYaml(yaml, args['object-id'])
 
