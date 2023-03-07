@@ -38,6 +38,7 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
+      return
     }
 
     // Print SQL differences.
@@ -48,7 +49,7 @@ export default class Apply extends BaseCommand {
 
     // We can exit if this is a dry run.
     if (flags['dry-run']) {
-      this.log('Exit: User specified dry run.')
+      this.log('✅ Exit: User specified dry run.')
       return
     }
 
@@ -77,6 +78,7 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
+      return
     }
 
     this.log(color.bold('Success!'))

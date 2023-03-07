@@ -14,7 +14,8 @@ export interface Config {
 export async function getConfig(configDir: string): Promise<Config> {
   const filepath = path.join(configDir, configFile)
   try {
-    return fs.readJSON(filepath)
+    const cfg = await fs.readJSON(filepath)
+    return cfg
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       return {}
