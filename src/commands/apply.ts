@@ -13,7 +13,7 @@ export default class Apply extends Command {
   static flags = {
     'dry-run': Flags.boolean({description: 'Dry run', default: false}),
     confirm: Flags.boolean({description: 'Skip the interactive prompt (used in CI)', default: false}),
-    branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master'}),
+    branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master', aliases: ['git-ref']}),
   }
 
   static args = {
