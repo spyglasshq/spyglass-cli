@@ -31,7 +31,7 @@ export default class Ahoy extends Command {
     this.log('')
     this.log(color.bold('Getting Started'))
     this.log('')
-    this.log('  Run "spyglass login" to get started!')
+    this.log('  Run "spyglass accounts:auth" to get started!')
     this.log('')
   }
 }
