@@ -9,6 +9,12 @@ jobs:
       # you must check out the repository
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install spyglass
+        run: npm install -g spyglass-cli
       - name: Spyglass apply step
         uses: ./github-action # Uses an action in the root directory
         id: spyglass
