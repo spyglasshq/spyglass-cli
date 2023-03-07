@@ -16,8 +16,5 @@ jobs:
       - name: Install spyglass CLI
         run: npm install -g spyglass-cli
 
-      - name: Git info
-        run: echo "before - ${{ github.event.before }} .. base_ref - ${{ github.event.base_ref }}"
-
       - name: Apply spyglass configuration to production
-        run: spyglass apply --dry-run skigdyn-wu58851
+        run: spyglass apply --dry-run skigdyn-wu58851 --git-ref "${{ github.event.before }}"
