@@ -2,14 +2,14 @@ import {Args, Command, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
-import {writeYamlFile, Yaml} from '../lib/yaml'
+import {writeYamlForAccountId, Yaml} from '../lib/yaml'
 import {importSnowflake} from '../lib/spyglass'
 
 export default class Import extends Command {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
 
   static args = {
-    accountId: Args.string({description: 'Account id to fetch configuration for.', required: true}),
+    accountId: Args.string({description: 'Account id to fetch configuration from.', required: true}),
   }
 
   async run(): Promise<void> {
@@ -22,10 +22,9 @@ export default class Import extends Command {
       const yaml = await this.fetchYaml(cfg, args.accountId)
       ux.action.stop()
 
-      const filename = args.accountId + '.yaml'
-      writeYamlFile(filename, yaml)
+      writeYamlForAccountId(args.accountId, yaml)
 
-      this.log(color.bold(`Successfully wrote current configuration to ${filename}.`))
+      this.log(color.bold(`Successfully wrote current configuration to ${args.accountId}.yaml.`))
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)

@@ -2,7 +2,7 @@ import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
-import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
+import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
 import {Issue, IssueDetail, ISSUE_HANDLERS} from '../lib/issues'
 import {printYamlDiff} from '../lib/print'
 import {verifySnowflake} from '../lib/spyglass'
@@ -15,7 +15,7 @@ export default class Verify extends Command {
   }
 
   static args = {
-    filename: Args.string({description: 'File to scan and verify.', required: true}),
+    'account-id': Args.string({description: 'Account id to scan and verify.', required: true}),
   }
 
   async run(): Promise<void> {
@@ -26,13 +26,14 @@ export default class Verify extends Command {
     ux.action.start('Verifying configuration')
     try {
       const cfg = await getConfig(this.config.configDir)
-      const yaml = await readYamlFile(args.filename)
+      const yaml = await readYamlForAccountId(args['account-id'])
       res = await this.fetchVerify(cfg, yaml, flags.fix)
 
       ux.action.stop()
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
+      return
     }
 
     ux.action.stop()
@@ -53,7 +54,7 @@ export default class Verify extends Command {
 
       const confirmed = await ux.confirm('Update your local file with this change? (y/n)')
       if (confirmed) {
-        await fixit(args.filename)
+        await fixit(args['account-id'])
         this.log('Done.')
       } else {
         this.log('Exit: Cancelled by user.')
@@ -110,7 +111,7 @@ export default class Verify extends Command {
     this.log('')
   }
 
-  proposedChanges(issue: IssueDetail): ((filename: string) => Promise<void>) | null {
+  proposedChanges(issue: IssueDetail): ((accountId: string) => Promise<void>) | null {
     this.log(color.underline('Recommended Changes'))
 
     printYamlDiff(this, issue.yamlDiff)
@@ -155,12 +156,12 @@ export default class Verify extends Command {
 
     const handler = ISSUE_HANDLERS[issue.issue.id]
     if (handler) {
-      return async (filename: string): Promise<void> => {
-        const contents = await readYamlFile(filename) as Yaml
+      return async (accountId: string): Promise<void> => {
+        const contents = await readYamlForAccountId(accountId) as Yaml
 
         const updatedContents = handler.fixYaml(contents, issue.data)
 
-        await writeYamlFile(filename, updatedContents)
+        await writeYamlForAccountId(accountId, updatedContents)
       }
     }
 

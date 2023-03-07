@@ -2,7 +2,7 @@ import {Args, Command, Flags, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
-import {parseYamlFile, readYamlFile, Yaml} from '../lib/yaml'
+import {parseYamlFile, readYamlForAccountId, Yaml} from '../lib/yaml'
 import {readFileAtBranch} from '../lib/git'
 import {applySnowflake} from '../lib/spyglass';
 import { AppliedCommand } from '../lib/snowflake';
@@ -17,18 +17,16 @@ export default class Apply extends Command {
   }
 
   static args = {
-    filepath: Args.string({description: 'Current account configuration yaml.', required: true}),
+    'account-id': Args.string({description: 'Current account id for the configuration.', required: true}),
   }
 
   async run(): Promise<void> {
     const {args, flags} = await this.parse(Apply)
 
-    const filepath = args.filepath
-
     let sqlCommands: AppliedCommand[] = []
 
-    const proposed = await readYamlFile(filepath)
-    const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
+    const proposed = await readYamlForAccountId(args['account-id'])
+    const current = await parseYamlFile(await readFileAtBranch(args['account-id'], flags.branch))
 
     ux.action.start('Checking current Snowflake configuration')
     try {
@@ -70,8 +68,8 @@ export default class Apply extends Command {
     ux.action.start('Applying updated Snowflake configuration')
     try {
       const cfg = await getConfig(this.config.configDir)
-      const proposed = await readYamlFile(filepath)
-      const current = await parseYamlFile(await readFileAtBranch(args.filepath, flags.branch))
+      const proposed = await readYamlForAccountId(args['account-id'])
+      const current = await parseYamlFile(await readFileAtBranch(args['account-id'], flags.branch))
       res2 = await this.fetchApply(cfg, current, proposed, false /* dryRun */)
 
       ux.action.stop()

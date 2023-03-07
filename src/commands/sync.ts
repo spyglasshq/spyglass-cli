@@ -2,14 +2,14 @@ import {Args, Command, ux} from '@oclif/core'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
-import {readYamlFile, writeYamlFile, Yaml} from '../lib/yaml'
+import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
 import {syncSnowflake} from '../lib/spyglass'
 
 export default class Sync extends Command {
   static description = 'Update an existing yaml file using the database\'s current configuration.'
 
   static args = {
-    filename: Args.string({description: 'File to sync to.', required: true}),
+    'account-id': Args.string({description: 'Account id to sync from.', required: true}),
   }
 
   async run(): Promise<void> {
@@ -17,16 +17,16 @@ export default class Sync extends Command {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const yaml = await readYamlFile(args.filename)
+    const yaml = await readYamlForAccountId(args['account-id'])
 
     ux.action.start('Fetching current Snowflake configuration')
     try {
       const newYaml = await this.fetchSync(cfg, yaml)
       ux.action.stop()
 
-      writeYamlFile(args.filename, newYaml)
+      writeYamlForAccountId(args['account-id'], newYaml)
 
-      this.log(color.bold(`Successfully updated current configuration to ${args.filename}.`))
+      this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)

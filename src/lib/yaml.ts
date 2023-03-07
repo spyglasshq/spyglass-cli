@@ -3,6 +3,7 @@ import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
 import {RoleGrant, UserGrant, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
+import { exists } from 'fs-extra'
 
 export type Platform = 'snowflake' | 'unspecified';
 export type ObjectId = string;
@@ -56,6 +57,16 @@ export interface YamlDiff {
   updated: Yaml;
 }
 
+export async function readYamlForAccountId(accountId: string): Promise<Yaml> {
+  const singleYamlFilename = `${accountId}.yaml`
+
+  if (await exists(singleYamlFilename)) {
+    return readYamlFile(singleYamlFilename)
+  }
+
+  throw new Error(`file not found: ${singleYamlFilename}`)
+}
+
 export async function readYamlFile(filename: string): Promise<Yaml> {
   const file = await readFile(filename)
   const contents = parse(file.toString())
@@ -64,6 +75,12 @@ export async function readYamlFile(filename: string): Promise<Yaml> {
 
 export async function parseYamlFile(contents: string): Promise<Yaml> {
   return parse(contents)
+}
+
+export async function writeYamlForAccountId(accountId: string, yaml: Yaml): Promise<void> {
+  const singleYamlFilename = `${accountId}.yaml`
+  // HACK: doesn't yet support multi file
+  return writeYamlFile(singleYamlFilename, yaml)
 }
 
 export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void> {
