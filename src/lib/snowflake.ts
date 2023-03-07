@@ -54,6 +54,12 @@ export interface ConnectionConfig {
 }
 
 export async function getSnowflakeConfig(): Promise<Config | null> {
+  // env var contents overrides default config location, used in CI/CD
+  if (process.env.SNOWSQL_CONFIG) {
+    return toml.parse(process.env.SNOWSQL_CONFIG)
+  }
+
+  // otherwise, default to known config location
   try {
     const data = await readFile(SNOWSQL_CONFIG_FILE)
     return toml.parse(data.toString())
@@ -79,7 +85,7 @@ export async function getConn(accountId: string): Promise<Connection> {
   const config = await getSnowflakeConfig()
   const connConfig = config?.connections?.[accountId]
   if (!connConfig) {
-    throw new Error(`Failed to find connection config for account "${accountId}", please run "spyglass accounts:auth ${accountId}"`)
+    throw new Error(`Failed to find connection config for account "${accountId}", please run "spyglass accounts:auth ${accountId}" or set the SNOWSQL_CONFIG secret/environment variable.`)
   }
 
   return getConnection(connConfig)
