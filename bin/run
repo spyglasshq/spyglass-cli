@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('aws-sdk/lib/maintenance_mode_message').suppress = true
+
 const oclif = require('@oclif/core')
 
 oclif.run().then(require('@oclif/core/flush')).catch(require('@oclif/core/handle'))
