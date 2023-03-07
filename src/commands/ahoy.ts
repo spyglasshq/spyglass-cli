@@ -5,6 +5,7 @@ export default class Ahoy extends Command {
   static description = 'Getting started with Spyglass.'
 
   async run(): Promise<void> {
+    this.log('')
     this.log(color.cyan.bold('███████╗██████╗ ██╗   ██╗ ██████╗ ██╗      █████╗ ███████╗███████╗'))
     this.log(color.cyan('██╔════╝██╔══██╗╚██╗ ██╔╝██╔════╝ ██║     ██╔══██╗██╔════╝██╔════╝'))
     this.log(color.blue.bold('███████╗██████╔╝ ╚████╔╝ ██║  ███╗██║     ███████║███████╗███████╗'))
