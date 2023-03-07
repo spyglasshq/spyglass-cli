@@ -12,6 +12,28 @@ Basic usage of this tool looks like:
 2. Manage them as code.
 3. Automatically sync objects/roles between your Git repo and Snowflake.
 
+```
+┌───────────┐                        ┌──────────┐
+│           │        import          │          │
+│ Snowflake │ ─────────────────────► │   YAML   │
+│           │                        │          │
+└───────────┘                        └──────────┘
+
+┌───────────┐                        ┌──────────┐
+│           │     make changes       │          │
+│           │ ─────────────────────► │          │
+│ Data Eng  │                        │   YAML   │
+│           │        verify          │          │
+│           │ ─────────────────────► │          │
+└───────────┘                        └──────────┘
+
+┌───────────┐                        ┌──────────┐
+│           │        apply           │          │
+│ Snowflake │ ◄───────────────────── │   YAML   │
+│           │                        │          │
+└───────────┘                        └──────────┘
+```
+
 ## Getting Started
 
 Install the CLI using `npm`:
