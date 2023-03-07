@@ -1,6 +1,7 @@
 import git = require('isomorphic-git')
 import fs = require('fs')
 import path = require('path')
+import {parseYamlFile, Yaml} from './yaml'
 
 export async function readFileAtBranch(filepath: string, branch: string): Promise<string> {
   const gitRoot = await git.findRoot({
@@ -18,4 +19,10 @@ export async function readFileAtBranch(filepath: string, branch: string): Promis
   })
 
   return Buffer.from(blob).toString('utf8')
+}
+
+export async function readYamlAtBranch(accountId: string, branch: string): Promise<Yaml> {
+  // HACK: doesn't yet support multi file
+  const contents = await readFileAtBranch(accountId + '.yaml', branch)
+  return parseYamlFile(contents)
 }
