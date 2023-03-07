@@ -17,11 +17,11 @@ jobs:
         run: npm install -g spyglass-cli
       - name: Spyglass test
         run: spyglass ahoy
-      - name: Spyglass apply step
-        uses: ./github-action # Uses an action in the root directory
-        id: spyglass
-        with:
-          filepath: 'testfilename.txt'
-      # Use the output from the `spyglass` step
-      - name: Get the result
-        run: echo "${{ steps.spyglass.outputs.result }}"
+      # - name: Spyglass apply step
+      #   uses: ./github-action # Uses an action in the root directory
+      #   id: spyglass
+      #   with:
+      #     filepath: 'testfilename.txt'
+      # # Use the output from the `spyglass` step
+      # - name: Get the result
+      #   run: echo "${{ steps.spyglass.outputs.result }}"
