@@ -77,7 +77,13 @@
   },
   "bugs": "https://github.com/spyglasshq/spyglass-cli/issues",
   "keywords": [
-    "oclif"
+    "security",
+    "iam",
+    "snowflake",
+    "access-control",
+    "access-management",
+    "database-security",
+    "spyglass"
   ],
   "types": "dist/index.d.ts"
 }
