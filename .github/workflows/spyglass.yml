@@ -3,17 +3,21 @@ on: [push]
 jobs:
   spyglass_job:
     runs-on: ubuntu-latest
-    name: Spyglass apply job
+    name: Spyglass merge
     steps:
-      # To use this repository's private action,
-      # you must check out the repository
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Install node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Install spyglass
+
+      - name: Install spyglass CLI
         run: npm install -g spyglass-cli
-      - name: Spyglass test
+
+      - name: Git info
+        run: echo "before - ${{ github.event.before }} .. base_ref - ${{ github.event.base_ref }}"
+
+      - name: Apply spyglass configuration to production
         run: spyglass apply --dry-run skigdyn-wu58851
