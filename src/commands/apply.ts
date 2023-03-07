@@ -13,7 +13,7 @@ export default class Apply extends Command {
   static flags = {
     'dry-run': Flags.boolean({description: 'Dry run', default: false}),
     confirm: Flags.boolean({description: 'Skip the interactive prompt (used in CI)', default: false}),
-    branch: Flags.string({description: 'The branch to compare current changes against.', default: 'master', aliases: ['git-ref']}),
+    'git-ref': Flags.string({description: 'The branch to compare current changes against.', default: 'master', aliases: ['branch']}),
   }
 
   static args = {
@@ -26,7 +26,7 @@ export default class Apply extends Command {
     let sqlCommands: AppliedCommand[] = []
 
     const proposed = await readYamlForAccountId(args['account-id'])
-    const current = await readYamlAtBranch(args['account-id'], flags.branch)
+    const current = await readYamlAtBranch(args['account-id'], flags['git-ref'])
 
     ux.action.start('Checking current Snowflake configuration')
     try {
@@ -69,7 +69,7 @@ export default class Apply extends Command {
     try {
       const cfg = await getConfig(this.config.configDir)
       const proposed = await readYamlForAccountId(args['account-id'])
-      const current = await readYamlAtBranch(args['account-id'], flags.branch)
+      const current = await readYamlAtBranch(args['account-id'], flags['git-ref'])
       res2 = await this.fetchApply(cfg, current, proposed, false /* dryRun */)
 
       ux.action.stop()

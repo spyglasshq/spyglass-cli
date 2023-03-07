@@ -3,13 +3,13 @@ import fs = require('fs')
 import path = require('path')
 import {parseYamlFile, Yaml} from './yaml'
 
-export async function readFileAtBranch(filepath: string, branch: string): Promise<string> {
+export async function readFileAtBranch(filepath: string, ref: string): Promise<string> {
   const gitRoot = await git.findRoot({
     fs,
     filepath: path.resolve('.'),
   })
 
-  const commitOid = await git.resolveRef({fs, dir: gitRoot, ref: branch})
+  const commitOid = await git.resolveRef({fs, dir: gitRoot, ref})
 
   const {blob} = await git.readBlob({
     fs,
@@ -21,8 +21,8 @@ export async function readFileAtBranch(filepath: string, branch: string): Promis
   return Buffer.from(blob).toString('utf8')
 }
 
-export async function readYamlAtBranch(accountId: string, branch: string): Promise<Yaml> {
+export async function readYamlAtBranch(accountId: string, ref: string): Promise<Yaml> {
   // HACK: doesn't yet support multi file
-  const contents = await readFileAtBranch(accountId + '.yaml', branch)
+  const contents = await readFileAtBranch(accountId + '.yaml', ref)
   return parseYamlFile(contents)
 }
