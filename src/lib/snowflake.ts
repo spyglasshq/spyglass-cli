@@ -144,7 +144,7 @@ async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Binds, dryR
   })
 }
 
-const grantsToRolesQuery = 'select * from snowflake.account_usage.grants_to_roles;'
+const grantsToRolesQuery = 'select * from snowflake.account_usage.grants_to_roles where deleted_on is null;'
 
 export interface RoleGrant {
   PRIVILEGE: string;
@@ -160,7 +160,7 @@ export async function listGrantsToRoles(conn: Connection): Promise<RoleGrant[]> 
   return (await sqlQuery<RoleGrant[]>(conn, grantsToRolesQuery, [])).results
 }
 
-const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users;'
+const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users where deleted_on is null;'
 
 export interface UserGrant {
   CREATED_ON: string;
