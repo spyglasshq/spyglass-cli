@@ -1,22 +1,14 @@
 import * as fs from 'fs-extra'
 import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
-import {Binds, Connection, createConnection} from 'snowflake-sdk'
+import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
 import {YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {AppliedCommand, Query, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
 export const SNOWSQL_CONFIG_DIR = path.join(process.env.HOME ?? '', '.snowsql')
 export const SNOWSQL_CONFIG_FILE = path.join(SNOWSQL_CONFIG_DIR, 'config')
-
-type Query = [string, Binds]
-
-export interface AppliedCommand {
-  sql: string;
-  dryRun: boolean;
-  applied: boolean;
-  results: any[];
-}
 
 export async function getConnection({accountname, username, password}: ConnectionConfig): Promise<Connection> {
   const conn = createConnection({
@@ -96,54 +88,6 @@ export async function checkConnection(accountId: string): Promise<void> {
   await sqlQuery(conn, 'SELECT 1;', [])
 }
 
-// interpolateQuery is only used for debugging, not for actually templating strings for queries!!!
-function interpolateQuery(q: Query): string {
-  let [sql] = q
-  const [, binds] = q
-  const match = sql.match(/\?/g)
-  if (match?.length) {
-    for (let i = 0; i < match.length; i++) {
-      sql = sql.replace('?', "'" + binds[i] + "'")
-    }
-  }
-
-  const sql2 = sql.replace(/(identifier\(')([\w.\\]+)('\))/g, '$2') // replace "identifier('foo')" with "foo"
-  return sql2
-}
-
-async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Binds, dryRun = false): Promise<AppliedCommand> {
-  const res = {
-    sql: interpolateQuery([sqlText, binds]),
-    dryRun,
-    applied: false,
-    results: [] as T[],
-  }
-  if (dryRun) {
-    return res
-  }
-
-  return new Promise((resolve, reject) => {
-    conn.execute({
-      sqlText,
-      binds,
-      complete: (err, stmt, rows) => {
-        if (err) {
-          reject(err)
-        } else {
-          if (rows) {
-            res.applied = true
-            res.results = rows
-            resolve(res)
-            return
-          }
-
-          reject(new Error('no rows'))
-        }
-      },
-    })
-  })
-}
-
 const grantsToRolesQuery = 'select * from snowflake.account_usage.grants_to_roles where deleted_on is null;'
 
 export interface RoleGrant {
@@ -158,6 +102,14 @@ export interface RoleGrant {
 
 export async function listGrantsToRoles(conn: Connection): Promise<RoleGrant[]> {
   return (await sqlQuery<RoleGrant[]>(conn, grantsToRolesQuery, [])).results
+}
+
+export async function listGrantsToRolesFullScan(conn: Connection): Promise<RoleGrant[]> {
+  // query 'show roles;'
+  // get roles into groups of 10
+  // query 'show grants to role identifier(?);'
+  // query 'show grants of role identifier(?);'
+  return []
 }
 
 const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users where deleted_on is null;'

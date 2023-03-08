@@ -1,5 +1,6 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {AppliedCommand, executeCommands, getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
+import {executeCommands, getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
+import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
 export async function importSnowflake(accountId: string): Promise<Yaml> {

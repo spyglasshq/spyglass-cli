@@ -6,7 +6,7 @@ import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, Yaml} from '../lib/yaml'
 import {readYamlAtBranch} from '../lib/git'
 import {applySnowflake} from '../lib/spyglass'
-import {AppliedCommand} from '../lib/snowflake'
+import {AppliedCommand} from '../lib/sql'
 
 export default class Apply extends BaseCommand {
   static description = 'Convert Spyglass configuration to native database commands and execute them.'
