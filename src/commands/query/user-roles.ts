@@ -4,6 +4,8 @@ import {userRolesFromYaml} from '../../lib/query'
 import {readYamlForAccountId} from '../../lib/yaml'
 
 export default class UserObjects extends BaseCommand {
+  public static enableJsonFlag = true
+
   static description = 'Get a list of roles a user has access to.'
 
   static args = {
@@ -11,7 +13,7 @@ export default class UserObjects extends BaseCommand {
     username: Args.string({description: 'Username to look up.', required: true}),
   }
 
-  async run(): Promise<void> {
+  async run(): Promise<unknown> {
     const {args, flags} = await this.parse(UserObjects)
 
     const yaml = await readYamlForAccountId(args.accountId, flags.dir)
@@ -35,5 +37,7 @@ export default class UserObjects extends BaseCommand {
     }
 
     tree.display()
+
+    return userRoles
   }
 }
