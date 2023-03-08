@@ -107,7 +107,7 @@ TODO
 
 ## Security
 
-We take the security of our products very seriously. Please email [security@spyglass.software](mailto:security@spyglass.software) with any security reports, including reproduction steps.
+See [SECURITY.md](./SECURITY.md)
 
 ## License
 
