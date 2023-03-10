@@ -5,7 +5,7 @@ import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, validateYaml, Yaml} from '../lib/yaml'
 import {readYamlAtBranch} from '../lib/git'
-import {applySnowflake} from '../lib/spyglass'
+import {applySnowflake, findNotExistingEntities} from '../lib/spyglass'
 import {AppliedCommand} from '../lib/sql'
 
 export default class Apply extends BaseCommand {
@@ -114,7 +114,17 @@ export default class Apply extends BaseCommand {
         this.log(invalid)
       }
 
-      throw new Error('Failed to validate config')
+      throw new Error('Failed to validate config. Note: a flag will soon be available to dangerously skip this check.')
+    }
+
+    const nonexistingEntities = await findNotExistingEntities(current, proposed)
+    if (nonexistingEntities.length > 0) {
+      this.log('Entities in config were not found in production environment:')
+      for (const entity of nonexistingEntities) {
+        this.log(`  ${entity.type}: ${entity.id}`)
+      }
+
+      throw new Error('Failed to find all entities. Note: a flag will soon be available to dangerously skip this check.')
     }
 
     return applySnowflake(current, proposed, dryRun)

@@ -249,12 +249,30 @@ const showWarehousesQuery = 'show warehouses;'
 export interface Warehouse {
   name: string;
   size: string;
-  // eslint-disable-next-line camelcase
   auto_suspend: number;
 }
 
 export async function showWarehouses(conn: Connection): Promise<Warehouse[]> {
   return (await sqlQuery<Warehouse[]>(conn, showWarehousesQuery, [])).results
+}
+
+const showObjectsQuery = 'show objects;'
+
+export interface ShowObject {
+  name: string;
+  database_name: string;
+  schema_name: string;
+  kind: string;
+}
+
+export async function showObjects(conn: Connection): Promise<ShowObject[]> {
+  return (await sqlQuery<ShowObject[]>(conn, showObjectsQuery, [])).results
+}
+
+const showRolesQuery = 'show roles;'
+
+export async function showRoles(conn: Connection): Promise<ShowRole[]> {
+  return (await sqlQuery<ShowRole[]>(conn, showRolesQuery, [])).results
 }
 
 export async function executeCommands(accountId: string, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
@@ -272,7 +290,17 @@ export async function executeCommands(accountId: string, queries: Query[], dryRu
   return results
 }
 
-export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): Query[] {
+export interface SqlCommand {
+  query: Query;
+  entities: Entity[];
+}
+
+export interface Entity {
+  type: string;
+  id: string;
+}
+
+export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   return [
     ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
@@ -284,10 +312,10 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): Query[] {
   ]
 }
 
-function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): Query[] {
+function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand[] {
   if (!yamlRoles) return []
 
-  const queries: Query[] = []
+  const queries: SqlCommand[] = []
 
   for (const [roleName, role] of Object.entries(yamlRoles)) {
     for (const privilege of PRIVILEGES) {
@@ -304,10 +332,16 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): Query[] {
   return queries
 }
 
-function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): Query {
+function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
   // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
-    return ['grant role identifier(?) to role identifier(?);', [objectId, roleName]]
+    return {
+      query: ['grant role identifier(?) to role identifier(?);', [objectId, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'role', id: objectId},
+      ],
+    }
   }
 
   // extract (db.schema).<(objtype)>
@@ -315,16 +349,34 @@ function newGrantQuery(roleName: string, privilege: string, objectType: string, 
   const matches = rx.exec(objectId)
   if (matches) {
     const [, schema] = matches
-    return [`grant ${privilege} on future ${objectType}s in schema identifier(?) to role identifier(?);`, [schema, roleName]]
+    return {
+      query: [`grant ${privilege} on future ${objectType}s in schema identifier(?) to role identifier(?);`, [schema, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'schema', id: schema},
+      ],
+    }
   }
 
-  return [`grant ${privilege} on ${objectType} identifier(?) to role identifier(?);`, [objectId, roleName]]
+  return {
+    query: [`grant ${privilege} on ${objectType} identifier(?) to role identifier(?);`, [objectId, roleName]],
+    entities: [
+      {type: 'role', id: roleName},
+      {type: objectType, id: objectId},
+    ],
+  }
 }
 
-function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): Query {
+function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
   // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
-    return ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]]
+    return {
+      query: ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'role', id: objectId},
+      ],
+    }
   }
 
   // extract (db.schema).<(objtype)>
@@ -332,37 +384,60 @@ function newRevokeQuery(roleName: string, privilege: string, objectType: string,
   const matches = rx.exec(objectId)
   if (matches) {
     const [, schema] = matches
-    return [`revoke ${privilege} on future ${objectType}s in schema identifier(?) from role identifier(?);`, [schema, roleName]]
+    return {
+      query: [`revoke ${privilege} on future ${objectType}s in schema identifier(?) from role identifier(?);`, [schema, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'schema', id: schema},
+      ],
+    }
   }
 
-  return [`revoke ${privilege} on ${objectType} identifier(?) from role identifier(?);`, [objectId, roleName]]
+  return {
+    query: [`revoke ${privilege} on ${objectType} identifier(?) from role identifier(?);`, [objectId, roleName]],
+    entities: [
+      {type: 'role', id: roleName},
+      {type: objectType, id: objectId},
+    ],
+  }
 }
 
-function getUserGrantQueries(yamlUserGrants: YamlUserGrants, granted: boolean): Query[] {
+function getUserGrantQueries(yamlUserGrants: YamlUserGrants, granted: boolean): SqlCommand[] {
   if (!yamlUserGrants) return []
 
-  const queries: Query[] = []
+  const queries: SqlCommand[] = []
 
   for (const [username, user] of Object.entries(yamlUserGrants)) {
     for (const roleName of user.roles) {
       const query = granted ?
         'grant role identifier(?) to user identifier(?);' :
         'revoke role identifier(?) from user identifier(?);'
-      queries.push([query, [roleName, username]])
+      queries.push({
+        query: [query, [roleName, username]],
+        entities: [
+          {type: 'role', id: roleName},
+          {type: 'user', id: username},
+        ],
+      })
     }
   }
 
   return queries
 }
 
-function getWarehouseQueries(yamlWarehouses: YamlWarehouses): Query[] {
+function getWarehouseQueries(yamlWarehouses: YamlWarehouses): SqlCommand[] {
   if (!yamlWarehouses) return []
 
-  const queries: Query[] = []
+  const queries: SqlCommand[] = []
 
   for (const [warehouseName, warehouse] of Object.entries(yamlWarehouses)) {
     if (warehouse?.size) {
-      queries.push(['alter warehouse identifier(?) set warehouse_size = ?;', [warehouseName, warehouse.size]])
+      queries.push({
+        query: ['alter warehouse identifier(?) set warehouse_size = ?;', [warehouseName, warehouse.size]],
+        entities: [
+          {type: 'warehouse', id: warehouseName},
+        ],
+      })
     }
   }
 
