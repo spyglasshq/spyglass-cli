@@ -1,7 +1,7 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
 import {executeCommands, getConn, listGrantsToRolesFullScan, listGrantsToUsersFullScan, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
 import {AppliedCommand} from './sql'
-import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
+import {diffYaml, validateYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
 export async function importSnowflake(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
   const conn = await getConn(accountId)

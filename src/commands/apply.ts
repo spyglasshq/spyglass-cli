@@ -3,7 +3,7 @@ import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color';
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
-import {readYamlForAccountId, Yaml} from '../lib/yaml'
+import {readYamlForAccountId, validateYaml, Yaml} from '../lib/yaml'
 import {readYamlAtBranch} from '../lib/git'
 import {applySnowflake} from '../lib/spyglass'
 import {AppliedCommand} from '../lib/sql'
@@ -38,6 +38,11 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
+      return
+    }
+
+    if (sqlCommands.length === 0) {
+      this.log('✅ Exit: No changes to apply.')
       return
     }
 
@@ -101,6 +106,15 @@ export default class Apply extends BaseCommand {
       }
 
       return res.data
+    }
+
+    const invalids = validateYaml(proposed)
+    if (invalids.length > 0) {
+      for (const invalid of invalids) {
+        this.log(invalid)
+      }
+
+      throw new Error('Failed to validate config')
     }
 
     return applySnowflake(current, proposed, dryRun)

@@ -227,3 +227,13 @@ export function diffYaml(current: Yaml, proposed: Yaml): YamlDiff {
 
   return {added, deleted, updated}
 }
+
+export function validateYaml(yaml: Yaml): string[] {
+  let issues: string[] = []
+
+  if (yaml) {
+    issues = []
+  }
+
+  return issues
+}
