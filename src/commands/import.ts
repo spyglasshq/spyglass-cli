@@ -19,16 +19,13 @@ export default class Import extends BaseCommand {
     const cfg = await getConfig(this.config.configDir)
 
     this.log('Fetching current Snowflake configuration...')
-
     try {
       const yaml = await this.fetchYaml(cfg, args.accountId)
-      ux.action.stop()
 
       writeYamlForAccountId(args.accountId, yaml, flags.dir)
 
       this.log(color.bold(`Successfully wrote current configuration to ${args.accountId}.yaml.`))
     } catch (error: any) {
-      ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
     }
   }

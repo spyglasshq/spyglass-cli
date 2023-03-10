@@ -20,21 +20,25 @@ export default class Sync extends BaseCommand {
 
     const yaml = await readYamlForAccountId(args['account-id'], flags.dir)
 
-    ux.action.start('Fetching current Snowflake configuration')
+    this.log('Fetching current Snowflake configuration')
     try {
       const newYaml = await this.fetchSync(cfg, yaml)
-      ux.action.stop()
 
       writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
 
       this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {
-      ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
     }
   }
 
   async fetchSync(cfg: Config, yaml: Yaml): Promise<Yaml> {
+    const progress = ux.progress({
+      format: 'Progress | {bar} | {value}/{total} Objects',
+      barCompleteChar: '\u2588',
+      barIncompleteChar: '\u2591',
+    })
+
     if (cfg?.cloudMode) {
       const payload = {
         action: 'sync',
@@ -49,6 +53,14 @@ export default class Sync extends BaseCommand {
       return res.data
     }
 
-    return syncSnowflake(yaml)
+    const newYaml = await syncSnowflake(
+      yaml,
+      total => progress.start(total, 0),
+      current => progress.update(current),
+    )
+
+    progress.stop()
+
+    return newYaml
   }
 }
