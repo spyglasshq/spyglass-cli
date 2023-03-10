@@ -114,17 +114,22 @@ export default class Apply extends BaseCommand {
         this.log(invalid)
       }
 
-      throw new Error('Failed to validate config. Note: a flag will soon be available to dangerously skip this check.')
+      throw new Error('Failed to validate config. (Note: a flag will soon be available to dangerously skip this check.)')
     }
 
     const nonexistingEntities = await findNotExistingEntities(current, proposed)
     if (nonexistingEntities.length > 0) {
-      this.log('Entities in config were not found in production environment:')
+      this.log(color.yellow('Entities in the proposed config were not found in the account:'))
+
       for (const entity of nonexistingEntities) {
-        this.log(`  ${entity.type}: ${entity.id}`)
+        this.log(`  ${color.gray(entity.type)}: ${entity.id}`)
       }
 
-      throw new Error('Failed to find all entities. Note: a flag will soon be available to dangerously skip this check.')
+      this.log('')
+      this.log(color.bold('Solution: Please ensure these entities exist in the account, then try again.'))
+      this.log('')
+
+      throw new Error('Failed to find all entities. (Note: a flag will soon be available to dangerously skip this check.)')
     }
 
     return applySnowflake(current, proposed, dryRun)
