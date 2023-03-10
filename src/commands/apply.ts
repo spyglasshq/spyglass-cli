@@ -42,8 +42,8 @@ export default class Apply extends BaseCommand {
     }
 
     // Print SQL differences.
+    this.log(color.bold(`Account ${current.spyglass.accountId} SQL updates:`))
     for (const command of sqlCommands) {
-      this.log(color.bold(`Account ${current.spyglass.accountId} SQL updates:`))
       this.log(color.cyan(`  ${command.sql}`))
     }
 

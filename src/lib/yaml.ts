@@ -1,10 +1,15 @@
 import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {ShowRoleGrant, UserGrant, Warehouse} from './snowflake'
+import {ShowFutureRoleGrant, ShowRoleGrant, UserGrant, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
+
+export const PRIVILEGES = ['usage', 'select', 'insert', 'update', 'delete', 'monitor'] as const
+export type Privilege = typeof PRIVILEGES[number]
+
+const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'])
 
 export type Platform = 'snowflake' | 'unspecified';
 export type ObjectId = string;
@@ -27,10 +32,20 @@ export interface YamlRoles {
   [role: string]: YamlRole;
 }
 
-export interface YamlRole {
-  [privilege: string]: {
-    [objectType: string]: ObjectId[];
-  };
+export interface YamlRole extends YamlRoleBase {
+  future?: YamlFutureRole;
+}
+
+export type YamlRoleBase = {
+  [privilege in Privilege]: CurrentYamlRole;
+}
+
+export interface CurrentYamlRole {
+  [objectType: string]: ObjectId[];
+}
+
+export interface YamlFutureRole {
+  [privilege: string]: string[];
 }
 
 export interface YamlWarehouses {
@@ -88,8 +103,9 @@ export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void>
   await writeFile(filename, stringify(yaml, {sortMapEntries: true}))
 }
 
-export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], userGrantsRows: UserGrant[], warehousesRows: Warehouse[]): Yaml {
-  const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows)
+// eslint-disable-next-line max-params
+export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], userGrantsRows: UserGrant[], warehousesRows: Warehouse[]): Yaml {
+  const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows, futureRoleGrants)
   const userGrants = usersYamlFromUserGrants(userGrantsRows)
   const warehouses = warehousesYamlFromWarehouses(warehousesRows)
 
@@ -133,36 +149,50 @@ export function usersYamlFromUserGrants(rows: UserGrant[]): YamlUserGrants {
   return userGrants
 }
 
-export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[]): YamlRoles {
+export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[]): YamlRoles {
   const roleGrants: YamlRoles = {}
 
   for (const rg of rows) {
-    if (['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'].includes(rg.grantee_name)) {
+    if (EXCLUDED_ROLES.has(rg.grantee_name)) {
       continue
     }
 
-    if (rg.granted_to !== 'ROLE') {
+    const grantee = rg.grantee_name.toLowerCase()
+    const privilege = rg.privilege.toLowerCase() as Privilege
+    const grantedObjectType = rg.granted_on.toLowerCase()
+    const name = rg.name.toLowerCase()
+
+    const role = roleGrants[grantee] ?? {}
+    roleGrants[grantee] = role
+
+    const privileges = role[privilege] ?? {}
+    role[privilege] = privileges
+
+    const objectLists = privileges[grantedObjectType] ?? []
+    privileges[grantedObjectType] = objectLists
+
+    objectLists.push(name)
+  }
+
+  for (const rg of futureRoleGrants) {
+    if (EXCLUDED_ROLES.has(rg.grantee_name)) {
       continue
     }
 
     const grantee = rg.grantee_name.toLowerCase()
     const privilege = rg.privilege.toLowerCase()
-    const grantedObjectType = rg.granted_on.toLowerCase()
-    const name = rg.name.toLowerCase()
+    const grantObjectType = rg.grant_on.toLowerCase()
 
-    if (!roleGrants[grantee]) {
-      roleGrants[grantee] = {}
-    }
+    const role = roleGrants[grantee] ?? {}
+    roleGrants[grantee] = role
 
-    if (!roleGrants[grantee][privilege]) {
-      roleGrants[grantee][privilege] = {}
-    }
+    const privileges = role.future ?? {}
+    role.future = privileges
 
-    if (!roleGrants[grantee][privilege][grantedObjectType]) {
-      roleGrants[grantee][privilege][grantedObjectType] = []
-    }
+    const objectTypes = privileges[privilege] ?? []
+    privileges[privilege] = objectTypes
 
-    roleGrants[grantee][privilege][grantedObjectType].push(name)
+    objectTypes.push(grantObjectType)
   }
 
   deeplyConvertStringListsToSets(roleGrants)
@@ -203,12 +233,4 @@ export function diffYaml(current: Yaml, proposed: Yaml): YamlDiff {
   deeplyConvertSetsToStringLists(deleted)
 
   return {added, deleted, updated}
-}
-
-function fqSchemaId(database: string, schema: string): string {
-  return [database, schema].join('.')
-}
-
-function fqObjectId(database: string, schema: string, objectName: string): string {
-  return [database, schema, objectName].join('.')
 }

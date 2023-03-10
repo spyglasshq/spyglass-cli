@@ -102,7 +102,7 @@ export async function sqlQueriesV2<T>(conn: Connection, queries: Query[], dryRun
           })
 
           stream.on('data', function (row) {
-            // console.log(row.grantee_name, row.privilege, row.granted_on, row.name)
+            console.log(row.grantee_name, row.privilege, row.granted_on, row.name)
 
             allRows.results = [...allRows.results, row as T]
 

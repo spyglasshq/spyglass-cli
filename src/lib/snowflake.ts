@@ -4,7 +4,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
-import {YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {PRIVILEGES, YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
@@ -121,41 +121,77 @@ export interface ShowRole {
 export interface ShowRoleGrant {
   created_on: Date,
   privilege: string;
-  granted_on: string;
   name: string;
-  granted_to: string;
   grantee_name: string;
   grant_option: string;
   granted_by: string;
+  granted_on: string;
+  granted_to: string;
+}
+
+export interface ShowFutureRoleGrant {
+  created_on: Date,
+  privilege: string;
+  name: string;
+  grantee_name: string;
+  grant_option: string;
+  granted_by: string;
+  grant_on: string;
+  grant_to: string;
 }
 
 const sleep = (ms: number) => new Promise(r => {
   setTimeout(r, ms)
 })
 
-export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<ShowRoleGrant[]> {
+export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[]]> {
   const [batchedRoleNames, numRoles] = await getBatchedRoleNames(conn)
   onStart(numRoles)
 
   await sqlQuery(conn, 'alter session set multi_statement_count = 0;', []) // enable multi statement with batch size
 
-  let results: ShowRoleGrant[] = []
+  let roleGrants: ShowRoleGrant[] = []
+  let futureRoleGrants: ShowFutureRoleGrant[] = []
   let numRolesQueried = 0
 
   for (const roleNames of batchedRoleNames) {
-    const queries: Query[] = roleNames.map(roleName => (['show grants to role identifier(?);', [roleName]]))
     // eslint-disable-next-line no-await-in-loop
-    const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+    const _roleGrants = await queryRoleGrants(conn, roleNames)
+    roleGrants = [...roleGrants, ..._roleGrants]
 
-    for (const r of res) {
-      results = [...results, ...r.results]
-    }
+    // eslint-disable-next-line no-await-in-loop
+    const _futureRoleGrants = await queryFutureRoleGrants(conn, roleNames)
+    futureRoleGrants = [...futureRoleGrants, ..._futureRoleGrants]
 
     numRolesQueried += roleNames.length
     onProgress(numRolesQueried)
 
     // eslint-disable-next-line no-await-in-loop
     await sleep(1000)
+  }
+
+  return [roleGrants, futureRoleGrants]
+}
+
+async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
+  const queries: Query[] = roleNames.map(roleName => (['show grants to role identifier(?);', [roleName]]))
+  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+
+  let results: ShowRoleGrant[] = []
+  for (const r of res) {
+    results = [...results, ...r.results]
+  }
+
+  return results
+}
+
+async function queryFutureRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowFutureRoleGrant[]> {
+  const queries: Query[] = roleNames.map(roleName => (['show future grants to role identifier(?);', [roleName]]))
+  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+
+  let results: ShowFutureRoleGrant[] = []
+  for (const r of res) {
+    results = [...results, ...r.results]
   }
 
   return results
@@ -254,7 +290,8 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): Query[] {
   const queries: Query[] = []
 
   for (const [roleName, role] of Object.entries(yamlRoles)) {
-    for (const [privilege, objectLists] of Object.entries(role)) {
+    for (const privilege of PRIVILEGES) {
+      const objectLists = role[privilege] ?? {}
       for (const [objectType, objectIds] of Object.entries(objectLists)) {
         for (const objectId of objectIds) {
           const query = granted ? newGrantQuery(privilege, objectType) : newRevokeQuery(privilege, objectType)

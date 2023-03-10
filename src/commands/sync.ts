@@ -33,6 +33,8 @@ export default class Sync extends BaseCommand {
   }
 
   async fetchSync(cfg: Config, yaml: Yaml): Promise<Yaml> {
+    const showProgress = !process.env.SPYGLASS_HIDE_PROGRESS_BAR
+
     const progress = ux.progress({
       format: 'Progress | {bar} | {value}/{total} Objects',
       barCompleteChar: '\u2588',
@@ -55,11 +57,13 @@ export default class Sync extends BaseCommand {
 
     const newYaml = await syncSnowflake(
       yaml,
-      total => progress.start(total, 0),
-      current => progress.update(current),
+      total => showProgress && progress.start(total, 0),
+      current => showProgress && progress.update(current),
     )
 
-    progress.stop()
+    if (showProgress) {
+      progress.stop()
+    }
 
     return newYaml
   }

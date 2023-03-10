@@ -9,13 +9,16 @@ export async function importSnowflake(accountId: string, onStart: (x: number) =>
   const userGrantsPromise = listGrantsToUsersFullScan(conn) // Not implemented atm
   const warehousesRowsPromise = showWarehouses(conn)
 
+  const [roleGrants, futureRoleGrants] = await roleGrantsPromise
+
   const grants = {
-    roleGrants: await roleGrantsPromise,
+    roleGrants,
+    futureRoleGrants,
     userGrants: await userGrantsPromise,
     warehouses: await warehousesRowsPromise,
   }
 
-  return yamlFromRoleGrants(accountId, grants.roleGrants, grants.userGrants, grants.warehouses)
+  return yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.userGrants, grants.warehouses)
 }
 
 export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {

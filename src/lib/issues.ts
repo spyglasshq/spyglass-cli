@@ -1,6 +1,6 @@
 import {webcrypto} from 'node:crypto'
 import {IssueType, ISSUES} from './issue-list'
-import {diffYaml, Yaml, YamlDiff} from './yaml'
+import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
 
 interface IssueHandlers {
   [id: string]: IssueHandler;
@@ -23,13 +23,13 @@ export interface Issue {
 export interface DatabasePrivilege {
   database: string;
   role: string;
-  privilege: string;
+  privilege: Privilege;
 }
 
 export interface SchemaPrivilege {
   schema: string;
   role: string;
-  privilege: string;
+  privilege: Privilege;
 }
 
 export interface WarehouseResize {
@@ -41,7 +41,7 @@ export interface WarehouseResize {
 export interface RecreatedObjectAccess {
   objectType: string;
   objectId: string;
-  rolePermissions: [string, string][];
+  rolePermissions: [string, Privilege][];
 }
 
 export interface IssueDetail extends Issue {
@@ -162,7 +162,7 @@ export async function getIssueDetail(yaml: Yaml, issueId: string): Promise<Issue
     throw new Error('issue not found')
   }
 
-  const issue = foundIssue[0];
+  const issue = foundIssue[0]
   const yamlDiff = getYamlDiff(yaml, issue)
   const sqlCommands: string[] = []
 
@@ -174,7 +174,7 @@ export async function getIssueDetail(yaml: Yaml, issueId: string): Promise<Issue
 }
 
 function getYamlDiff(current: Yaml, issue: Issue): YamlDiff {
-  const currentCopy = JSON.parse(JSON.stringify(current));
-  const proposed = ISSUE_HANDLERS[issue.issue.id]?.fixYaml(currentCopy, issue.data) ?? currentCopy;
+  const currentCopy = JSON.parse(JSON.stringify(current))
+  const proposed = ISSUE_HANDLERS[issue.issue.id]?.fixYaml(currentCopy, issue.data) ?? currentCopy
   return diffYaml(current, proposed)
 }
