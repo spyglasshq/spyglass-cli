@@ -1,5 +1,5 @@
 /* eslint-disable max-depth */
-import {PRIVILEGES, Yaml} from './yaml'
+import {Yaml} from './yaml'
 
 export interface UserAccess {
   username: string;
@@ -31,9 +31,7 @@ export function userAccessFromYaml(yaml: Yaml, username: string): UserAccess {
     const inheritedRoles = inheritedRoleNames.map(name => ({name, parents: [...role.parents, role.name]}))
     rolesToDescend = [...rolesToDescend, ...inheritedRoles]
 
-    for (const privilege of PRIVILEGES) {
-      const objectLists = yaml?.roleGrants?.[role.name] || {}
-
+    for (const [privilege, objectLists] of Object.entries(yaml.roleGrants?.[role.name] ?? {})) {
       for (const [objectType, objectIds] of Object.entries(objectLists)) {
         if (privilege === 'usage' && objectType === 'role') {
           continue
@@ -111,9 +109,7 @@ export function objectAccessFromYaml(yaml: Yaml, targetObjectId: string): Object
     const inheritedRoles = inheritedRoleNames.map(name => ({name, parents: [...role.parents, role.name]}))
     rolesToDescend = [...rolesToDescend, ...inheritedRoles]
 
-    for (const privilege of PRIVILEGES) {
-      const objectLists = yaml?.roleGrants?.[role.name] || {}
-
+    for (const [privilege, objectLists] of Object.entries(yaml.roleGrants?.[role.name] ?? {})) {
       for (const [objectType, objectIds] of Object.entries(objectLists)) {
         if (privilege === 'usage' && objectType === 'role') {
           continue

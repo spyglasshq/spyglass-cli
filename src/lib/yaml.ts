@@ -32,20 +32,12 @@ export interface YamlRoles {
   [role: string]: YamlRole;
 }
 
-export interface YamlRole extends YamlRoleBase {
-  future?: YamlFutureRole;
-}
-
-export type YamlRoleBase = {
+export type YamlRole = {
   [privilege in Privilege]: CurrentYamlRole;
 }
 
 export interface CurrentYamlRole {
   [objectType: string]: ObjectId[];
-}
-
-export interface YamlFutureRole {
-  [privilege: string]: string[];
 }
 
 export interface YamlWarehouses {
@@ -180,19 +172,20 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
     }
 
     const grantee = rg.grantee_name.toLowerCase()
-    const privilege = rg.privilege.toLowerCase()
+    const privilege = rg.privilege.toLowerCase() as Privilege
     const grantObjectType = rg.grant_on.toLowerCase()
+    const name = rg.name.toLowerCase()
 
     const role = roleGrants[grantee] ?? {}
     roleGrants[grantee] = role
 
-    const privileges = role.future ?? {}
-    role.future = privileges
+    const privileges = role[privilege] ?? {}
+    role[privilege] = privileges
 
-    const objectTypes = privileges[privilege] ?? []
-    privileges[privilege] = objectTypes
+    const objectLists = privileges[grantObjectType] ?? []
+    privileges[grantObjectType] = objectLists
 
-    objectTypes.push(grantObjectType)
+    objectLists.push(name)
   }
 
   deeplyConvertStringListsToSets(roleGrants)

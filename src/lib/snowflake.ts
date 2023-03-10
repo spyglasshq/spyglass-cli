@@ -294,8 +294,8 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): Query[] {
       const objectLists = role[privilege] ?? {}
       for (const [objectType, objectIds] of Object.entries(objectLists)) {
         for (const objectId of objectIds) {
-          const query = granted ? newGrantQuery(privilege, objectType) : newRevokeQuery(privilege, objectType)
-          queries.push([query, [objectId, roleName]])
+          const query = granted ? newGrantQuery(roleName, privilege, objectType, objectId) : newRevokeQuery(roleName, privilege, objectType, objectId)
+          queries.push(query)
         }
       }
     }
@@ -304,22 +304,38 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): Query[] {
   return queries
 }
 
-function newGrantQuery(privilege: string, objectType: string): string {
+function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): Query {
   // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
-    return 'grant role identifier(?) to role identifier(?)'
+    return ['grant role identifier(?) to role identifier(?);', [objectId, roleName]]
   }
 
-  return `grant ${privilege} on ${objectType} identifier(?) to role identifier(?);`
+  // extract (db.schema).<(objtype)>
+  const rx = /^(\w*\.\w*)\.<(.*)>$/g
+  const matches = rx.exec(objectId)
+  if (matches) {
+    const [, schema] = matches
+    return [`grant ${privilege} on future ${objectType}s in schema identifier(?) to role identifier(?);`, [schema, roleName]]
+  }
+
+  return [`grant ${privilege} on ${objectType} identifier(?) to role identifier(?);`, [objectId, roleName]]
 }
 
-function newRevokeQuery(privilege: string, objectType: string): string {
+function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): Query {
   // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
-    return 'revoke role identifier(?) from role identifier(?)'
+    return ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]]
   }
 
-  return `revoke ${privilege} on ${objectType} identifier(?) from role identifier(?);`
+  // extract (db.schema).<(objtype)>
+  const rx = /^(\w*\.\w*)\.<(.*)>$/g
+  const matches = rx.exec(objectId)
+  if (matches) {
+    const [, schema] = matches
+    return [`revoke ${privilege} on future ${objectType}s in schema identifier(?) from role identifier(?);`, [schema, roleName]]
+  }
+
+  return [`revoke ${privilege} on ${objectType} identifier(?) from role identifier(?);`, [objectId, roleName]]
 }
 
 function getUserGrantQueries(yamlUserGrants: YamlUserGrants, granted: boolean): Query[] {
