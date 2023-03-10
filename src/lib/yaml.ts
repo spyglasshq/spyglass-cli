@@ -1,7 +1,7 @@
 import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {RoleGrant, UserGrant, Warehouse} from './snowflake'
+import {ShowRoleGrant, UserGrant, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
@@ -88,7 +88,7 @@ export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void>
   await writeFile(filename, stringify(yaml, {sortMapEntries: true}))
 }
 
-export function yamlFromRoleGrants(accountId: string, roleGrantsRows: RoleGrant[], userGrantsRows: UserGrant[], warehousesRows: Warehouse[]): Yaml {
+export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], userGrantsRows: UserGrant[], warehousesRows: Warehouse[]): Yaml {
   const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows)
   const userGrants = usersYamlFromUserGrants(userGrantsRows)
   const warehouses = warehousesYamlFromWarehouses(warehousesRows)
@@ -133,30 +133,22 @@ export function usersYamlFromUserGrants(rows: UserGrant[]): YamlUserGrants {
   return userGrants
 }
 
-export function rolesYamlFromRoleGrants(rows: RoleGrant[]): YamlRoles {
+export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[]): YamlRoles {
   const roleGrants: YamlRoles = {}
 
   for (const rg of rows) {
-    if (['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'].includes(rg.GRANTEE_NAME)) {
+    if (['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'].includes(rg.grantee_name)) {
       continue
     }
 
-    if (rg.GRANTED_TO !== 'ROLE') {
+    if (rg.granted_to !== 'ROLE') {
       continue
     }
 
-    const grantee = rg.GRANTEE_NAME.toLowerCase()
-    const privilege = rg.PRIVILEGE.toLowerCase()
-    const grantedObjectType = rg.GRANTED_ON.toLowerCase()
-
-    let name = rg.NAME
-    if (rg.TABLE_CATALOG && rg.TABLE_SCHEMA && rg.NAME === rg.TABLE_SCHEMA) {
-      name = fqSchemaId(rg.TABLE_CATALOG, rg.TABLE_SCHEMA)
-    } else if (rg.TABLE_CATALOG && rg.TABLE_SCHEMA && rg.NAME) {
-      name = fqObjectId(rg.TABLE_CATALOG, rg.TABLE_SCHEMA, rg.NAME)
-    }
-
-    name = name.toLowerCase()
+    const grantee = rg.grantee_name.toLowerCase()
+    const privilege = rg.privilege.toLowerCase()
+    const grantedObjectType = rg.granted_on.toLowerCase()
+    const name = rg.name.toLowerCase()
 
     if (!roleGrants[grantee]) {
       roleGrants[grantee] = {}
@@ -172,6 +164,9 @@ export function rolesYamlFromRoleGrants(rows: RoleGrant[]): YamlRoles {
 
     roleGrants[grantee][privilege][grantedObjectType].push(name)
   }
+
+  deeplyConvertStringListsToSets(roleGrants)
+  deeplyConvertSetsToStringLists(roleGrants)
 
   return roleGrants
 }

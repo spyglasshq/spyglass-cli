@@ -1,10 +1,11 @@
+/* eslint-disable camelcase */
 import * as fs from 'fs-extra'
 import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
 import {YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
-import {AppliedCommand, Query, sqlQuery} from './sql'
+import {AppliedCommand, Query, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
 export const SNOWSQL_CONFIG_DIR = path.join(process.env.HOME ?? '', '.snowsql')
@@ -104,12 +105,84 @@ export async function listGrantsToRoles(conn: Connection): Promise<RoleGrant[]> 
   return (await sqlQuery<RoleGrant[]>(conn, grantsToRolesQuery, [])).results
 }
 
-export async function listGrantsToRolesFullScan(conn: Connection): Promise<RoleGrant[]> {
-  // query 'show roles;'
-  // get roles into groups of 10
-  // query 'show grants to role identifier(?);'
-  // query 'show grants of role identifier(?);'
-  return []
+export interface ShowRole {
+  created_on: Date,
+  name: string;
+  is_default: string;
+  is_current: string;
+  is_inherited: string;
+  assigned_to_users: number;
+  granted_to_roles: number;
+  granted_roles: number;
+  owner: string;
+  comment: string;
+}
+
+export interface ShowRoleGrant {
+  created_on: Date,
+  privilege: string;
+  granted_on: string;
+  name: string;
+  granted_to: string;
+  grantee_name: string;
+  grant_option: string;
+  granted_by: string;
+}
+
+const sleep = (ms: number) => new Promise(r => {
+  setTimeout(r, ms)
+})
+
+export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<ShowRoleGrant[]> {
+  const [batchedRoleNames, numRoles] = await getBatchedRoleNames(conn)
+  onStart(numRoles)
+
+  await sqlQuery(conn, 'alter session set multi_statement_count = 0;', []) // enable multi statement with batch size
+
+  let results: ShowRoleGrant[] = []
+  let numRolesQueried = 0
+
+  for (const roleNames of batchedRoleNames) {
+    const queries: Query[] = roleNames.map(roleName => (['show grants to role identifier(?);', [roleName]]))
+    // eslint-disable-next-line no-await-in-loop
+    const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+
+    for (const r of res) {
+      results = [...results, ...r.results]
+    }
+
+    numRolesQueried += roleNames.length
+    onProgress(numRolesQueried)
+
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(1000)
+  }
+
+  return results
+}
+
+async function getBatchedRoleNames(conn: Connection): Promise<[string[][], number]> {
+  const batchSize = 10
+
+  const showRoles = await sqlQuery<ShowRole>(conn, 'show roles;', [])
+  const roleNames = showRoles.results.map(role => role.name.toLowerCase())
+
+  const batchedRoleNames: string[][] = []
+
+  let batchIndex = 0
+  for (const roleName of roleNames) {
+    if (batchedRoleNames[batchIndex]?.length >= batchSize) {
+      batchIndex++
+    }
+
+    if (!batchedRoleNames[batchIndex]) {
+      batchedRoleNames[batchIndex] = []
+    }
+
+    batchedRoleNames[batchIndex] = [...batchedRoleNames[batchIndex], roleName]
+  }
+
+  return [batchedRoleNames, roleNames.length]
 }
 
 const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users where deleted_on is null;'
@@ -125,6 +198,14 @@ export interface UserGrant {
 
 export async function listGrantsToUsers(conn: Connection): Promise<UserGrant[]> {
   return (await sqlQuery<UserGrant[]>(conn, grantsToUsersQuery, [])).results
+}
+
+export async function listGrantsToUsersFullScan(conn: Connection): Promise<UserGrant[]> {
+  // query 'show roles;'
+  // get roles into groups of 10
+  // query 'show grants to role identifier(?);'
+  // query 'show grants of role identifier(?);'
+  return []
 }
 
 const showWarehousesQuery = 'show warehouses;'

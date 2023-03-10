@@ -18,7 +18,8 @@ export default class Import extends BaseCommand {
 
     const cfg = await getConfig(this.config.configDir)
 
-    ux.action.start('Fetching current Snowflake configuration')
+    this.log('Fetching current Snowflake configuration...')
+
     try {
       const yaml = await this.fetchYaml(cfg, args.accountId)
       ux.action.stop()
@@ -33,6 +34,12 @@ export default class Import extends BaseCommand {
   }
 
   async fetchYaml(cfg: Config, accountId: string): Promise<Yaml> {
+    const progress = ux.progress({
+      format: 'Progress | {bar} | {value}/{total} Objects',
+      barCompleteChar: '\u2588',
+      barIncompleteChar: '\u2591',
+    })
+
     if (cfg?.cloudMode) {
       const payload = {
         action: 'import',
@@ -47,6 +54,14 @@ export default class Import extends BaseCommand {
       return res.data
     }
 
-    return importSnowflake(accountId)
+    const yaml = await importSnowflake(
+      accountId,
+      total => progress.start(total, 0),
+      current => progress.update(current),
+    )
+
+    progress.stop()
+
+    return yaml
   }
 }

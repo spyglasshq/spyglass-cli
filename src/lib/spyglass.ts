@@ -1,12 +1,12 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {executeCommands, getConn, listGrantsToRoles, listGrantsToUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
+import {executeCommands, getConn, listGrantsToRolesFullScan, listGrantsToUsersFullScan, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
-export async function importSnowflake(accountId: string): Promise<Yaml> {
+export async function importSnowflake(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
   const conn = await getConn(accountId)
-  const roleGrantsPromise = listGrantsToRoles(conn)
-  const userGrantsPromise = listGrantsToUsers(conn)
+  const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
+  const userGrantsPromise = listGrantsToUsersFullScan(conn) // Not implemented atm
   const warehousesRowsPromise = showWarehouses(conn)
 
   const grants = {
@@ -27,7 +27,7 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
 }
 
 export async function syncSnowflake(yaml: Yaml): Promise<Yaml> {
-  const latestYaml = await importSnowflake(yaml.spyglass.accountId)
+  const latestYaml = await importSnowflake(yaml.spyglass.accountId, () => ({}), () => ({}))
 
   latestYaml.spyglass = yaml.spyglass
   latestYaml.spyglass.lastSyncedMs = Date.now()
