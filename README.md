@@ -14,7 +14,7 @@ Basic usage of this tool looks like:
 
 ```
 ┌───────────┐                        ┌──────────┐
-│           │        import          │          │
+│           │     import / sync      │          │
 │ Snowflake │ ─────────────────────► │   YAML   │
 │           │                        │          │
 └───────────┘                        └──────────┘
