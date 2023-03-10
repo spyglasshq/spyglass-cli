@@ -6,7 +6,7 @@ import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
 
-export const PRIVILEGES = ['usage', 'select', 'insert', 'update', 'delete', 'monitor'] as const
+export const PRIVILEGES = ['usage', 'select', 'insert', 'update', 'delete', 'monitor', 'operate', 'apply', 'truncate', 'references', 'modify', 'all privileges'] as const
 export type Privilege = typeof PRIVILEGES[number]
 
 const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'])
