@@ -28,6 +28,8 @@ export default class Import extends BaseCommand {
     } catch (error: any) {
       this.log(`Encountered an error: ${error.message}`)
     }
+
+    await this.logSuccess()
   }
 
   async fetchYaml(cfg: Config, accountId: string): Promise<Yaml> {

@@ -1,9 +1,7 @@
-import {Command} from '@oclif/core'
 import color from '@oclif/color'
-import {getLogger, LOG_COMMAND_SUCCESS} from '../lib/logging'
-import {getConfig} from '../lib/config'
+import {BaseCommand} from '../lib/cmd'
 
-export default class Ahoy extends Command {
+export default class Ahoy extends BaseCommand {
   static description = 'Getting started with Spyglass.'
 
   async run(): Promise<void> {
@@ -37,8 +35,6 @@ export default class Ahoy extends Command {
     this.log('  Run "spyglass accounts:auth" to get started!')
     this.log('')
 
-    const cfg = await getConfig(this.config.configDir)
-    const logger = getLogger(this.config, cfg)
-    logger.info(LOG_COMMAND_SUCCESS, {command: this.id, args: this.argv})
+    await this.logSuccess()
   }
 }

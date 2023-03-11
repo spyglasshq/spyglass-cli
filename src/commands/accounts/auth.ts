@@ -1,7 +1,8 @@
-import {Args, Command, Flags, ux} from '@oclif/core'
+import {BaseCommand} from '../../lib/cmd'
+import {Args, Flags, ux} from '@oclif/core'
 import {AUTHENTICATOR_PASSWORD, checkConnection, Config, getSnowflakeConfig, saveConfig} from '../../lib/snowflake'
 
-export default class Auth extends Command {
+export default class Auth extends BaseCommand {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
 
   static args = {
@@ -58,5 +59,7 @@ export default class Auth extends Command {
       ux.action.stop()
       this.log('Success!')
     }
+
+    await this.logSuccess()
   }
 }

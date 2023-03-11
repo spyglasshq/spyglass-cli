@@ -71,6 +71,8 @@ export default class Verify extends BaseCommand {
 
       this.formatIssue(issue)
     }
+
+    await this.logSuccess()
   }
 
   async fetchVerify(cfg: Config, yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {

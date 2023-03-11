@@ -89,6 +89,8 @@ export default class Apply extends BaseCommand {
     this.log(color.bold('Success!'))
 
     this.log(JSON.stringify(res2))
+
+    await this.logSuccess()
   }
 
   async fetchApply(cfg: Config, current: Yaml, proposed: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {

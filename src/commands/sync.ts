@@ -30,6 +30,8 @@ export default class Sync extends BaseCommand {
     } catch (error: any) {
       this.log(`Encountered an error: ${error.message}`)
     }
+
+    await this.logSuccess()
   }
 
   async fetchSync(cfg: Config, yaml: Yaml): Promise<Yaml> {
