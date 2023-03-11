@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import os = require('os')
 import winston = require('winston')
 import {LoggingWinston} from '@google-cloud/logging-winston'
