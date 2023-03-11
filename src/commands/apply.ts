@@ -38,12 +38,13 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      return
+      this.exit(1)
     }
 
     if (sqlCommands.length === 0) {
       this.log('✅ Exit: No changes to apply.')
-      return
+      await this.logSuccess()
+      this.exit(0)
     }
 
     // Print SQL differences.
@@ -55,7 +56,8 @@ export default class Apply extends BaseCommand {
     // We can exit if this is a dry run.
     if (flags['dry-run']) {
       this.log('✅ Exit: User specified dry run.')
-      return
+      await this.logSuccess()
+      this.exit(0)
     }
 
     if (flags.confirm) {
@@ -65,7 +67,8 @@ export default class Apply extends BaseCommand {
       const confirm = await ux.confirm('Execute these commands? (y/n)')
       if (!confirm) {
         this.log('Exit: Cancelled by user.')
-        return
+        await this.logSuccess()
+        this.exit(0)
       }
     }
 
@@ -83,7 +86,7 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      return
+      this.exit(1)
     }
 
     this.log(color.bold('Success!'))
