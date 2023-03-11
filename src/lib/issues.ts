@@ -1,4 +1,4 @@
-import {webcrypto} from 'node:crypto'
+import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
 
@@ -143,14 +143,6 @@ export async function findIssues(yaml: Yaml): Promise<Issue[]> {
   }
 
   return issues.sort((a, b) => (a.id ?? 0) > (b.id ?? 0) ? -1 : 1)
-}
-
-async function sha256(obj: unknown): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(JSON.stringify(obj))
-  const hash = await webcrypto.subtle.digest('SHA-256', data)
-  const hashArray = [...new Uint8Array(hash)]
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 export async function getIssueDetail(yaml: Yaml, issueId: string): Promise<IssueDetail> {

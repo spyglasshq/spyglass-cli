@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
+import {randomId, sha256} from './crypto'
 
 const configFile = 'config.json'
 
@@ -8,6 +9,22 @@ export interface Config {
   cloudMode?: boolean;
   teamId?: string;
   personalAccessToken?: string;
+  analyticsId?: string;
+}
+
+async function newDefaultConfig(): Promise<Config> {
+  return {
+    analyticsId: (await newAnalyticsId()).slice(0, 32),
+  }
+}
+
+async function newAnalyticsId(): Promise<string> {
+  const snowsqlConfig = process.env.SNOWSQL_CONFIG
+  if (snowsqlConfig) {
+    return sha256({snowsqlConfig})
+  }
+
+  return randomId()
 }
 
 export async function getConfig(configDir: string): Promise<Config> {
@@ -17,7 +34,10 @@ export async function getConfig(configDir: string): Promise<Config> {
     return cfg
   } catch (error: any) {
     if (error.code === 'ENOENT') {
-      return {}
+      const config = await newDefaultConfig()
+      await fs.mkdir(configDir, {recursive: true})
+      await fs.writeJSON(filepath, config, {spaces: 2})
+      return config
     }
 
     throw error
