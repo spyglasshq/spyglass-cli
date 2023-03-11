@@ -1,5 +1,5 @@
 import {Command} from '@oclif/core'
-import color from '@oclif/color';
+import color from '@oclif/color'
 
 export default class Ahoy extends Command {
   static description = 'Getting started with Spyglass.'

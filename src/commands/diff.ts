@@ -1,4 +1,3 @@
-/* eslint-disable max-depth */
 import {Args, Flags, Command, ux} from '@oclif/core'
 import color from '@oclif/color'
 import {apiCall} from '../lib/api'
@@ -53,8 +52,6 @@ export default class Diff extends Command {
       this.log(color.bold(`diff --spyglass a/${filepath} b/${filepath}`))
       this.log(color.bold(`--- a/${filepath}`))
       this.log(color.bold(`--- b/${filepath}`))
-
-      // TODO(tyler): we should really print "current" and then only +/- for the removed/added lines
 
       for (const [roleName, role] of Object.entries(yamlDiff.added)) {
         this.stringifyYamlDiff(roleName, role, line => {

@@ -1,6 +1,6 @@
 import {Args, Flags, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
-import color from '@oclif/color';
+import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, validateYaml, Yaml} from '../lib/yaml'

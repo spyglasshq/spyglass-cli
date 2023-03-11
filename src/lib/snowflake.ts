@@ -236,7 +236,7 @@ export async function listGrantsToUsers(conn: Connection): Promise<UserGrant[]> 
   return (await sqlQuery<UserGrant[]>(conn, grantsToUsersQuery, [])).results
 }
 
-export async function listGrantsToUsersFullScan(conn: Connection): Promise<UserGrant[]> {
+export async function listGrantsToUsersFullScan(_conn: Connection): Promise<UserGrant[]> {
   // query 'show roles;'
   // get roles into groups of 10
   // query 'show grants to role identifier(?);'

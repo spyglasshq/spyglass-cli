@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/import-style */
 import {Command, ux} from '@oclif/core'
 import {apiCall} from '../lib/api'
 import {createOrUpdateConfig} from '../lib/config'
