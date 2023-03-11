@@ -9,8 +9,6 @@ interface logger {
 const replacer = (key: string, value: unknown) => value === undefined ? null : value
 
 export function printYamlDiff(self: logger, yamlDiff: YamlDiff): void {
-  // TODO(tyler): we should really print "current" and then only +/- for the removed/added lines
-
   for (const [objType, objs] of Object.entries(yamlDiff.added)) {
     for (const [objName, obj] of Object.entries(objs)) {
       stringifyYamlDiff(self, objType, objName, obj, line => {

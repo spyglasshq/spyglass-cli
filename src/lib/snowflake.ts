@@ -67,8 +67,8 @@ export async function getSnowflakeConfig(): Promise<Config | null> {
   return {}
 }
 
-export async function saveConfig(config: any): Promise<void> {
-  const data = toml.stringify(config)
+export async function saveConfig(config: Config): Promise<void> {
+  const data = toml.stringify(config as any)
   await fs.mkdir(SNOWSQL_CONFIG_DIR, {recursive: true})
   await writeFile(SNOWSQL_CONFIG_FILE, data)
   await fs.chmod(SNOWSQL_CONFIG_FILE, 0o600)
@@ -333,7 +333,6 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand
 }
 
 function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
-  // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
     return {
       query: ['grant role identifier(?) to role identifier(?);', [objectId, roleName]],
@@ -368,7 +367,6 @@ function newGrantQuery(roleName: string, privilege: string, objectType: string, 
 }
 
 function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
-  // TODO(tyler): heavily sanitize all inputs
   if (privilege === 'usage' && objectType === 'role') {
     return {
       query: ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]],

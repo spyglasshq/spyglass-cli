@@ -70,8 +70,6 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     findIssues: (yaml: Yaml): Issue[] => {
       const issues: Issue[] = []
 
-      // TODO(tyler): make this work for all objects (not just views) and all privs (not just select)
-
       for (const [roleName, role] of Object.entries(yaml.roleGrants)) {
         for (const objectId of (role?.select?.view ?? [])) {
           const [database] = objectId.split('.')

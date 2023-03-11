@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/import-style */
 import * as fs from 'fs-extra'
 import * as path from 'node:path'
 

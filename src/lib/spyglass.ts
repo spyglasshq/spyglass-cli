@@ -46,8 +46,6 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
   const sqlDiff = sqlCommands.map(x => x.query)
 
-  // TODO(tyler): do we need to fetch current objects in order to decide whether to create or alter?
-
   return executeCommands(currentYaml.spyglass.accountId, sqlDiff, dryRun)
 }
 

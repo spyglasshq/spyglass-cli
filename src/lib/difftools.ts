@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export function deeplyConvertStringListsToSets(o: any): void {
   for (const k of Object.keys(o)) {
     if (isArrayOfStrings(o[k])) {
