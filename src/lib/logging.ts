@@ -19,7 +19,6 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
     projectId: 'deft-falcon-367614',
     credentials: JSON.parse(Buffer.from(c, 'base64').toString()),
     labels: {
-      envUser: process.env.USER ?? '',
       osPlatform: os.platform(),
       osRelease: os.release(),
       nodeVersion: process.version,
