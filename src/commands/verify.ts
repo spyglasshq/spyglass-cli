@@ -34,7 +34,7 @@ export default class Verify extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      return
+      this.exit(1)
     }
 
     ux.action.stop()
@@ -50,6 +50,7 @@ export default class Verify extends BaseCommand {
       const fixit = this.proposedChanges(issue, flags.dir)
 
       if (!fixit) {
+        await this.logSuccess()
         return
       }
 
@@ -61,6 +62,7 @@ export default class Verify extends BaseCommand {
         this.log('Exit: Cancelled by user.')
       }
 
+      await this.logSuccess()
       return
     }
 

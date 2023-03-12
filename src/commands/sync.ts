@@ -29,6 +29,7 @@ export default class Sync extends BaseCommand {
       this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {
       this.log(`Encountered an error: ${error.message}`)
+      this.exit(1)
     }
 
     await this.logSuccess()
