@@ -67,8 +67,6 @@ See [SECURITY.md](./SECURITY.md)
 
 We constantly improve this software, but we need your help!
 
-By default, we log **anonymous analytics** such as: which commands are invoked, what errors are encountered, and contextual data such as OS/node/CLI version. See https://github.com/spyglasshq/spyglass-cli/issues/9 and [logging.ts](./src/lib/logging.ts) for more information.
+By default, we log **anonymous analytics** such as: which commands are invoked, what errors are encountered, and contextual data such as OS/node/CLI version. We never send any personally-identifiable user information.
 
-This data is correlated by a unique, anonymous `analyticsId`, which can't be used to derive any personally-identifiable user information.
-
-To opt out, you can run `spyglass config:set disableAnalytics true`.
+To opt out, you can run `spyglass config:set disableAnalytics true`. See https://github.com/spyglasshq/spyglass-cli/issues/9 and [logging.ts](./src/lib/logging.ts) for more information.
