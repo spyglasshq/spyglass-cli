@@ -44,7 +44,7 @@ export default class Apply extends BaseCommand {
     if (sqlCommands.length === 0) {
       this.log('✅ Exit: No changes to apply.')
       await this.logSuccess()
-      this.exit(0)
+      return
     }
 
     // Print SQL differences.
@@ -57,7 +57,7 @@ export default class Apply extends BaseCommand {
     if (flags['dry-run']) {
       this.log('✅ Exit: User specified dry run.')
       await this.logSuccess()
-      this.exit(0)
+      return
     }
 
     if (flags.confirm) {
@@ -68,7 +68,7 @@ export default class Apply extends BaseCommand {
       if (!confirm) {
         this.log('Exit: Cancelled by user.')
         await this.logSuccess()
-        this.exit(0)
+        return
       }
     }
 

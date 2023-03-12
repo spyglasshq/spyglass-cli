@@ -32,6 +32,7 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
     level: 'info',
     transports: [
       loggingWinston,
+      // new winston.transports.Console(),
     ],
   })
 
