@@ -13,6 +13,10 @@ export abstract class BaseCommand extends Command {
   async logSuccess(): Promise<void> {
     const cfg = await getConfig(this.config.configDir)
     const logger = getLogger(this.config, cfg)
-    logger.info(LOG_COMMAND_SUCCESS, {command: this.id, args: this.argv})
+    return new Promise(resolve => {
+      logger.on('finish', resolve)
+      logger.info(LOG_COMMAND_SUCCESS, {command: this.id, args: this.argv})
+      logger.end()
+    })
   }
 }
