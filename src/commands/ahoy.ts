@@ -35,6 +35,6 @@ export default class Ahoy extends BaseCommand {
     this.log('  Run "spyglass accounts:auth" to get started!')
     this.log('')
 
-    await this.logSuccess()
+    await this.logSuccessAndExit()
   }
 }

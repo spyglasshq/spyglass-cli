@@ -50,7 +50,7 @@ export default class Verify extends BaseCommand {
       const fixit = this.proposedChanges(issue, flags.dir)
 
       if (!fixit) {
-        await this.logSuccess()
+        await this.logSuccessAndExit()
         return
       }
 
@@ -62,8 +62,7 @@ export default class Verify extends BaseCommand {
         this.log('Exit: Cancelled by user.')
       }
 
-      await this.logSuccess()
-      return
+      await this.logSuccessAndExit()
     }
 
     for (const issue of res as Issue[]) {
@@ -74,7 +73,7 @@ export default class Verify extends BaseCommand {
       this.formatIssue(issue)
     }
 
-    await this.logSuccess()
+    await this.logSuccessAndExit()
   }
 
   async fetchVerify(cfg: Config, yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {

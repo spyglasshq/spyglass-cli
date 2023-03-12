@@ -30,7 +30,7 @@ export default class Import extends BaseCommand {
       this.exit(1)
     }
 
-    await this.logSuccess()
+    await this.logSuccessAndExit()
   }
 
   async fetchYaml(cfg: Config, accountId: string): Promise<Yaml> {

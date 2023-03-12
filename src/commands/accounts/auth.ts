@@ -29,7 +29,7 @@ export default class Auth extends BaseCommand {
         this.log('Success!')
       }
 
-      return
+      await this.logSuccessAndExit()
     }
 
     if (config) {
@@ -60,6 +60,6 @@ export default class Auth extends BaseCommand {
       this.log('Success!')
     }
 
-    await this.logSuccess()
+    await this.logSuccessAndExit()
   }
 }

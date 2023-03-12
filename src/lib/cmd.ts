@@ -19,4 +19,9 @@ export abstract class BaseCommand extends Command {
       logger.end()
     })
   }
+
+  async logSuccessAndExit(number = 0): Promise<void> {
+    await this.logSuccess()
+    this.exit(number)
+  }
 }

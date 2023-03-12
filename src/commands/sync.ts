@@ -32,7 +32,7 @@ export default class Sync extends BaseCommand {
       this.exit(1)
     }
 
-    await this.logSuccess()
+    await this.logSuccessAndExit()
   }
 
   async fetchSync(cfg: Config, yaml: Yaml): Promise<Yaml> {
