@@ -118,7 +118,3 @@ By default, we log **anonymous analytics** such as: which commands are invoked, 
 This data is correlated by a unique, anonymous `analyticsId`, which can't be used to derive any personally-identifiable user information.
 
 To opt out, you can run `spyglass config:set disableAnalytics true`.
-
-## License
-
-This software is licensed under the MIT license, see the [LICENSE](./LICENSE) file.
