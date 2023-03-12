@@ -1,8 +1,9 @@
-import {Command, ux} from '@oclif/core'
+import {ux} from '@oclif/core'
+import {BaseCommand} from '../../lib/cmd'
 import {getConfig} from '../../lib/config'
 import {getSnowflakeConfig} from '../../lib/snowflake'
 
-export default class List extends Command {
+export default class List extends BaseCommand {
   static description = 'List acccounts.'
 
   async run(): Promise<void> {
@@ -56,6 +57,7 @@ export default class List extends Command {
         printLine: this.log.bind(this),
       })
 
+      await this.logSuccessAndExit()
       return
     }
 
@@ -80,5 +82,7 @@ export default class List extends Command {
     }, {
       printLine: this.log.bind(this),
     })
+
+    await this.logSuccessAndExit()
   }
 }
