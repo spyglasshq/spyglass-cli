@@ -103,7 +103,7 @@ spyglass apply <orgID-accountID>
 
 ## CI/CD Usage
 
-TODO
+See [How do I set up github actions / workflows? #42](https://github.com/spyglasshq/spyglass-cli/discussions/42).
 
 ## Security
 
