@@ -12,6 +12,10 @@ const c = 'ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByaXZhdGVfa2V5IjogIi0tL
 let logger: winston.Logger
 
 export function getLogger(cliConfig: Config, appConfig: config.Config): winston.Logger {
+  if (process.env.NODE_ENV === 'test') {
+    return getConsoleLogger()
+  }
+
   if (logger) {
     return logger
   }
@@ -49,5 +53,13 @@ export function getNoopLogger(): winston.Logger {
   return winston.createLogger({
     level: 'info',
     transports: [noopWinston],
+  })
+}
+
+export function getConsoleLogger(): winston.Logger {
+  const consoleWinston = new winston.transports.Console()
+  return winston.createLogger({
+    level: 'info',
+    transports: [consoleWinston],
   })
 }
