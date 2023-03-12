@@ -1,0 +1,26 @@
+on:
+  push:
+    branches: [master]
+
+jobs:
+  spyglass_job:
+    runs-on: ubuntu-latest
+    name: Spyglass merge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install spyglass CLI
+        run: npm install -g spyglass-cli
+
+      - name: Apply spyglass configuration to production
+        run: spyglass apply 'YOUR_ACCOUNT_ID_HERE' --git-ref "${{ github.event.before }}" --dir 'YOUR_SPYGLASS_DIR_HERE' --dry-run
+        env:
+          SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}

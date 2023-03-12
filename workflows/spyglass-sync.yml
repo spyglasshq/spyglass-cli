@@ -1,0 +1,36 @@
+on:
+  schedule:
+    - cron:  '* */6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  spyglass_job:
+    runs-on: ubuntu-latest
+    name: Spyglass Sync
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install spyglass CLI
+        run: npm install -g spyglass-cli
+
+      - name: Pull down latest production configuration to Spyglass
+        run: spyglass sync 'YOUR_ACCOUNT_ID_HERE' --dir 'YOUR_SPYGLASS_DIR_HERE'
+        env:
+          SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
+
+      - name: Git diff
+        run: git diff
+
+      - name: Git commit and push
+        run: |
+          git config --global user.name 'spyglass-software'
+          git config --global user.email 'devs@spyglass.software'
+          git commit -am "Fetch and update latest Spyglass configuration"
+          git push
+
