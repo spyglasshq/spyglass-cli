@@ -50,6 +50,15 @@ See [How do I set up the CLI? #43](https://github.com/spyglasshq/spyglass-cli/di
 
 See [How do I set up github actions / workflows? #42](https://github.com/spyglasshq/spyglass-cli/discussions/42).
 
+## Getting Help and Contributing
+
+We love working with the community, here's a few ways to get involved:
+
+1. [Discussions](https://github.com/spyglasshq/spyglass-cli/discussions) - For FAQs, Q&A, feature requests, ideas, announcements, and sharing your use cases.
+2. [Issues](https://github.com/spyglasshq/spyglass-cli/issues) - For bug reports and concrete work items.
+3. [Email] - If all else fails, or if you'd just like to chat, let us know at devs@spyglass.software.
+4. [Slack] - For early partners, we're working on Slack for real time feedback and support. If you're interested, reach out to demo@spyglass.software.
+
 ## Security
 
 See [SECURITY.md](./SECURITY.md)
