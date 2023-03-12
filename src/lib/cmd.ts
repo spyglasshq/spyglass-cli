@@ -1,6 +1,10 @@
 import {Command, Flags} from '@oclif/core'
 import {getConfig} from './config'
-import {getLogger, LOG_COMMAND_SUCCESS} from './logging'
+import {getLogger, LOG_COMMAND_ERROR, LOG_COMMAND_SUCCESS} from './logging'
+
+export interface LoggableError {
+  message: string;
+}
 
 export abstract class BaseCommand extends Command {
   static baseFlags = {
@@ -20,8 +24,27 @@ export abstract class BaseCommand extends Command {
     })
   }
 
-  async logSuccessAndExit(number = 0): Promise<void> {
+  async logSuccessAndExit(): Promise<void> {
     await this.logSuccess()
-    this.exit(number)
+    this.exit()
+  }
+
+  async logError({message}: LoggableError): Promise<void> {
+    const cfg = await getConfig(this.config.configDir)
+    const logger = getLogger(this.config, cfg)
+    return new Promise(resolve => {
+      logger.on('finish', resolve)
+      logger.error(LOG_COMMAND_ERROR, {
+        command: this.id,
+        args: this.argv,
+        error: message,
+      })
+      logger.end()
+    })
+  }
+
+  async logErrorAndExit(error: LoggableError): Promise<void> {
+    await this.logError(error)
+    this.exit(1)
   }
 }

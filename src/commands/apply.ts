@@ -38,7 +38,7 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      this.exit(1)
+      await this.logErrorAndExit(error)
     }
 
     if (sqlCommands.length === 0) {
@@ -83,7 +83,7 @@ export default class Apply extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      this.exit(1)
+      await this.logErrorAndExit(error)
     }
 
     this.log(color.bold('Success!'))

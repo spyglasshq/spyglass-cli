@@ -27,7 +27,7 @@ export default class Import extends BaseCommand {
       this.log(color.bold(`Successfully wrote current configuration to ${args.accountId}.yaml.`))
     } catch (error: any) {
       this.log(`Encountered an error: ${error.message}`)
-      this.exit(1)
+      await this.logErrorAndExit(error)
     }
 
     await this.logSuccessAndExit()

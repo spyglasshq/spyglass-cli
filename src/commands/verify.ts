@@ -34,7 +34,7 @@ export default class Verify extends BaseCommand {
     } catch (error: any) {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
-      this.exit(1)
+      await this.logErrorAndExit(error)
     }
 
     ux.action.stop()
