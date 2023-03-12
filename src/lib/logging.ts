@@ -29,12 +29,15 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
     },
   })
 
+  const noopWinston = new winston.transports.File({filename: '/dev/null'})
+
+  // const _consoleWinston = new winston.transports.Console()
+
+  const transports = appConfig.disableAnalytics ? [noopWinston] : [loggingWinston]
+
   logger = winston.createLogger({
     level: 'info',
-    transports: [
-      loggingWinston,
-      // new winston.transports.Console(),
-    ],
+    transports,
   })
 
   return logger

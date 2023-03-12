@@ -10,6 +10,7 @@ export interface Config {
   teamId?: string;
   personalAccessToken?: string;
   analyticsId?: string;
+  disableAnalytics?: boolean;
 }
 
 async function newDefaultConfig(): Promise<Config> {
@@ -47,21 +48,13 @@ export async function getConfig(configDir: string): Promise<Config> {
 export async function createOrUpdateConfig(configDir: string, config: Config): Promise<void> {
   const filepath = path.join(configDir, configFile)
   try {
-    const userConfig = await fs.readJSON(filepath)
-
-    if (config.personalAccessToken) {
-      userConfig.personalAccessToken = config.personalAccessToken
-    }
-
-    if (config.teamId) {
-      userConfig.teamId = config.teamId
-    }
-
-    await fs.writeJSON(filepath, config, {spaces: 2})
+    const newConfig = {...(await fs.readJSON(filepath)), ...config}
+    await fs.writeJSON(filepath, newConfig, {spaces: 2})
   } catch (error: any) {
     if (error.code === 'ENOENT') {
+      const newConfig = {...(await newDefaultConfig()), ...config}
       await fs.mkdir(configDir, {recursive: true})
-      await fs.writeJSON(filepath, config, {spaces: 2})
+      await fs.writeJSON(filepath, newConfig, {spaces: 2})
     } else {
       throw error
     }
