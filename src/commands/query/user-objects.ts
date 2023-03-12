@@ -14,6 +14,8 @@ export default class UserObjects extends BaseCommand {
   }
 
   async run(): Promise<unknown> {
+    await this.init()
+
     const {args, flags} = await this.parse(UserObjects)
 
     const yaml = await readYamlForAccountId(args.accountId, flags.dir)

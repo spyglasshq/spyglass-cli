@@ -14,6 +14,8 @@ export default class Auth extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args, flags} = await this.parse(Auth)
 
     const config = await getSnowflakeConfig()

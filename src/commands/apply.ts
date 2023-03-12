@@ -22,6 +22,8 @@ export default class Apply extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args, flags} = await this.parse(Apply)
 
     let sqlCommands: AppliedCommand[] = []

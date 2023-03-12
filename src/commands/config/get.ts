@@ -11,6 +11,8 @@ export default class Get extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args} = await this.parse(Get)
 
     const cfg = (await getConfig(this.config.configDir)) as any

@@ -8,6 +8,8 @@ export default class Login extends Command {
   static description = 'Log in to your Spyglass account.'
 
   async run(): Promise<void> {
+    await this.init()
+
     const teamId = await ux.prompt('What is your team id? (e.g. "example.com")')
 
     this.log('First, go to https://demo.spyglass.software/connect and find your personal access token.')

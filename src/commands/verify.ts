@@ -20,6 +20,8 @@ export default class Verify extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args, flags} = await this.parse(Verify)
 
     let res

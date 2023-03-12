@@ -43,3 +43,11 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
 
   return logger
 }
+
+export function getNoopLogger(): winston.Logger {
+  const noopWinston = new winston.transports.File({filename: '/dev/null'})
+  return winston.createLogger({
+    level: 'info',
+    transports: [noopWinston],
+  })
+}

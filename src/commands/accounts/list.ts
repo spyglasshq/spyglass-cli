@@ -7,6 +7,8 @@ export default class List extends BaseCommand {
   static description = 'List acccounts.'
 
   async run(): Promise<void> {
+    await this.init()
+
     const cfg = await getConfig(this.config.configDir)
 
     if (cfg?.cloudMode) {

@@ -11,6 +11,8 @@ export default class Set extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args} = await this.parse(Set)
 
     const newCfg: any = {}

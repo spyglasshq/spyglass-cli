@@ -14,6 +14,8 @@ export default class Sync extends BaseCommand {
   }
 
   async run(): Promise<void> {
+    await this.init()
+
     const {args, flags} = await this.parse(Sync)
 
     const cfg = await getConfig(this.config.configDir)
