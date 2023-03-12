@@ -38,11 +38,12 @@ export abstract class BaseCommand extends Command {
     return new Promise(resolve => {
       this.logger.on('finish', resolve)
 
-      this.logger.on('error', (error) => {
+      this.logger.on('error', error => {
         if (!this.exiting) {
           this.log(error.stack)
           this.log('Logging error encountered, exiting cleanly.')
         }
+
         resolve()
       })
 
@@ -62,11 +63,12 @@ export abstract class BaseCommand extends Command {
     return new Promise(resolve => {
       this.logger.on('finish', resolve)
 
-      this.logger.on('error', (error) => {
+      this.logger.on('error', error => {
         if (!this.exiting) {
           this.log(error.stack)
           this.log('Logging error encountered, exiting cleanly.')
         }
+
         resolve()
       })
 
