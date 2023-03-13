@@ -1,7 +1,7 @@
 import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {ShowFutureRoleGrant, ShowRoleGrant, UserGrant, Warehouse} from './snowflake'
+import {ShowFutureRoleGrant, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
@@ -96,9 +96,9 @@ export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void>
 }
 
 // eslint-disable-next-line max-params
-export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], userGrantsRows: UserGrant[], warehousesRows: Warehouse[]): Yaml {
+export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], roleGrantsOf: ShowRoleGrantOf[], warehousesRows: Warehouse[]): Yaml {
   const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows, futureRoleGrants)
-  const userGrants = usersYamlFromUserGrants(userGrantsRows)
+  const userGrants = usersYamlFromUserGrants(roleGrantsOf)
   const warehouses = warehousesYamlFromWarehouses(warehousesRows)
 
   const yaml: Yaml = {
@@ -118,16 +118,16 @@ export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGr
   return yaml
 }
 
-export function usersYamlFromUserGrants(rows: UserGrant[]): YamlUserGrants {
+export function usersYamlFromUserGrants(rows: ShowRoleGrantOf[]): YamlUserGrants {
   const userGrants: YamlUserGrants = {}
 
   for (const rg of rows) {
-    if (rg.GRANTED_TO !== 'USER') {
+    if (rg.granted_to !== 'USER') {
       continue
     }
 
-    const role = rg.ROLE.toLowerCase()
-    const username = rg.GRANTEE_NAME.toLowerCase()
+    const role = rg.role.toLowerCase()
+    const username = rg.grantee_name.toLowerCase()
 
     if (!userGrants[username]) {
       userGrants[username] = {

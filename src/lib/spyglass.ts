@@ -1,24 +1,23 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, listGrantsToUsersFullScan, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
 export async function importSnowflake(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
   const conn = await getConn(accountId)
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
-  const userGrantsPromise = listGrantsToUsersFullScan(conn) // Not implemented atm
   const warehousesRowsPromise = showWarehouses(conn)
 
-  const [roleGrants, futureRoleGrants] = await roleGrantsPromise
+  const [roleGrants, futureRoleGrants, roleGrantsOf] = await roleGrantsPromise
 
   const grants = {
     roleGrants,
     futureRoleGrants,
-    userGrants: await userGrantsPromise,
+    roleGrantsOf,
     warehouses: await warehousesRowsPromise,
   }
 
-  return yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.userGrants, grants.warehouses)
+  return yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
 }
 
 export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {

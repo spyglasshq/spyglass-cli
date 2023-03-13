@@ -140,11 +140,19 @@ export interface ShowFutureRoleGrant {
   grant_to: string;
 }
 
+export interface ShowRoleGrantOf {
+  created_on: Date;
+  role: string;
+  granted_to: string;
+  grantee_name: string;
+  granted_by: string;
+}
+
 const sleep = (ms: number) => new Promise(r => {
   setTimeout(r, ms)
 })
 
-export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[]]> {
+export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[], ShowRoleGrantOf[]]> {
   const [batchedRoleNames, numRoles] = await getBatchedRoleNames(conn)
   onStart(numRoles)
 
@@ -152,6 +160,7 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
 
   let roleGrants: ShowRoleGrant[] = []
   let futureRoleGrants: ShowFutureRoleGrant[] = []
+  let roleGrantsOf: ShowRoleGrantOf[] = []
   let numRolesQueried = 0
 
   for (const roleNames of batchedRoleNames) {
@@ -163,6 +172,10 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
     const _futureRoleGrants = await queryFutureRoleGrants(conn, roleNames)
     futureRoleGrants = [...futureRoleGrants, ..._futureRoleGrants]
 
+    // eslint-disable-next-line no-await-in-loop
+    const _roleGrantsOf = await queryRoleGrantsOf(conn, roleNames)
+    roleGrantsOf = [...roleGrantsOf, ..._roleGrantsOf]
+
     numRolesQueried += roleNames.length
     onProgress(numRolesQueried)
 
@@ -170,7 +183,7 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
     await sleep(1000)
   }
 
-  return [roleGrants, futureRoleGrants]
+  return [roleGrants, futureRoleGrants, roleGrantsOf]
 }
 
 async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
@@ -190,6 +203,18 @@ async function queryFutureRoleGrants(conn: Connection, roleNames: string[]): Pro
   const res = await sqlQueries<ShowRoleGrant>(conn, queries)
 
   let results: ShowFutureRoleGrant[] = []
+  for (const r of res) {
+    results = [...results, ...r.results]
+  }
+
+  return results
+}
+
+async function queryRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
+  const queries: Query[] = roleNames.map(roleName => (['show grants of role identifier(?);', [roleName]]))
+  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+
+  let results: ShowRoleGrantOf[] = []
   for (const r of res) {
     results = [...results, ...r.results]
   }
@@ -234,14 +259,6 @@ export interface UserGrant {
 
 export async function listGrantsToUsers(conn: Connection): Promise<UserGrant[]> {
   return (await sqlQuery<UserGrant[]>(conn, grantsToUsersQuery, [])).results
-}
-
-export async function listGrantsToUsersFullScan(_conn: Connection): Promise<UserGrant[]> {
-  // query 'show roles;'
-  // get roles into groups of 10
-  // query 'show grants to role identifier(?);'
-  // query 'show grants of role identifier(?);'
-  return []
 }
 
 const showWarehousesQuery = 'show warehouses;'
