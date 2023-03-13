@@ -1,3 +1,5 @@
+name: Spyglass Sync
+
 on:
   schedule:
     - cron:  '* */6 * * *'
@@ -6,7 +8,7 @@ on:
 jobs:
   spyglass_job:
     runs-on: ubuntu-latest
-    name: Spyglass Sync
+    name: Sync
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -20,7 +22,7 @@ jobs:
         run: npm install -g spyglass-cli
 
       - name: Pull down latest production configuration to Spyglass
-        run: spyglass sync 'YOUR_ACCOUNT_ID_HERE' --dir 'YOUR_SPYGLASS_DIR_HERE'
+        run: spyglass sync skigdyn-wu58851 --dir spyglass
         env:
           SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
 
