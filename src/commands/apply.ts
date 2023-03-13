@@ -15,6 +15,7 @@ export default class Apply extends BaseCommand {
     'dry-run': Flags.boolean({description: 'Dry run', default: false}),
     confirm: Flags.boolean({description: 'Skip the interactive prompt (used in CI)', default: false}),
     'git-ref': Flags.string({description: 'The branch to compare current changes against.', default: 'master', aliases: ['branch']}),
+    markdown: Flags.boolean({description: 'Format the output as markdown text.', default: false}),
   }
 
   static args = {
@@ -49,14 +50,12 @@ export default class Apply extends BaseCommand {
     }
 
     // Print SQL differences.
-    this.log(color.bold(`Account ${current.spyglass.accountId} SQL updates:`))
-    for (const command of sqlCommands) {
-      this.log(color.cyan(`  ${command.sql}`))
-    }
+    this.printSqlDifferences(current, sqlCommands, flags.markdown)
 
     // We can exit if this is a dry run.
     if (flags['dry-run']) {
-      this.log('✅ Exit: User specified dry run.')
+      this.logToStderr('✅ Exit: User specified dry run.')
+
       await this.logSuccessAndExit()
     }
 
@@ -137,5 +136,24 @@ export default class Apply extends BaseCommand {
     }
 
     return applySnowflake(current, proposed, dryRun)
+  }
+
+  printSqlDifferences(current: Yaml, sqlCommands: AppliedCommand[], markdown: boolean): void {
+    if (markdown) {
+      this.log(`**Account ${current.spyglass.accountId} SQL updates:**`)
+      this.log('```')
+
+      for (const command of sqlCommands) {
+        this.log(command.sql)
+      }
+
+      this.log('```')
+    } else {
+      this.log(color.bold(`Account ${current.spyglass.accountId} SQL updates:`))
+
+      for (const command of sqlCommands) {
+        this.log(color.cyan(`  ${command.sql}`))
+      }
+    }
   }
 }
