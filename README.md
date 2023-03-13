@@ -44,11 +44,15 @@ npm install -g spyglass-cli
 
 ## Basic Usage
 
-See [How do I set up the CLI? #43](https://github.com/spyglasshq/spyglass-cli/discussions/43)
+See [How do I set up the CLI? #43](https://github.com/spyglasshq/spyglass-cli/discussions/43).
 
 ## CI/CD Usage
 
 See [How do I set up github actions / workflows? #42](https://github.com/spyglasshq/spyglass-cli/discussions/42).
+
+## Query Usage
+
+For getting insight into "who can access what?", see [Announcing Queries (alpha) #45](https://github.com/spyglasshq/spyglass-cli/discussions/45).
 
 ## Getting Help and Contributing
 
