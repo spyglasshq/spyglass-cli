@@ -37,7 +37,7 @@ jobs:
           else
             echo 'outcome=failed' >>$GITHUB_OUTPUT
             echo -e 'Spyglass dry run failed:\n' >>$GITHUB_ENV
-            cat stderr.log >>$GITHUB_ENV
+            cat stderr.log stdout.log >>$GITHUB_ENV
           fi
           set -e
 
