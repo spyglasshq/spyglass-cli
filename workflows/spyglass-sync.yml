@@ -22,7 +22,7 @@ jobs:
         run: npm install -g spyglass-cli
 
       - name: Pull down latest production configuration to Spyglass
-        run: spyglass sync skigdyn-wu58851 --dir spyglass
+        run: spyglass sync YOUR_ACCOUNT_ID_HERE --dir YOUR_SPYGLASS_DIR_HERE
         env:
           SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
 

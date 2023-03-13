@@ -28,7 +28,7 @@ jobs:
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "COMMENT_BODY<<$EOF" >> $GITHUB_ENV
-          spyglass apply skigdyn-wu58851 --git-ref '${{ github.event.pull_request.base.sha }}' --dir spyglass --dry-run --markdown >> $GITHUB_ENV
+          spyglass apply YOUR_ACCOUNT_ID_HERE --git-ref '${{ github.event.pull_request.base.sha }}' --dir YOUR_SPYGLASS_DIR_HERE --dry-run --markdown >> $GITHUB_ENV
           echo "$EOF" >> $GITHUB_ENV
         env:
           SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
