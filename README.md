@@ -13,24 +13,16 @@ Basic usage of this tool looks like:
 3. Automatically sync objects/roles between your Git repo and Snowflake.
 
 ```
-┌───────────┐                        ┌──────────┐
-│           │     import / sync      │          │
+┌───────────┐     import / sync      ┌──────────┐
 │ Snowflake │ ─────────────────────► │   YAML   │
-│           │                        │          │
 └───────────┘                        └──────────┘
-
-┌───────────┐                        ┌──────────┐
-│           │     make changes       │          │
+┌───────────┐     make changes       ┌──────────┐
 │           │ ─────────────────────► │          │
-│ Data Eng  │                        │   YAML   │
-│           │        verify          │          │
+│ Data User │        verify          │   YAML   │
 │           │ ─────────────────────► │          │
 └───────────┘                        └──────────┘
-
-┌───────────┐                        ┌──────────┐
-│           │        apply           │          │
+┌───────────┐        apply           ┌──────────┐
 │ Snowflake │ ◄───────────────────── │   YAML   │
-│           │                        │          │
 └───────────┘                        └──────────┘
 ```
 
