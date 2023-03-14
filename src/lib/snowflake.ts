@@ -297,6 +297,8 @@ export async function executeCommands(accountId: string, queries: Query[], dryRu
 
   let results: AppliedCommand[] = []
 
+  // TODO: fan out all queries in batches
+
   for (const query of queries) {
     // eslint-disable-next-line no-await-in-loop
     const res = await sqlQuery(conn, query[0], query[1], dryRun)
@@ -349,7 +351,22 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand
   return queries
 }
 
+function sanitizePrivilege(privilege: string): void {
+  if (!(/^[\w ]+$/.test(privilege))) {
+    throw new Error('invalid privilege')
+  }
+}
+
+function sanitizeObjectType(objectType: string): void {
+  if (!(/^[\w ]+$/.test(objectType))) {
+    throw new Error('invalid object type')
+  }
+}
+
 function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
+  sanitizePrivilege(privilege)
+  sanitizeObjectType(objectType)
+
   if (privilege === 'usage' && objectType === 'role') {
     return {
       query: ['grant role identifier(?) to role identifier(?);', [objectId, roleName]],
@@ -384,6 +401,9 @@ function newGrantQuery(roleName: string, privilege: string, objectType: string, 
 }
 
 function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
+  sanitizePrivilege(privilege)
+  sanitizeObjectType(objectType)
+
   if (privilege === 'usage' && objectType === 'role') {
     return {
       query: ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]],
