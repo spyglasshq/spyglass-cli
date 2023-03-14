@@ -76,7 +76,7 @@ export default class Apply extends BaseCommand {
     ux.action.start('Applying updated Snowflake configuration')
     try {
       const cfg = await getConfig(this.config.configDir)
-      const proposed = await readYamlForAccountId(args['account-id'])
+      const proposed = await readYamlForAccountId(args['account-id'], flags.dir)
       const current = await readYamlAtBranch(args['account-id'], flags['git-ref'], flags.dir)
       res2 = await this.fetchApply(cfg, current, proposed, false /* dryRun */)
 
