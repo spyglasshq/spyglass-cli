@@ -4,7 +4,7 @@ import {getConfig} from '../../lib/config'
 import {getSnowflakeConfig} from '../../lib/snowflake'
 
 export default class List extends BaseCommand {
-  static description = 'List acccounts.'
+  static description = 'List Snowflake acccounts.'
 
   async run(): Promise<void> {
     await this.init()

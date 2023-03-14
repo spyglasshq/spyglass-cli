@@ -3,7 +3,7 @@ import {Args, Flags, ux} from '@oclif/core'
 import {AUTHENTICATOR_PASSWORD, checkConnection, Config, getSnowflakeConfig, saveConfig} from '../../lib/snowflake'
 
 export default class Auth extends BaseCommand {
-  static description = 'Translate a database\'s current configuration into Spyglass format.'
+  static description = 'Authenticate to your Snowflake account.'
 
   static args = {
     accountId: Args.string({description: 'Account identifier (e.g. "zhjgixi-tv26532").', required: true}),
