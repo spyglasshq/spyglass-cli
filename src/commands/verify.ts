@@ -163,7 +163,7 @@ export default class Verify extends BaseCommand {
     const handler = ISSUE_HANDLERS[issue.issue.id]
     if (handler) {
       return async (accountId: string): Promise<void> => {
-        const contents = await readYamlForAccountId(accountId) as Yaml
+        const contents = await readYamlForAccountId(accountId, dir) as Yaml
 
         const updatedContents = handler.fixYaml(contents, issue.data)
 
