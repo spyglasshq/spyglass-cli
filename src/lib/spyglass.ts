@@ -1,5 +1,5 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
@@ -59,9 +59,13 @@ async function _findNotExistingEntities(accountId: string, sqlCommands: SqlComma
 
   const conn = await getConn(accountId)
 
-  const existingRoles = (await showRoles(conn)).map(r => `role:${r.name.toLowerCase()}`)
-  const existingObjects = (await showObjects(conn)).map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
-  const existingEntities = new Set([...existingRoles, ...existingObjects])
+  const roles = await showRoles(conn)
+  const objects = await showObjects(conn)
+
+  const existingRoles = roles.map(r => `role:${r.name.toLowerCase()}`)
+  const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
+  const existingAccountObjects = getDatabasesAndSchemas(objects)
+  const existingEntities = new Set([...existingRoles, ...existingObjects, ...existingAccountObjects])
 
   const proposedEntities = sqlCommands.map(x => x.entities)
 
@@ -76,6 +80,25 @@ async function _findNotExistingEntities(accountId: string, sqlCommands: SqlComma
   return res
 }
 
-function fqObjectId(database: string, schema: string, objectId: string) {
+function fqObjectId(database: string, schema: string, objectId: string): string {
   return [database.toLowerCase(), schema.toLowerCase(), objectId.toLowerCase()].join('.')
+}
+
+function fqSchemaId(database: string, schema: string): string {
+  return [database.toLowerCase(), schema.toLowerCase()].join('.')
+}
+
+function fqDatabaseId(database: string): string {
+  return database.toLowerCase()
+}
+
+function getDatabasesAndSchemas(objects: ShowObject[]): string[] {
+  const res: Set<string> = new Set()
+
+  for (const obj of objects) {
+    res.add(`database:${fqDatabaseId(obj.database_name)}`)
+    res.add(`schema:${fqSchemaId(obj.database_name, obj.schema_name)}`)
+  }
+
+  return [...res]
 }
