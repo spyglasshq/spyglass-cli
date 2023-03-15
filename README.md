@@ -1,6 +1,6 @@
-# Spyglass CLI
-
 ![spyglass-cli-logo](./docs/spyglass-cli-logo.png)
+
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/spyglasshq/spyglass-cli/test.yml?branch=master) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/spyglasshq/spyglass-cli) ![GitHub](https://img.shields.io/github/license/spyglasshq/spyglass-cli) ![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/spyglasshq/spyglass-cli/1)
 
 Simple, secure access management for data teams, built exclusively for Snowflake.
 
