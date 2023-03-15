@@ -1,4 +1,5 @@
-![spyglass-cli-logo](./docs/spyglass-cli-logo.png)
+![spyglass-cli-logo](https://user-images.githubusercontent.com/121976108/225433315-7997ae61-5a9b-4ba1-9300-8756db25c729.png)
+
 
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/spyglasshq/spyglass-cli/test.yml?branch=master) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/spyglasshq/spyglass-cli) ![GitHub](https://img.shields.io/github/license/spyglasshq/spyglass-cli) ![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/spyglasshq/spyglass-cli/1)
 
