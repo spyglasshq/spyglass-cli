@@ -5,8 +5,15 @@ export type Query = [string, Bind[]]
 export interface AppliedCommand {
   sql: string;
   dryRun: boolean;
-  applied: boolean;
+  executed: boolean;
   results: any[];
+  error?: string;
+  errorCode?: number;
+}
+
+export interface QueryOptions {
+  dryRun?: boolean;
+  dontReject?: boolean;
 }
 
 // interpolateQuery is only used for debugging, not for actually templating strings for queries!!!
@@ -25,11 +32,14 @@ function interpolateQuery(q: Query): string {
   return sql2
 }
 
-export async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Bind[], dryRun = false): Promise<AppliedCommand> {
-  const res = {
+export async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Bind[], q?: QueryOptions): Promise<AppliedCommand> {
+  const dryRun = q?.dryRun ?? false
+  const dontReject = q?.dontReject ?? false
+
+  const res: AppliedCommand = {
     sql: interpolateQuery([sqlText, binds]),
     dryRun,
-    applied: false,
+    executed: false,
     results: [] as T[],
   }
   if (dryRun) {
@@ -42,10 +52,16 @@ export async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Bind
       binds,
       complete: (err, stmt, rows) => {
         if (err) {
-          reject(err)
+          if (dontReject) {
+            res.error = err.message
+            res.errorCode = err.code
+            resolve(res)
+          } else {
+            reject(err)
+          }
         } else {
           if (rows) {
-            res.applied = true
+            res.executed = true
             res.results = rows
             resolve(res)
             return
@@ -58,8 +74,8 @@ export async function sqlQuery<T>(conn: Connection, sqlText: string, binds: Bind
   })
 }
 
-export async function sqlQueries<T>(conn: Connection, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
-  const promises = queries.map(([sqlText, binds]) => sqlQuery<T>(conn, sqlText, binds, dryRun))
+export async function sqlQueries<T>(conn: Connection, queries: Query[], q?: QueryOptions): Promise<AppliedCommand[]> {
+  const promises = queries.map(([sqlText, binds]) => sqlQuery<T>(conn, sqlText, binds, q))
   return Promise.all(promises)
 }
 
@@ -77,7 +93,7 @@ export async function sqlQueriesV2<T>(conn: Connection, queries: Query[], dryRun
   const allRows: AppliedCommand = {
     sql: interpolateQuery([sqlText, binds]),
     dryRun,
-    applied: false,
+    executed: false,
     results: [] as T[],
   }
 

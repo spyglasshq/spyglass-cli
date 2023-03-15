@@ -49,6 +49,8 @@ export default class Apply extends BaseCommand {
       await this.logSuccessAndExit()
     }
 
+    this.log('')
+
     // Print SQL differences.
     this.printSqlDifferences(current, sqlCommands, flags.markdown)
 
@@ -60,7 +62,8 @@ export default class Apply extends BaseCommand {
     }
 
     if (flags.confirm) {
-      this.log('Execution confirmed by command line flag, skipping interactive prompt (this is normal in CI environments).')
+      this.log('🆗 Execution confirmed by command line flag, skipping interactive prompt (this is normal in CI environments).')
+      this.log('')
     } else if (!flags.confirm) {
       // If --confirm isn't provided, get interactive confirmation from user.
       const confirm = await ux.confirm('Execute these commands? (y/n)')
@@ -85,13 +88,27 @@ export default class Apply extends BaseCommand {
       ux.action.stop()
       this.log(`Encountered an error: ${error.message}`)
       await this.logErrorAndExit(error)
+      return
     }
 
-    this.log(color.bold('Success!'))
+    this.log('')
 
-    this.log(JSON.stringify(res2))
+    for (const result of res2) {
+      const icon = result.executed ? '✅' : '❌'
+      this.log(`${icon} ${result.sql}`)
 
+      if (!result.executed) {
+        this.log(color.red(this.indentString(result.error ?? '', 4)))
+        this.log('')
+      }
+    }
+
+    // this.log(JSON.stringify(res2))
     await this.logSuccessAndExit()
+  }
+
+  indentString(str: string, count: number, indent = ' '): string {
+    return str.replace(/^/gm, indent.repeat(count))
   }
 
   async fetchApply(cfg: Config, current: Yaml, proposed: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
@@ -155,5 +172,7 @@ export default class Apply extends BaseCommand {
         this.log(color.cyan(`  ${command.sql}`))
       }
     }
+
+    this.log('')
   }
 }

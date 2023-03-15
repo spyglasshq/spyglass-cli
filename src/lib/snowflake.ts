@@ -297,11 +297,9 @@ export async function executeCommands(accountId: string, queries: Query[], dryRu
 
   let results: AppliedCommand[] = []
 
-  // TODO: fan out all queries in batches
-
   for (const query of queries) {
     // eslint-disable-next-line no-await-in-loop
-    const res = await sqlQuery(conn, query[0], query[1], dryRun)
+    const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
 
     results = [...results, res]
   }
