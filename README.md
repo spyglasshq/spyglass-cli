@@ -9,22 +9,26 @@ Manage your Snowflake access control as code.
 
 Basic usage of this tool looks like:
 
+```
 1. Import your current Snowflake objects/roles to YAML.
+
+┌───────────┐     spyglass import / sync      ┌──────────┐
+│ Snowflake │ ──────────────────────────────► │   YAML   │
+└───────────┘                                 └──────────┘
+
 2. Manage them as code.
+
+┌───────────┐          make changes           ┌──────────┐
+│           │ ──────────────────────────────► │          │
+│ Data User │        spyglass verify          │   YAML   │
+│           │ ──────────────────────────────► │          │
+└───────────┘                                 └──────────┘
+
 3. Automatically sync objects/roles between your Git repo and Snowflake.
 
-```
-┌───────────┐     import / sync      ┌──────────┐
-│ Snowflake │ ─────────────────────► │   YAML   │
-└───────────┘                        └──────────┘
-┌───────────┐     make changes       ┌──────────┐
-│           │ ─────────────────────► │          │
-│ Data User │        verify          │   YAML   │
-│           │ ─────────────────────► │          │
-└───────────┘                        └──────────┘
-┌───────────┐        apply           ┌──────────┐
-│ Snowflake │ ◄───────────────────── │   YAML   │
-└───────────┘                        └──────────┘
+┌───────────┐        spyglass apply           ┌──────────┐
+│ Snowflake │ ◄────────────────────────────── │   YAML   │
+└───────────┘                                 └──────────┘
 ```
 
 ## Getting Started
