@@ -73,7 +73,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
-    "coverage": "npx nyc --reporter=lcov npm test",
+    "coverage": "npx nyc --reporter=lcov --reporter=text npm test",
     "version": "oclif readme && git add README.md"
   },
   "engines": {
