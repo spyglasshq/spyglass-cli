@@ -26,7 +26,7 @@ export default class Sync extends BaseCommand {
     try {
       const newYaml = await this.fetchSync(cfg, yaml)
 
-      writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
+      await writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
 
       this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {
