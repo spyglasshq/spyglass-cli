@@ -103,7 +103,6 @@ export default class Apply extends BaseCommand {
       }
     }
 
-    // this.log(JSON.stringify(res2))
     await this.logSuccessAndExit()
   }
 
