@@ -10,6 +10,11 @@ export interface Spyglass {
   apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]>
 }
 
+// mostly needed for test mocking purposes
+export function newSpyglass(): Spyglass {
+  return new SnowflakeSpyglass()
+}
+
 export class SnowflakeSpyglass {
   async import(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
     return importSnowflake(accountId, onStart, onProgress)
@@ -133,8 +138,10 @@ export class MockSpyglass {
   _verify?: Issue[] | IssueDetail
   _sync?: Yaml
   _apply?: AppliedCommand[]
+  _error?: Error
 
   async import(_accountId: string, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+    if (this._error) throw this._error
     if (!this._import) {
       throw new Error('mock import result not defined')
     }
@@ -143,6 +150,7 @@ export class MockSpyglass {
   }
 
   async verify(_yaml: Yaml, _issueId?: string): Promise<Issue[] | IssueDetail> {
+    if (this._error) throw this._error
     if (!this._verify) {
       throw new Error('mock verify result not defined')
     }
@@ -151,6 +159,7 @@ export class MockSpyglass {
   }
 
   async sync(_yaml: Yaml, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+    if (this._error) throw this._error
     if (!this._sync) {
       throw new Error('mock sync result not defined')
     }
@@ -159,6 +168,7 @@ export class MockSpyglass {
   }
 
   async apply(_currentYaml: Yaml, _proposedYaml: Yaml, _dryRun: boolean): Promise<AppliedCommand[]> {
+    if (this._error) throw this._error
     if (!this._apply) {
       throw new Error('mock apply result not defined')
     }

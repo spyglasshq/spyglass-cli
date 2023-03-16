@@ -2,7 +2,7 @@ import winston = require('winston')
 import {Command, Config, Flags} from '@oclif/core'
 import {getConfig} from './config'
 import {getLogger, getNoopLogger, LOG_COMMAND_ERROR, LOG_COMMAND_SUCCESS} from './logging'
-import {MockSpyglass, SnowflakeSpyglass, Spyglass} from './spyglass'
+import {newSpyglass, Spyglass} from './spyglass'
 
 export interface LoggableError {
   message: string;
@@ -27,7 +27,7 @@ export abstract class BaseCommand extends Command {
   constructor(argv: string[], config: Config) {
     super(argv, config)
 
-    this.spyglass = process.env.NODE_ENV === 'test' ? new MockSpyglass() : new SnowflakeSpyglass()
+    this.spyglass = newSpyglass()
 
     // until we can figure out how to call init() async in the constructor, just create a noop logger for now
     this.logger = getNoopLogger()
