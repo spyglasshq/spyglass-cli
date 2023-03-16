@@ -1,10 +1,8 @@
 import {Args, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
-import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
-import {syncSnowflake} from '../lib/spyglass'
 
 export default class Sync extends BaseCommand {
   static description = 'Update an existing yaml file using the database\'s current configuration.'
@@ -20,10 +18,11 @@ export default class Sync extends BaseCommand {
 
     const cfg = await getConfig(this.config.configDir)
 
-    const yaml = await readYamlForAccountId(args['account-id'], flags.dir)
-
-    this.log('Fetching current Snowflake configuration')
     try {
+      const yaml = await readYamlForAccountId(args['account-id'], flags.dir)
+
+      this.log('Fetching current Snowflake configuration')
+
       const newYaml = await this.fetchSync(cfg, yaml)
 
       await writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
@@ -46,21 +45,21 @@ export default class Sync extends BaseCommand {
       barIncompleteChar: '\u2591',
     })
 
-    if (cfg?.cloudMode) {
-      const payload = {
-        action: 'sync',
-        files: [yaml],
-      }
-      const res = await apiCall(cfg, payload)
+    // if (cfg?.cloudMode) {
+    //   const payload = {
+    //     action: 'sync',
+    //     files: [yaml],
+    //   }
+    //   const res = await apiCall(cfg, payload)
 
-      if (res.data.error) {
-        throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
-      }
+    //   if (res.data.error) {
+    //     throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+    //   }
 
-      return res.data
-    }
+    //   return res.data
+    // }
 
-    const newYaml = await syncSnowflake(
+    const newYaml = await this.spyglass.sync(
       yaml,
       total => showProgress && progress.start(total, 0),
       current => showProgress && progress.update(current),

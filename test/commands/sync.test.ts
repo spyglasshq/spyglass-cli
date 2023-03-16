@@ -17,10 +17,10 @@ const spytest =
     }
   })
 
-describe('import', () => {
+describe('sync', () => {
   spytest
   .stdout()
-  .command(['import'])
+  .command(['sync'])
   .exit(2)
   .it('requires an argument', ctx => {
     expect(ctx.stdout).to.contain('Missing 1 required arg')
@@ -29,38 +29,39 @@ describe('import', () => {
   spytest
   .stdout({print: true})
   .spyglass()
-  .do(mockImportWithFile('./test/testdata/import-basic.yaml'))
+  .do(mockSynctWithFile('./test/testdata/sync-basic-updates.yaml'))
   .stub(spyglass, 'newSpyglass', () => mockSpyglass)
+  .stub(yaml, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
   .stub(yaml, 'writeYamlForAccountId', mockWriteYamlForAccountId as () => any)
-  .command(['import', 'account-123'])
+  .command(['sync', 'account-123'])
   .exit(0)
-  .it('runs import', ctx => {
+  .it('runs sync', ctx => {
     expect(ctx.stdout).to.contain('Fetching current Snowflake configuration')
-    expect(ctx.stdout).to.contain('Successfully wrote current configuration')
-    expect(mockSpyglass._import).to.deep.equal(mockYamlOutput)
+    expect(ctx.stdout).to.contain('Successfully updated current configuration')
+    expect(mockSpyglass._sync).to.deep.equal(mockYamlOutput)
   })
 
   spytest
   .stdout()
   .spyglass()
-  .do(() => {
-    mockSpyglass._error = new Error('failed')
-  })
   .stub(spyglass, 'newSpyglass', () => mockSpyglass)
-  .command(['import', 'account-123'])
+  .command(['sync', 'account-doesnt-exist'])
   .exit(1)
   .it('exits on failure', ctx => {
-    expect(ctx.stdout).to.contain('Fetching current Snowflake configuration')
-    expect(ctx.stdout).to.contain('Encountered an error: failed')
+    expect(ctx.stdout).to.contain('file not found')
   })
 })
 
-function mockImportWithFile(filename: string) {
+function mockSynctWithFile(filename: string) {
   return async () => {
-    mockSpyglass._import = await readYamlFile(filename)
+    mockSpyglass._sync = await readYamlFile(filename)
   }
 }
 
 async function mockWriteYamlForAccountId(accountId: string, yaml: yaml.Yaml, _dir = '.'): Promise<void> {
   mockYamlOutput = yaml
+}
+
+async function mockReadYamlForAccountId(accountId: string, _dir = '.'): Promise<yaml.Yaml> {
+  return readYamlFile('./test/testdata/sync-basic-current.yaml')
 }

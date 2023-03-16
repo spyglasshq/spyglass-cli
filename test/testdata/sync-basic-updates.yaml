@@ -1,0 +1,25 @@
+roleGrants:
+  acme_prod_all_tables_viewer:
+    select:
+      table:
+        - acme.prod.<table>
+      view:
+        - acme.prod.<view>
+        - acme.prod.call_center
+        - acme.prod.catalog_page
+        - acme.prod.catalog_returns
+        - acme.prod.catalog_sales
+    usage:
+      database:
+        - acme
+      schema:
+        - acme.prod
+spyglass:
+  accountId: account-123
+  lastSyncedMs: 1678883775793
+  platform: snowflake
+  version: 1
+userGrants:
+  charles_stevens:
+    roles:
+      - acme_prod_all_tables_viewer
