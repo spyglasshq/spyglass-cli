@@ -93,6 +93,8 @@ export default class Apply extends BaseCommand {
 
     this.log('')
 
+    let partialFailure = false
+
     for (const result of res2) {
       const icon = result.executed ? '✅' : '❌'
       this.log(`${icon} ${result.sql}`)
@@ -100,10 +102,18 @@ export default class Apply extends BaseCommand {
       if (!result.executed) {
         this.log(color.red(this.indentString(result.error ?? '', 4)))
         this.log('')
+
+        partialFailure = true
       }
     }
 
-    await this.logSuccessAndExit()
+    if (partialFailure) {
+      const message = 'Some commands failed to be applied.'
+      this.log(message)
+      await this.logErrorAndExit({message, stack: ''})
+    } else {
+      await this.logSuccessAndExit()
+    }
   }
 
   indentString(str: string, count: number, indent = ' '): string {
