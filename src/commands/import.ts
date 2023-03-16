@@ -4,7 +4,6 @@ import color from '@oclif/color'
 import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {writeYamlForAccountId, Yaml} from '../lib/yaml'
-import {importSnowflake} from '../lib/spyglass'
 
 export default class Import extends BaseCommand {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
@@ -56,7 +55,7 @@ export default class Import extends BaseCommand {
       return res.data
     }
 
-    const yaml = await importSnowflake(
+    const yaml = await this.spyglass.import(
       accountId,
       total => progress.start(total, 0),
       current => progress.update(current),

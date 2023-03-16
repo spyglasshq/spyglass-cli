@@ -2,6 +2,7 @@ import winston = require('winston')
 import {Command, Config, Flags} from '@oclif/core'
 import {getConfig} from './config'
 import {getLogger, getNoopLogger, LOG_COMMAND_ERROR, LOG_COMMAND_SUCCESS} from './logging'
+import {MockSpyglass, SnowflakeSpyglass, Spyglass} from './spyglass'
 
 export interface LoggableError {
   message: string;
@@ -10,6 +11,7 @@ export interface LoggableError {
 
 export abstract class BaseCommand extends Command {
   logger: winston.Logger
+  spyglass: Spyglass
 
   // exiting tracks when we have started to shutdown the command
   // if we're exiting, we skip things like logging so we don't get 'write after end' errors
@@ -24,6 +26,8 @@ export abstract class BaseCommand extends Command {
 
   constructor(argv: string[], config: Config) {
     super(argv, config)
+
+    this.spyglass = process.env.NODE_ENV === 'test' ? new MockSpyglass() : new SnowflakeSpyglass()
 
     // until we can figure out how to call init() async in the constructor, just create a noop logger for now
     this.logger = getNoopLogger()

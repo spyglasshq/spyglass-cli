@@ -3,6 +3,31 @@ import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, ShowObject,
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
+export interface Spyglass {
+  import(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml>
+  verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail>
+  sync(yaml: Yaml, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml>
+  apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]>
+}
+
+export class SnowflakeSpyglass {
+  async import(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
+    return importSnowflake(accountId, onStart, onProgress)
+  }
+
+  async verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
+    return verifySnowflake(yaml, issueId)
+  }
+
+  async sync(yaml: Yaml, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
+    return syncSnowflake(yaml, onStart, onProgress)
+  }
+
+  async apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
+    return applySnowflake(currentYaml, proposedYaml, dryRun)
+  }
+}
+
 export async function importSnowflake(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
   const conn = await getConn(accountId)
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
@@ -101,4 +126,43 @@ function getDatabasesAndSchemas(objects: ShowObject[]): string[] {
   }
 
   return [...res]
+}
+
+export class MockSpyglass {
+  _import?: Yaml
+  _verify?: Issue[] | IssueDetail
+  _sync?: Yaml
+  _apply?: AppliedCommand[]
+
+  async import(_accountId: string, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+    if (!this._import) {
+      throw new Error('mock import result not defined')
+    }
+
+    return this._import
+  }
+
+  async verify(_yaml: Yaml, _issueId?: string): Promise<Issue[] | IssueDetail> {
+    if (!this._verify) {
+      throw new Error('mock verify result not defined')
+    }
+
+    return this._verify
+  }
+
+  async sync(_yaml: Yaml, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+    if (!this._sync) {
+      throw new Error('mock sync result not defined')
+    }
+
+    return this._sync
+  }
+
+  async apply(_currentYaml: Yaml, _proposedYaml: Yaml, _dryRun: boolean): Promise<AppliedCommand[]> {
+    if (!this._apply) {
+      throw new Error('mock apply result not defined')
+    }
+
+    return this._apply
+  }
 }
