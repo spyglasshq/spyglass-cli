@@ -26,6 +26,8 @@ export default class Set extends BaseCommand {
     await createOrUpdateConfig(this.config.configDir, newCfg)
 
     this.log(`✅ Successfully set ${args.key} = ${args.value}.`)
+
+    await this.logSuccessAndExit()
   }
 
   booleanFromString(s: string): boolean {
