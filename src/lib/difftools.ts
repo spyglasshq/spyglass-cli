@@ -2,7 +2,7 @@
 export function deeplyConvertStringListsToSets(o: any): void {
   for (const k of Object.keys(o)) {
     if (isArrayOfStrings(o[k])) {
-      o[k] = stringArrayToRatchetSet(o[k])
+      o[k] = stringArrayToObjectBackedSet(o[k])
       continue
     }
 
@@ -12,23 +12,38 @@ export function deeplyConvertStringListsToSets(o: any): void {
   }
 }
 
-function isArrayOfStrings(arr: any): boolean {
+export function isArrayOfStrings(arr: any): boolean {
   if (!Array.isArray(arr)) {
+    return false
+  }
+
+  if (arr.length === 0) {
     return false
   }
 
   return arr.every(val => typeof val === 'string')
 }
 
-function stringArrayToRatchetSet(arr: string[] | undefined) {
-  if (!arr) return {}
-  return Object.fromEntries(arr.map(val => [val, '__SET__']))
+// Since our deep-diff library can't compare the "set" type, and it
+// doesn't do uniqueness diffing on lists, we convert the array into
+// an object where the values are '__SPYGLASS_SET__'.
+//
+// We use this special sentinel value so that we can easily find these
+// objects when we need to convert them back to simple lists later.
+export function stringArrayToObjectBackedSet(arr: string[] | undefined): Record<string, string> | undefined {
+  if (!arr) return arr
+  return Object.fromEntries(arr.map(val => [val, '__SPYGLASS_SET__']))
+}
+
+export function objectBackedSetToStringArray(obj: Record<string, unknown> | undefined): string[] | any {
+  if (!obj) return obj
+  return Object.keys(obj).sort()
 }
 
 export function deeplyConvertSetsToStringLists(o: any): void {
   for (const k of Object.keys(o)) {
-    if (isRatchetSet(o[k])) {
-      o[k] = ratchetSetToStringArray(o[k])
+    if (isObjectBackedSet(o[k])) {
+      o[k] = objectBackedSetToStringArray(o[k])
       continue
     }
 
@@ -38,7 +53,7 @@ export function deeplyConvertSetsToStringLists(o: any): void {
   }
 }
 
-function isRatchetSet(obj: any): boolean {
+function isObjectBackedSet(obj: any): boolean {
   if (!obj || typeof obj !== 'object') {
     return false
   }
@@ -47,12 +62,7 @@ function isRatchetSet(obj: any): boolean {
     return false
   }
 
-  return Object.values(obj).every(val => val === '__SET__' || val === undefined)
-}
-
-function ratchetSetToStringArray(obj: Record<string, unknown> | undefined): string[] {
-  if (!obj) return []
-  return Object.keys(obj)
+  return Object.values(obj).every(val => val === '__SPYGLASS_SET__' || val === undefined)
 }
 
 export function replaceUndefinedValuesWithDeletedValues(o: any, current: any, keys: string[] = []): void {
