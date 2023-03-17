@@ -70,21 +70,27 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     findIssues: (yaml: Yaml): Issue[] => {
       const issues: Issue[] = []
 
+      const roleDatabases: {[roleName: string]: string} = {}
+
       for (const [roleName, role] of Object.entries(yaml.roleGrants)) {
         for (const objectId of (role?.select?.view ?? [])) {
           const [database] = objectId.split('.')
           if (!role.usage?.database?.includes(database)) {
-            issues.push({
-              issue: ISSUES.SR1001,
-              data: {
-                role: roleName,
-                privilege: 'usage',
-                database,
-              },
-              status: 'open',
-            })
+            roleDatabases[roleName] = database
           }
         }
+      }
+
+      for (const [roleName, database] of Object.entries(roleDatabases)) {
+        issues.push({
+          issue: ISSUES.SR1001,
+          data: {
+            role: roleName,
+            privilege: 'usage',
+            database,
+          },
+          status: 'open',
+        })
       }
 
       return issues
@@ -107,20 +113,6 @@ export const ISSUE_HANDLERS: IssueHandlers = {
 
   SR1008: {
     fixYaml: (contents: Yaml, _data: unknown) => {
-      const data = _data as RecreatedObjectAccess
-
-      for (const [role, permission] of data.rolePermissions) {
-        if (!contents.roleGrants[role][permission]) {
-          contents.roleGrants[role][permission] = {}
-        }
-
-        if (!contents.roleGrants[role][permission][data.objectType]) {
-          contents.roleGrants[role][permission][data.objectType] = []
-        }
-
-        contents.roleGrants[role][permission][data.objectType].push(data.objectId)
-      }
-
       return contents
     },
 
