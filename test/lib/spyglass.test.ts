@@ -6,7 +6,7 @@ import {expect, test} from '@oclif/test'
 import {readJSON} from 'fs-extra'
 import {readYamlFile, Yaml} from '../../src/lib/yaml'
 
-const noopFunc = () => null
+const noopFunc = () => null // progress bar no op
 
 describe('SnowflakeSpyglass', () => {
   const spyg = new spyglass.SnowflakeSpyglass()
