@@ -82,15 +82,7 @@ export const ISSUE_HANDLERS: IssueHandlers = {
       }
 
       for (const [roleName, database] of Object.entries(roleDatabases)) {
-        issues.push({
-          issue: ISSUES.SR1001,
-          data: {
-            role: roleName,
-            privilege: 'usage',
-            database,
-          },
-          status: 'open',
-        })
+        issues.push(newSR1001({role: roleName, database}))
       }
 
       return issues
@@ -155,8 +147,20 @@ export async function getIssueDetail(yaml: Yaml, issueId: string): Promise<Issue
   }
 }
 
-function getYamlDiff(current: Yaml, issue: Issue): YamlDiff {
+export function getYamlDiff(current: Yaml, issue: Issue): YamlDiff {
   const currentCopy = JSON.parse(JSON.stringify(current))
   const proposed = ISSUE_HANDLERS[issue.issue.id]?.fixYaml(currentCopy, issue.data) ?? currentCopy
   return diffYaml(current, proposed)
+}
+
+export function newSR1001({role, database}: {role: string, database: string}): Issue {
+  return {
+    issue: ISSUES.SR1001,
+    data: {
+      role,
+      privilege: 'usage',
+      database,
+    },
+    status: 'open',
+  }
 }
