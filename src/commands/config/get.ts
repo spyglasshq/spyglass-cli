@@ -24,5 +24,7 @@ export default class Get extends BaseCommand {
 
       this.log(`${color.gray(key)}: ${value}`)
     }
+
+    await this.logSuccessAndExit()
   }
 }
