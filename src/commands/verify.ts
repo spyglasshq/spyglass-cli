@@ -1,12 +1,10 @@
 import {Args, Flags, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
-import {apiCall} from '../lib/api'
 import {Config, getConfig} from '../lib/config'
 import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
 import {Issue, IssueDetail, ISSUE_HANDLERS} from '../lib/issues'
 import {printYamlDiff} from '../lib/print'
-import {verifySnowflake} from '../lib/spyglass'
 
 export default class Verify extends BaseCommand {
   static description = 'Scan Spyglass configuration for any issues and provide recommendations.'
@@ -79,22 +77,22 @@ export default class Verify extends BaseCommand {
   }
 
   async fetchVerify(cfg: Config, yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
-    if (cfg?.cloudMode) {
-      const payload = {
-        action: 'verify',
-        files: [yaml],
-        issueId,
-      }
-      const res = await apiCall(cfg, payload)
+    // if (cfg?.cloudMode) {
+    //   const payload = {
+    //     action: 'verify',
+    //     files: [yaml],
+    //     issueId,
+    //   }
+    //   const res = await apiCall(cfg, payload)
 
-      if (res.data.error) {
-        throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
-      }
+    //   if (res.data.error) {
+    //     throw new Error(`Encountered an error: ${res.data.error}, code: ${res.data.code}`)
+    //   }
 
-      return res.data.issues ?? res.data
-    }
+    //   return res.data.issues ?? res.data
+    // }
 
-    return verifySnowflake(yaml, issueId)
+    return this.spyglass.verify(yaml, issueId)
   }
 
   formatIssue(issue: IssueDetail | Issue): void {
