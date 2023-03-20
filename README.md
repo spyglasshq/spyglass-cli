@@ -1,9 +1,19 @@
 ![spyglass-cli-logo](https://user-images.githubusercontent.com/121976108/225433315-7997ae61-5a9b-4ba1-9300-8756db25c729.png)
 
 
-![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/spyglasshq/spyglass-cli/test.yml?branch=master) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/spyglasshq/spyglass-cli) ![GitHub](https://img.shields.io/github/license/spyglasshq/spyglass-cli) ![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/spyglasshq/spyglass-cli/1)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/spyglasshq/spyglass-cli/test.yml?branch=master) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/spyglasshq/spyglass-cli) ![GitHub](https://img.shields.io/github/license/spyglasshq/spyglass-cli) ![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/spyglasshq/spyglass-cli/2)
 
-Manage your Snowflake access control as code.
+Manage your Snowflake access controls as code.
+
+---
+
+_**Before Spyglass**_: Permissions are managed manually across scripts, snowsight worksheets, and one-off requests.
+
+<img width="595" alt="Screen Shot 2023-03-20 at 11 47 17 AM" src="https://user-images.githubusercontent.com/121976108/226393854-6c9e08ba-8101-4569-a93b-bdf104129eff.png">
+
+_**After Spyglass**_: Permissions are managed centrally in git and automatically synced to Snowflake.
+
+<img width="595" alt="Screen Shot 2023-03-20 at 11 38 02 AM" src="https://user-images.githubusercontent.com/121976108/226395881-2104d915-6e1c-4422-9b21-8a5e08447cc9.png">
 
 ## Overview
 
