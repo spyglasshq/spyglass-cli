@@ -36,7 +36,7 @@ Basic usage of this tool looks like:
 Install the CLI using `npm`:
 
 ```
-npm install -g spyglass-cli
+sudo npm install -g spyglass-cli@latest
 ```
 
 ## Basic Usage
