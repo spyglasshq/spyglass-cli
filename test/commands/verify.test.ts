@@ -33,7 +33,24 @@ describe('verify', () => {
   .it('runs', ctx => {
     expect(ctx.stdout).to.contain('verify')
   })
+
+  spytest
+  .stub(spyglass, 'newSpyglass', () => mockSpyglass)
+  .stub(yaml, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
+  .do(mockVerifyError())
+  .stdout()
+  .command(['verify', 'account-123'])
+  .exit(1)
+  .it('fails during verify', ctx => {
+    expect(ctx.stdout).to.contain('Encountered an error: failed')
+  })
 })
+
+function mockVerifyError() {
+  return () => {
+    mockSpyglass._error = new Error('failed')
+  }
+}
 
 function mockVerify() {
   return async () => {
