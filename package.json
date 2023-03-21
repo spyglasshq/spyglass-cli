@@ -74,9 +74,15 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
+    "version": "oclif readme && git add README.md",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test:unit": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test:integration": "mocha --forbid-only \"integration-test/**/*.test.ts\"",
     "coverage": "npx nyc --reporter=lcov --reporter=text npm test",
-    "version": "oclif readme && git add README.md"
+    "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
+    "cover:unit": "npx nyc --silent npm run test:unit",
+    "cover:integration": "npx nyc --silent --no-clean npm run test:integration",
+    "cover:report": "npx nyc report --reporter=lcov --reporter=text"
   },
   "engines": {
     "node": ">=12.0.0"

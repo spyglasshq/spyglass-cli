@@ -3,10 +3,12 @@ import {BaseCommand} from '../../lib/cmd'
 import {getConfig} from '../../lib/config'
 import {getSnowflakeConfig} from '../../lib/snowflake'
 
-export default class List extends BaseCommand {
+export default class AccountsList extends BaseCommand {
+  public static enableJsonFlag = true
+
   static description = 'List Snowflake acccounts.'
 
-  async run(): Promise<void> {
+  async run(): Promise<unknown> {
     await this.init()
 
     const cfg = await getConfig(this.config.configDir)
@@ -85,6 +87,8 @@ export default class List extends BaseCommand {
       printLine: this.log.bind(this),
     })
 
-    await this.logSuccessAndExit()
+    await this.logSuccess()
+
+    return connections
   }
 }

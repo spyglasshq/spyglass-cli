@@ -16,6 +16,10 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
     return getConsoleLogger()
   }
 
+  if (process.env.NODE_ENV === 'integration-test') {
+    return getNoopLogger()
+  }
+
   if (logger) {
     return logger
   }
@@ -35,8 +39,6 @@ export function getLogger(cliConfig: Config, appConfig: config.Config): winston.
   })
 
   const noopWinston = new winston.transports.File({filename: '/dev/null'})
-
-  // const consoleWinston = new winston.transports.Console()
 
   const transports = appConfig.disableAnalytics ? [noopWinston] : [loggingWinston]
 
