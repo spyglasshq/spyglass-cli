@@ -7,11 +7,11 @@ Manage your Snowflake access controls as code.
 
 ---
 
-_**Before Spyglass**_: Permissions are managed manually across scripts, snowsight worksheets, and one-off requests.
+🚣‍♂️ _**Before Spyglass**_: Permissions are managed manually across scripts, snowsight worksheets, and one-off requests.
 
 <img width="595" alt="Screen Shot 2023-03-20 at 11 47 17 AM" src="https://user-images.githubusercontent.com/121976108/226393854-6c9e08ba-8101-4569-a93b-bdf104129eff.png">
 
-_**After Spyglass**_: Permissions are managed centrally in git and automatically synced to Snowflake.
+🚤 _**After Spyglass**_: Permissions are managed centrally in git and automatically synced to Snowflake.
 
 <img width="595" alt="Screen Shot 2023-03-20 at 11 38 02 AM" src="https://user-images.githubusercontent.com/121976108/226395881-2104d915-6e1c-4422-9b21-8a5e08447cc9.png">
 
