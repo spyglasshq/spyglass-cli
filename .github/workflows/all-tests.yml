@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  unit-tests:
+  all-tests:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
