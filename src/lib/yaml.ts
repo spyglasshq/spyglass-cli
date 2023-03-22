@@ -1,3 +1,11 @@
+/**
+ * The `yaml` module contains the main configuration language for Spyglass.
+ *
+ * The primary interface `Yaml` is the object that is serialized and deserialized
+ * to yaml files, forming the basis of this library's config-as-code implementation.
+ * @module yaml
+ */
+
 import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
@@ -14,13 +22,35 @@ const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'O
 export type Platform = 'snowflake' | 'unspecified';
 export type ObjectId = string;
 
+/**
+ * Yaml is the primary interface for Spyglass configuration. It is serialized
+ * and deserialized to yaml files.
+ */
 export interface Yaml {
+  /**
+   * Spyglass-specific configuration.
+   */
   spyglass: YamlSpyglass;
+
+  /**
+   * A list of roles and the privileges they are granted.
+   */
   roleGrants: YamlRoles;
+
+  /**
+   * A list of users and the roles they are granted.
+   */
   userGrants: YamlUserGrants;
+
+  /** A list of warehouses and their configuration
+   * @experimental
+   */
   warehouses: YamlWarehouses;
 }
 
+/**
+ * Spyglass-specific configuration.
+ */
 export interface YamlSpyglass {
   accountId: string;
   platform: Platform;
