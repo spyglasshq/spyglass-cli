@@ -1,0 +1,108 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>spyglass-cli</title><meta name="description" content="Documentation for spyglass-cli"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">spyglass-cli</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<h2>spyglass-cli</h2></div>
+<div class="tsd-panel tsd-typography"><p><img src="https://user-images.githubusercontent.com/121976108/225433315-7997ae61-5a9b-4ba1-9300-8756db25c729.png" alt="spyglass-cli-logo"></p>
+<p><img src="https://img.shields.io/github/actions/workflow/status/spyglasshq/spyglass-cli/test.yml?branch=master" alt="GitHub Workflow Status (with branch)"> <img src="https://img.shields.io/github/commit-activity/m/spyglasshq/spyglass-cli" alt="GitHub commit activity"> <img src="https://img.shields.io/github/license/spyglasshq/spyglass-cli" alt="GitHub"> <img src="https://img.shields.io/github/milestones/progress-percent/spyglasshq/spyglass-cli/2" alt="GitHub milestone"></p>
+<p>Manage your Snowflake access controls as code.</p>
+<hr>
+<p>🚣‍♂️ <em><strong>Before Spyglass</strong></em>: Permissions are managed manually across scripts, snowsight worksheets, and one-off requests.</p>
+<img width="595" alt="Screen Shot 2023-03-20 at 11 47 17 AM" src="https://user-images.githubusercontent.com/121976108/226393854-6c9e08ba-8101-4569-a93b-bdf104129eff.png">
+
+<p>🚤 <em><strong>After Spyglass</strong></em>: Permissions are managed centrally in git and automatically synced to Snowflake.</p>
+<img width="595" alt="Screen Shot 2023-03-20 at 11 38 02 AM" src="https://user-images.githubusercontent.com/121976108/226395881-2104d915-6e1c-4422-9b21-8a5e08447cc9.png">
+
+
+<a href="#overview" id="overview" style="color: inherit; text-decoration: none;">
+  <h2>Overview</h2>
+</a>
+<p>Basic usage of this tool looks like:</p>
+<pre><code><span class="hl-0">1.</span><span class="hl-1"> </span><span class="hl-2">Import</span><span class="hl-1"> </span><span class="hl-2">your</span><span class="hl-1"> </span><span class="hl-2">current</span><span class="hl-1"> </span><span class="hl-2">Snowflake</span><span class="hl-1"> </span><span class="hl-2">objects</span><span class="hl-1">/</span><span class="hl-2">roles</span><span class="hl-1"> </span><span class="hl-2">to</span><span class="hl-1"> </span><span class="hl-3">YAML</span><span class="hl-1">.</span><br/><br/><span class="hl-1">┌───────────┐     </span><span class="hl-2">spyglass</span><span class="hl-1"> </span><span class="hl-4">import</span><span class="hl-1"> / </span><span class="hl-2">sync</span><span class="hl-1">      ┌──────────┐</span><br/><span class="hl-1">│ </span><span class="hl-2">Snowflake</span><span class="hl-1"> │ ──────────────────────────────► │   </span><span class="hl-2">YAML</span><span class="hl-1">   │</span><br/><span class="hl-1">└───────────┘                                 └──────────┘</span><br/><br/><span class="hl-1">2. </span><span class="hl-2">Manage</span><span class="hl-1"> </span><span class="hl-2">them</span><span class="hl-1"> </span><span class="hl-4">as</span><span class="hl-1"> </span><span class="hl-2">code</span><span class="hl-1">.</span><br/><br/><span class="hl-1">┌───────────┐          </span><span class="hl-2">make</span><span class="hl-1"> </span><span class="hl-2">changes</span><span class="hl-1">           ┌──────────┐</span><br/><span class="hl-1">│           │ ──────────────────────────────► │          │</span><br/><span class="hl-1">│ </span><span class="hl-2">Data</span><span class="hl-1"> </span><span class="hl-2">User</span><span class="hl-1"> │        </span><span class="hl-2">spyglass</span><span class="hl-1"> </span><span class="hl-2">verify</span><span class="hl-1">          │   </span><span class="hl-2">YAML</span><span class="hl-1">   │</span><br/><span class="hl-1">│           │ ──────────────────────────────► │          │</span><br/><span class="hl-1">└───────────┘                                 └──────────┘</span><br/><br/><span class="hl-1">3. </span><span class="hl-2">Automatically</span><span class="hl-1"> </span><span class="hl-2">sync</span><span class="hl-1"> </span><span class="hl-2">objects</span><span class="hl-1">/</span><span class="hl-2">roles</span><span class="hl-1"> </span><span class="hl-2">between</span><span class="hl-1"> </span><span class="hl-2">your</span><span class="hl-1"> </span><span class="hl-2">Git</span><span class="hl-1"> </span><span class="hl-2">repo</span><span class="hl-1"> </span><span class="hl-2">and</span><span class="hl-1"> </span><span class="hl-2">Snowflake</span><span class="hl-1">.</span><br/><br/><span class="hl-1">┌───────────┐        </span><span class="hl-2">spyglass</span><span class="hl-1"> </span><span class="hl-2">apply</span><span class="hl-1">           ┌──────────┐</span><br/><span class="hl-1">│ </span><span class="hl-2">Snowflake</span><span class="hl-1"> │ ◄────────────────────────────── │   </span><span class="hl-2">YAML</span><span class="hl-1">   │</span><br/><span class="hl-1">└───────────┘                                 └──────────┘</span>
+</code></pre>
+
+<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+  <h2>Getting Started</h2>
+</a>
+<p>Install the CLI using <code>npm</code>:</p>
+<pre><code><span class="hl-2">sudo</span><span class="hl-1"> </span><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> -</span><span class="hl-2">g</span><span class="hl-1"> </span><span class="hl-2">spyglass</span><span class="hl-1">-</span><span class="hl-2">cli</span><span class="hl-1">@</span><span class="hl-2">latest</span>
+</code></pre>
+
+<a href="#basic-usage" id="basic-usage" style="color: inherit; text-decoration: none;">
+  <h2>Basic Usage</h2>
+</a>
+<p>See <a href="https://github.com/spyglasshq/spyglass-cli/discussions/43">How do I set up the CLI? #43</a>.</p>
+
+<a href="#cicd-usage" id="cicd-usage" style="color: inherit; text-decoration: none;">
+  <h2>CI/CD Usage</h2>
+</a>
+<p>See <a href="https://github.com/spyglasshq/spyglass-cli/discussions/42">How do I set up github actions / workflows? #42</a>.</p>
+
+<a href="#query-usage" id="query-usage" style="color: inherit; text-decoration: none;">
+  <h2>Query Usage</h2>
+</a>
+<p>For getting insight into &quot;who can access what?&quot;, see <a href="https://github.com/spyglasshq/spyglass-cli/discussions/45">Announcing Queries (alpha) #45</a>.</p>
+
+<a href="#getting-help-and-contributing" id="getting-help-and-contributing" style="color: inherit; text-decoration: none;">
+  <h2>Getting Help and Contributing</h2>
+</a>
+<p>We love working with the community, here&#39;s a few ways to get involved:</p>
+<ol>
+<li><a href="https://github.com/spyglasshq/spyglass-cli/discussions">Discussions</a> - For FAQs, Q&amp;A, feature requests, ideas, announcements, and sharing your use cases.</li>
+<li><a href="https://github.com/spyglasshq/spyglass-cli/issues">Issues</a> - For bug reports and concrete work items.</li>
+<li><a href="mailto:devs@spyglass.software">Email</a> - If all else fails, or if you&#39;d just like to chat, let us know at <a href="mailto:devs@spyglass.software">devs@spyglass.software</a>.</li>
+<li><a href="mailto:demo@spyglass.software">Slack</a> - For early partners, we&#39;re working on Slack for real time feedback and support. If you&#39;re interested, reach out to <a href="mailto:demo@spyglass.software">demo@spyglass.software</a>.</li>
+</ol>
+
+<a href="#security" id="security" style="color: inherit; text-decoration: none;">
+  <h2>Security</h2>
+</a>
+<p>See <a href="./SECURITY.md">SECURITY.md</a></p>
+
+<a href="#usage-analytics" id="usage-analytics" style="color: inherit; text-decoration: none;">
+  <h2>Usage Analytics</h2>
+</a>
+<p>We constantly improve this software, but we need your help! By default, we log <strong>anonymous analytics</strong> such as: commands invoked, errors, and software versions. We never log any personally-identifiable user information.</p>
+<p>To opt out, you can run <code>spyglass config:set disableAnalytics true</code>. See <a href="https://github.com/spyglasshq/spyglass-cli/issues/9">https://github.com/spyglasshq/spyglass-cli/issues/9</a> and <a href="./src/lib/logging.ts">logging.ts</a> for more information.</p>
+
+<a href="#roadmap" id="roadmap" style="color: inherit; text-decoration: none;">
+  <h2>Roadmap</h2>
+</a>
+<p>As of Q1 &#39;23, Spyglass has full support for <strong>Snowflake</strong>. Support for other analytics databases (BigQuery, Databricks, Redshift, Oracle, etc.) is planned to follow.</p>
+<p>Check out the <a href="https://github.com/spyglasshq/spyglass-cli/milestones">Milestones</a> page to track further progress.</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current selected"><a href="modules.html">spyglass-<wbr/>cli</a>
+<ul>
+<li class="tsd-kind-namespace"><a href="modules/yaml.html">yaml</a></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky"></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="assets/main.js"></script></body></html>
