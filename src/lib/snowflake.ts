@@ -349,13 +349,13 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand
   return queries
 }
 
-function sanitizePrivilege(privilege: string): void {
+export function sanitizePrivilege(privilege: string): void {
   if (!(/^[\w ]+$/.test(privilege))) {
     throw new Error('invalid privilege')
   }
 }
 
-function sanitizeObjectType(objectType: string): void {
+export function sanitizeObjectType(objectType: string): void {
   if (!(/^[\w ]+$/.test(objectType))) {
     throw new Error('invalid object type')
   }
