@@ -17,9 +17,12 @@ jobs:
           node-version: ${{ matrix.node_version }}
           cache: npm
       - run: npm ci
-      - run: npm run cover
+      - run: |
+          mkdir -p ~/.snowsql
+          echo "$SNOWSQL_CONFIG" > ~/.snowsql/config
         env:
           SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
+      - run: npm run cover
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
