@@ -53,6 +53,8 @@ sudo npm install -g spyglass-cli@latest
 
 See [How do I set up the CLI? #43](https://github.com/spyglasshq/spyglass-cli/discussions/43).
 
+See the [Reference Documentation](https://spyglasshq.github.io/spyglass-cli/) for details on the configuration.
+
 ## CI/CD Usage
 
 See [How do I set up github actions / workflows? #42](https://github.com/spyglasshq/spyglass-cli/discussions/42).
