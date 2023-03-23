@@ -19,9 +19,24 @@
 <div class="tsd-comment tsd-typography"><p>The <code>yaml</code> module contains the main configuration language for Spyglass.</p>
 <p>The primary interface <code>Yaml</code> is the object that is serialized and deserialized
 to yaml files, forming the basis of this library&#39;s config-as-code implementation.</p>
+
+<a href="#basic-example" id="basic-example" style="color: inherit; text-decoration: none;">
+  <h3>Basic Example</h3>
+</a>
+<p>A simple example of a yaml file looks like:</p>
+<pre><code class="language-yaml"><span class="hl-5">roleGrants</span><span class="hl-1">:</span><br/><span class="hl-1"> </span><span class="hl-5">acme_prod_all_tables_viewer</span><span class="hl-1">:</span><br/><span class="hl-1">   </span><span class="hl-5">select</span><span class="hl-1">:</span><br/><span class="hl-1">     </span><span class="hl-5">table</span><span class="hl-1">:</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.&lt;table&gt;</span><br/><span class="hl-1">     </span><span class="hl-5">view</span><span class="hl-1">:</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.&lt;view&gt;</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.call_center</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.catalog_page</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.catalog_returns</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod.catalog_sales</span><br/><span class="hl-1">   </span><span class="hl-5">usage</span><span class="hl-1">:</span><br/><span class="hl-1">     </span><span class="hl-5">database</span><span class="hl-1">:</span><br/><span class="hl-1">       - </span><span class="hl-6">acme</span><br/><span class="hl-1">     </span><span class="hl-5">schema</span><span class="hl-1">:</span><br/><span class="hl-1">       - </span><span class="hl-6">acme.prod</span><br/><span class="hl-5">spyglass</span><span class="hl-1">:</span><br/><span class="hl-1"> </span><span class="hl-5">accountId</span><span class="hl-1">: </span><span class="hl-6">account-123</span><br/><span class="hl-1"> </span><span class="hl-5">lastSyncedMs</span><span class="hl-1">: </span><span class="hl-0">1678883775793</span><br/><span class="hl-1"> </span><span class="hl-5">platform</span><span class="hl-1">: </span><span class="hl-6">snowflake</span><br/><span class="hl-1"> </span><span class="hl-5">version</span><span class="hl-1">: </span><span class="hl-0">1</span><br/><span class="hl-5">userGrants</span><span class="hl-1">:</span><br/><span class="hl-1"> </span><span class="hl-5">charles_stevens</span><span class="hl-1">:</span><br/><span class="hl-1">   </span><span class="hl-5">roles</span><span class="hl-1">:</span><br/><span class="hl-1">     - </span><span class="hl-6">acme_prod_all_tables_viewer</span>
+</code></pre>
+
+<a href="#goals" id="goals" style="color: inherit; text-decoration: none;">
+  <h3>Goals</h3>
+</a>
+<p>One main design goal of this yaml is to be <strong>isomorphic</strong>; that is, a reversible mapping between
+Spyglass configuration and databases like Snowflake.</p>
+<p>So, you can <code>import</code> Snowflake access rules to Spyglass, as well as <code>apply</code> Spyglass configuration
+back into Snowflake access rules, at any time.</p>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/a87548e/src/lib/yaml.ts#L9">yaml.ts:9</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/d562a4a/src/lib/yaml.ts#L49">yaml.ts:49</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <h3 class="tsd-index-heading uppercase">Index</h3>
