@@ -3,6 +3,46 @@
  *
  * The primary interface `Yaml` is the object that is serialized and deserialized
  * to yaml files, forming the basis of this library's config-as-code implementation.
+ *
+ * ### Basic Example
+ *
+ * A simple example of a yaml file looks like:
+ *
+ * ```yaml
+roleGrants:
+  acme_prod_all_tables_viewer:
+    select:
+      table:
+        - acme.prod.<table>
+      view:
+        - acme.prod.<view>
+        - acme.prod.call_center
+        - acme.prod.catalog_page
+        - acme.prod.catalog_returns
+        - acme.prod.catalog_sales
+    usage:
+      database:
+        - acme
+      schema:
+        - acme.prod
+spyglass:
+  accountId: account-123
+  lastSyncedMs: 1678883775793
+  platform: snowflake
+  version: 1
+userGrants:
+  charles_stevens:
+    roles:
+      - acme_prod_all_tables_viewer
+ * ```
+ *
+ * ### Goals
+ *
+ * One main design goal of this yaml is to be **isomorphic**; that is, a reversible mapping between
+ * Spyglass configuration and databases like Snowflake.
+ *
+ * So, you can `import` Snowflake access rules to Spyglass, as well as `apply` Spyglass configuration
+ * back into Snowflake access rules, at any time.
  * @module yaml
  */
 
