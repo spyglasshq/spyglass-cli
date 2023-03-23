@@ -187,34 +187,22 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
 }
 
 async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
-  const queries: Query[] = roleNames.map(roleName => (['show grants to role identifier(?);', [roleName]]))
-  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
-
-  let results: ShowRoleGrant[] = []
-  for (const r of res) {
-    results = [...results, ...r.results]
-  }
-
-  return results
+  return queryMulti<ShowRoleGrant>(conn, 'show grants to role identifier(?);', roleNames)
 }
 
 async function queryFutureRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowFutureRoleGrant[]> {
-  const queries: Query[] = roleNames.map(roleName => (['show future grants to role identifier(?);', [roleName]]))
-  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
-
-  let results: ShowFutureRoleGrant[] = []
-  for (const r of res) {
-    results = [...results, ...r.results]
-  }
-
-  return results
+  return queryMulti<ShowFutureRoleGrant>(conn, 'show future grants to role identifier(?);', roleNames)
 }
 
 async function queryRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
-  const queries: Query[] = roleNames.map(roleName => (['show grants of role identifier(?);', [roleName]]))
-  const res = await sqlQueries<ShowRoleGrant>(conn, queries)
+  return queryMulti<ShowRoleGrantOf>(conn, 'show grants of role identifier(?);', roleNames)
+}
 
-  let results: ShowRoleGrantOf[] = []
+async function queryMulti<T>(conn: Connection, query: string, roleNames: string[]): Promise<T[]> {
+  const queries: Query[] = roleNames.map(roleName => ([query, [roleName]]))
+  const res = await sqlQueries<T>(conn, queries)
+
+  let results: T[] = []
   for (const r of res) {
     results = [...results, ...r.results]
   }
