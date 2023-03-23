@@ -35,7 +35,7 @@ export default class Import extends BaseCommand {
 
   async fetchYaml(cfg: Config, accountId: string): Promise<Yaml> {
     const progress = ux.progress({
-      format: 'Progress | {bar} | {value}/{total} Objects',
+      format: 'Progress | {bar} | {value}/{total} Access Rules',
       barCompleteChar: '\u2588',
       barIncompleteChar: '\u2591',
     })

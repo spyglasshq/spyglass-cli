@@ -40,7 +40,7 @@ export default class Sync extends BaseCommand {
     const showProgress = !process.env.SPYGLASS_HIDE_PROGRESS_BAR
 
     const progress = ux.progress({
-      format: 'Progress | {bar} | {value}/{total} Objects',
+      format: 'Progress | {bar} | {value}/{total} Access Rules',
       barCompleteChar: '\u2588',
       barIncompleteChar: '\u2591',
     })
