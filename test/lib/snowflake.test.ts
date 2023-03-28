@@ -49,6 +49,63 @@ describe('snowflake', () => {
     }
   })
 
+  describe('query generation', () => {
+    describe('basic grant', () => {
+      it('generates grant', () => {
+        const cmd = snowflake.newGrantQuery('foo_usage', 'usage', 'schema', 'foo.bar')
+        expect(cmd.query).to.deep.equal(['grant usage on schema identifier(?) to role identifier(?);', ['foo.bar', 'foo_usage']])
+      })
+      it('generates revoke', () => {
+        const cmd = snowflake.newRevokeQuery('foo_usage', 'usage', 'schema', 'foo.bar')
+        expect(cmd.query).to.deep.equal(['revoke usage on schema identifier(?) from role identifier(?);', ['foo.bar', 'foo_usage']])
+      })
+    })
+
+    describe('hierarchichal role grant', () => {
+      it('generates grant', () => {
+        const cmd = snowflake.newGrantQuery('foo_usage', 'usage', 'role', 'bar_usage')
+        expect(cmd.query).to.deep.equal(['grant role identifier(?) to role identifier(?);', ['bar_usage', 'foo_usage']])
+      })
+      it('generates revoke', () => {
+        const cmd = snowflake.newRevokeQuery('foo_usage', 'usage', 'role', 'bar_usage')
+        expect(cmd.query).to.deep.equal(['revoke role identifier(?) from role identifier(?);', ['bar_usage', 'foo_usage']])
+      })
+    })
+
+    describe('schema future grants', () => {
+      it('generates grant', () => {
+        const cmd = snowflake.newGrantQuery('foo_bar_viewer', 'insert', 'table', 'foo.bar.<table>')
+        expect(cmd.query).to.deep.equal(['grant insert on future tables in schema identifier(?) to role identifier(?);', ['foo.bar', 'foo_bar_viewer']])
+      })
+      it('generates revoke', () => {
+        const cmd = snowflake.newRevokeQuery('foo_bar_viewer', 'insert', 'table', 'foo.bar.<table>')
+        expect(cmd.query).to.deep.equal(['revoke insert on future tables in schema identifier(?) from role identifier(?);', ['foo.bar', 'foo_bar_viewer']])
+      })
+    })
+
+    describe('database future grants on tables', () => {
+      it('generates grant', () => {
+        const cmd = snowflake.newGrantQuery('foo_viewer', 'insert', 'table', 'foo.<table>')
+        expect(cmd.query).to.deep.equal(['grant insert on future tables in database identifier(?) to role identifier(?);', ['foo', 'foo_viewer']])
+      })
+      it('generates revoke', () => {
+        const cmd = snowflake.newRevokeQuery('foo_viewer', 'usage', 'schema', 'foo.<schema>')
+        expect(cmd.query).to.deep.equal(['revoke usage on future schemas in database identifier(?) from role identifier(?);', ['foo', 'foo_viewer']])
+      })
+    })
+
+    describe('all tables in schema / database', () => {
+      it('generates grant on all in schema', () => {
+        const cmd = snowflake.newGrantQuery('foo_bar_viewer', 'select', 'table', 'foo.bar.*')
+        expect(cmd.query).to.deep.equal(['grant select on all tables in schema identifier(?) to role identifier(?);', ['foo.bar', 'foo_bar_viewer']])
+      })
+      it('generates revoke on all in database', () => {
+        const cmd = snowflake.newRevokeQuery('foo_viewer', 'select', 'table', 'foo.*')
+        expect(cmd.query).to.deep.equal(['revoke select on all tables in database identifier(?) from role identifier(?);', ['foo', 'foo_viewer']])
+      })
+    })
+  })
+
   describe('compressYaml', () => {
     const objects: snowflake.ShowObject[] = [
       newObject('table1', 'db1', 'schema1', 'table'),
