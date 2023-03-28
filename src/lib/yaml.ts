@@ -96,6 +96,7 @@ export interface YamlSpyglass {
   platform: Platform;
   version: number;
   lastSyncedMs: number;
+  compressRecords?: boolean;
 }
 
 export interface YamlRoles {

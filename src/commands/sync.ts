@@ -63,7 +63,6 @@ export default class Sync extends BaseCommand {
       yaml,
       onStart: total => showProgress && progress.start(total, 0),
       onProgress: current => showProgress && progress.update(current),
-      compress: true,
     })
 
     if (showProgress) {

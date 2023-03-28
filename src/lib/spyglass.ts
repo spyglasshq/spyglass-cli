@@ -15,7 +15,6 @@ export interface SyncArgs {
   yaml: Yaml;
   onStart: (x: number) => void;
   onProgress: (x: number) => void;
-  compress?: boolean;
 }
 
 export interface Spyglass {
@@ -65,6 +64,7 @@ export async function importSnowflake({accountId, onStart, onProgress, compress}
   const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
 
   if (compress) {
+    yaml.spyglass.compressRecords = true
     const objects = await showObjects(conn)
     compressYaml(yaml, objects)
   }
@@ -81,7 +81,7 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
 }
 
 export async function syncSnowflake(args: SyncArgs): Promise<Yaml> {
-  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, ...args})
+  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, compress: args.yaml.spyglass?.compressRecords, ...args})
 
   latestYaml.spyglass = args.yaml.spyglass
   latestYaml.spyglass.lastSyncedMs = Date.now()

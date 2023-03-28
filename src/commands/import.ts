@@ -1,4 +1,4 @@
-import {Args, ux} from '@oclif/core'
+import {Args, Flags, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
@@ -9,6 +9,10 @@ export default class Import extends BaseCommand {
 
   static args = {
     accountId: Args.string({description: 'Account id to fetch configuration from.', required: true}),
+  }
+
+  static flags = {
+    compress: Flags.boolean({description: 'Whether to compress records and replace them with a wildcard (*) where applicable.', default: false}),
   }
 
   async run(): Promise<void> {
