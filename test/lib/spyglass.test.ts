@@ -19,7 +19,7 @@ describe('SnowflakeSpyglass', () => {
     .stub(snowflake, 'showWarehouses', () => ([]))
     .stub(Date, 'now', () => 1)
     .it('succeeds', async () => {
-      const yaml = await spyg.import('account-123', noopFunc, noopFunc)
+      const yaml = await spyg.import({accountId: 'account-123', onStart: noopFunc, onProgress: noopFunc})
 
       expect(yaml.roleGrants).to.deep.equal({
         acme_prod_call_center_reader: {
@@ -65,7 +65,7 @@ describe('SnowflakeSpyglass', () => {
     .it('succeeds', async () => {
       const oldSpyglass = JSON.parse(JSON.stringify(currentYaml.spyglass))
 
-      const updatedYaml = await spyg.sync(currentYaml, noopFunc, noopFunc)
+      const updatedYaml = await spyg.sync({yaml: currentYaml, onStart: noopFunc, onProgress: noopFunc})
 
       expect(updatedYaml.spyglass.version).to.equal(oldSpyglass.version)
       expect(updatedYaml.spyglass.platform).to.equal(oldSpyglass.platform)
@@ -104,7 +104,7 @@ describe('SnowflakeSpyglass', () => {
       const yaml = await readYamlFile('test/testdata/issues-SR1001.yaml')
       const issue = (await spyg.verify(yaml, 'fbf1af0675dc')) as issues.IssueDetail
 
-      expect(issue.yamlDiff.added.roleGrants.acme_prod_all_tables_viewer.usage.database).to.deep.equal(['acme'])
+      expect(issue.yamlDiff.added.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme'])
       expect(issue.yamlDiff.deleted).to.be.empty
       expect(issue.yamlDiff.updated).to.be.empty
     })

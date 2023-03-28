@@ -307,11 +307,11 @@ export interface Entity {
 
 export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   return [
-    ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
-
-    ...getUserGrantQueries(yamlDiff.added.userGrants, true),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+
+    ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
+    ...getUserGrantQueries(yamlDiff.added.userGrants, true),
 
     ...getWarehouseQueries(yamlDiff.updated.warehouses),
   ]
@@ -349,50 +349,32 @@ export function sanitizeObjectType(objectType: string): void {
   }
 }
 
-function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
-  sanitizePrivilege(privilege)
-  sanitizeObjectType(objectType)
-
-  if (privilege === 'usage' && objectType === 'role') {
-    return {
-      query: ['grant role identifier(?) to role identifier(?);', [objectId, roleName]],
-      entities: [
-        {type: 'role', id: roleName},
-        {type: 'role', id: objectId},
-      ],
-    }
-  }
-
-  // extract (db.schema).<(objtype)>
-  const rx = /^(\w*\.\w*)\.<(.*)>$/g
-  const matches = rx.exec(objectId)
-  if (matches) {
-    const [, schema] = matches
-    return {
-      query: [`grant ${privilege} on future ${objectType}s in schema identifier(?) to role identifier(?);`, [schema, roleName]],
-      entities: [
-        {type: 'role', id: roleName},
-        {type: 'schema', id: schema},
-      ],
-    }
-  }
-
-  return {
-    query: [`grant ${privilege} on ${objectType} identifier(?) to role identifier(?);`, [objectId, roleName]],
-    entities: [
-      {type: 'role', id: roleName},
-      {type: objectType, id: objectId},
-    ],
-  }
+interface NewQueryArgs {
+  roleName: string;
+  privilege: string;
+  objectType: string;
+  objectId: string;
+  grant: boolean;
 }
 
-function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
+export function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
+  return newQuery({roleName, privilege, objectType, objectId, grant: true})
+}
+
+export function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
+  return newQuery({roleName, privilege, objectType, objectId, grant: false})
+}
+
+export function newQuery({roleName, privilege, objectType, objectId, grant}: NewQueryArgs): SqlCommand {
+  const grantOrRevoke = grant ? 'grant' : 'revoke'
+  const toOrFrom = grant ? 'to' : 'from'
+
   sanitizePrivilege(privilege)
   sanitizeObjectType(objectType)
 
   if (privilege === 'usage' && objectType === 'role') {
     return {
-      query: ['revoke role identifier(?) from role identifier(?);', [objectId, roleName]],
+      query: [`${grantOrRevoke} role identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
       entities: [
         {type: 'role', id: roleName},
         {type: 'role', id: objectId},
@@ -401,12 +383,12 @@ function newRevokeQuery(roleName: string, privilege: string, objectType: string,
   }
 
   // extract (db.schema).<(objtype)>
-  const rx = /^(\w*\.\w*)\.<(.*)>$/g
-  const matches = rx.exec(objectId)
-  if (matches) {
-    const [, schema] = matches
+  const futureSchemaRx = /^(\w*\.\w*)\.<(.*)>$/g
+  const futureSchemaMatches = futureSchemaRx.exec(objectId)
+  if (futureSchemaMatches) {
+    const [, schema] = futureSchemaMatches
     return {
-      query: [`revoke ${privilege} on future ${objectType}s in schema identifier(?) from role identifier(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
       entities: [
         {type: 'role', id: roleName},
         {type: 'schema', id: schema},
@@ -414,8 +396,50 @@ function newRevokeQuery(roleName: string, privilege: string, objectType: string,
     }
   }
 
+  // extract (db).<(objtype)>
+  const futureDatabaseRx = /^(\w*)\.<(.*)>$/g
+  const futureDatabaseMatches = futureDatabaseRx.exec(objectId)
+  if (futureDatabaseMatches) {
+    const [, database] = futureDatabaseMatches
+    return {
+      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'database', id: database},
+      ],
+    }
+  }
+
+  // extract (db.schema).* (literal "*" not looking for any char)
+  const allObjectsInSchemaRx = /^(\w*\.\w*)\.\*$/g
+  const allObjectsInSchemaMatches = allObjectsInSchemaRx.exec(objectId)
+  if (allObjectsInSchemaMatches) {
+    const [, schema] = allObjectsInSchemaMatches
+    return {
+      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'schema', id: schema},
+      ],
+    }
+  }
+
+  // extract (db).* (literal "*" not looking for any char)
+  const allObjectsInDatabaseRx = /^(\w*)\.\*$/g
+  const allObjectsInDatabaseMatches = allObjectsInDatabaseRx.exec(objectId)
+  if (allObjectsInDatabaseMatches) {
+    const [, database] = allObjectsInDatabaseMatches
+    return {
+      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
+      entities: [
+        {type: 'role', id: roleName},
+        {type: 'database', id: database},
+      ],
+    }
+  }
+
   return {
-    query: [`revoke ${privilege} on ${objectType} identifier(?) from role identifier(?);`, [objectId, roleName]],
+    query: [`${grantOrRevoke} ${privilege} on ${objectType} identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
     entities: [
       {type: 'role', id: roleName},
       {type: objectType, id: objectId},
@@ -463,4 +487,16 @@ function getWarehouseQueries(yamlWarehouses: YamlWarehouses): SqlCommand[] {
   }
 
   return queries
+}
+
+export function fqObjectId(database: string, schema: string, objectId: string): string {
+  return [database.toLowerCase(), schema.toLowerCase(), objectId.toLowerCase()].join('.')
+}
+
+export function fqSchemaId(database: string, schema: string): string {
+  return [database.toLowerCase(), schema.toLowerCase()].join('.')
+}
+
+export function fqDatabaseId(database: string): string {
+  return database.toLowerCase()
 }

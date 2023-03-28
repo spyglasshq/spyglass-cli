@@ -36,6 +36,14 @@ userGrants:
       - acme_prod_all_tables_viewer
  * ```
  *
+ * ### Special Operators
+ *
+ * As seen above, you can use `database.schema.<object_type>` to create a "future grants" statement,
+ * such as `acme.prod.<view>` to grant access to all future views.
+ *
+ * Additionally, you can use `database.schema.*` to create an "all grants" statement, such as
+ * `acme.prod.*` to grant access to all current views.
+ *
  * ### Goals
  *
  * One main design goal of this yaml is to be **isomorphic**; that is, a reversible mapping between
@@ -54,7 +62,7 @@ import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
 
-export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage'] as const
+export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert'] as const
 export type Privilege = typeof PRIVILEGES[number]
 
 const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'])
@@ -96,6 +104,7 @@ export interface YamlSpyglass {
   platform: Platform;
   version: number;
   lastSyncedMs: number;
+  compressRecords?: boolean;
 }
 
 export interface YamlRoles {
@@ -103,7 +112,7 @@ export interface YamlRoles {
 }
 
 export type YamlRole = {
-  [privilege in Privilege]: CurrentYamlRole;
+  [privilege in Privilege]?: CurrentYamlRole;
 }
 
 export interface CurrentYamlRole {
