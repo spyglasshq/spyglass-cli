@@ -59,11 +59,12 @@ export default class Sync extends BaseCommand {
     //   return res.data
     // }
 
-    const newYaml = await this.spyglass.sync(
+    const newYaml = await this.spyglass.sync({
       yaml,
-      total => showProgress && progress.start(total, 0),
-      current => showProgress && progress.update(current),
-    )
+      onStart: total => showProgress && progress.start(total, 0),
+      onProgress: current => showProgress && progress.update(current),
+      compress: true,
+    })
 
     if (showProgress) {
       progress.stop()

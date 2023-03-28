@@ -54,11 +54,12 @@ export default class Import extends BaseCommand {
     //   return res.data
     // }
 
-    const yaml = await this.spyglass.import(
+    const yaml = await this.spyglass.import({
       accountId,
-      total => progress.start(total, 0),
-      current => progress.update(current),
-    )
+      onStart: total => progress.start(total, 0),
+      onProgress: current => progress.update(current),
+      compress: true,
+    })
 
     progress.stop()
 

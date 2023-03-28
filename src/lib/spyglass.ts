@@ -1,12 +1,26 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {compressYaml, Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
+export interface ImportArgs {
+  accountId: string;
+  onStart: (x: number) => void;
+  onProgress: (x: number) => void;
+  compress?: boolean;
+}
+
+export interface SyncArgs {
+  yaml: Yaml;
+  onStart: (x: number) => void;
+  onProgress: (x: number) => void;
+  compress?: boolean;
+}
+
 export interface Spyglass {
-  import(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml>
+  import(args: ImportArgs): Promise<Yaml>
   verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail>
-  sync(yaml: Yaml, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml>
+  sync(args: SyncArgs): Promise<Yaml>
   apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]>
 }
 
@@ -15,17 +29,17 @@ export function newSpyglass(): Spyglass {
   return new SnowflakeSpyglass()
 }
 
-export class SnowflakeSpyglass {
-  async import(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
-    return importSnowflake(accountId, onStart, onProgress)
+export class SnowflakeSpyglass implements Spyglass {
+  async import(args: ImportArgs): Promise<Yaml> {
+    return importSnowflake(args)
   }
 
   async verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
     return verifySnowflake(yaml, issueId)
   }
 
-  async sync(yaml: Yaml, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
-    return syncSnowflake(yaml, onStart, onProgress)
+  async sync(args: SyncArgs): Promise<Yaml> {
+    return syncSnowflake(args)
   }
 
   async apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
@@ -33,7 +47,7 @@ export class SnowflakeSpyglass {
   }
 }
 
-export async function importSnowflake(accountId: string, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
+export async function importSnowflake({accountId, onStart, onProgress, compress}: ImportArgs): Promise<Yaml> {
   const conn = await getConn(accountId)
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
   const warehousesRowsPromise = showWarehouses(conn)
@@ -47,7 +61,13 @@ export async function importSnowflake(accountId: string, onStart: (x: number) =>
     warehouses: await warehousesRowsPromise,
   }
 
-  return yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
+  const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
+
+  if (compress) {
+    await compressYaml(conn, yaml)
+  }
+
+  return yaml
 }
 
 export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
@@ -58,10 +78,10 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
   return findIssues(yaml)
 }
 
-export async function syncSnowflake(yaml: Yaml, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<Yaml> {
-  const latestYaml = await importSnowflake(yaml.spyglass.accountId, onStart, onProgress)
+export async function syncSnowflake(args: SyncArgs): Promise<Yaml> {
+  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, ...args})
 
-  latestYaml.spyglass = yaml.spyglass
+  latestYaml.spyglass = args.yaml.spyglass
   latestYaml.spyglass.lastSyncedMs = Date.now()
 
   return latestYaml
@@ -110,18 +130,6 @@ async function _findNotExistingEntities(accountId: string, sqlCommands: SqlComma
   return res
 }
 
-function fqObjectId(database: string, schema: string, objectId: string): string {
-  return [database.toLowerCase(), schema.toLowerCase(), objectId.toLowerCase()].join('.')
-}
-
-function fqSchemaId(database: string, schema: string): string {
-  return [database.toLowerCase(), schema.toLowerCase()].join('.')
-}
-
-function fqDatabaseId(database: string): string {
-  return database.toLowerCase()
-}
-
 function getDatabasesAndSchemas(objects: ShowObject[]): string[] {
   const res: Set<string> = new Set()
 
@@ -133,14 +141,14 @@ function getDatabasesAndSchemas(objects: ShowObject[]): string[] {
   return [...res]
 }
 
-export class MockSpyglass {
+export class MockSpyglass implements Spyglass {
   _import?: Yaml
   _verify?: Issue[] | IssueDetail
   _sync?: Yaml
   _apply?: AppliedCommand[]
   _error?: Error
 
-  async import(_accountId: string, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+  async import(_args: ImportArgs): Promise<Yaml> {
     if (this._error) throw this._error
     if (!this._import) {
       throw new Error('mock import result not defined')
@@ -158,7 +166,7 @@ export class MockSpyglass {
     return this._verify
   }
 
-  async sync(_yaml: Yaml, _onStart: (x: number) => void, _onProgress: (x: number) => void): Promise<Yaml> {
+  async sync(_args: SyncArgs): Promise<Yaml> {
     if (this._error) throw this._error
     if (!this._sync) {
       throw new Error('mock sync result not defined')
