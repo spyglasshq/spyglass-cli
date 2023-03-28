@@ -64,7 +64,8 @@ export async function importSnowflake({accountId, onStart, onProgress, compress}
   const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
 
   if (compress) {
-    await compressYaml(conn, yaml)
+    const objects = await showObjects(conn)
+    compressYaml(yaml, objects)
   }
 
   return yaml

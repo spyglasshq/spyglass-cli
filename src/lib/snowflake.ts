@@ -465,13 +465,15 @@ function getWarehouseQueries(yamlWarehouses: YamlWarehouses): SqlCommand[] {
   return queries
 }
 
-export async function compressYaml(conn: Connection, yaml: Yaml): Promise<void> {
-  const objects = await showObjects(conn)
-
+export async function compressYaml(yaml: Yaml, objects: ShowObject[]): Promise<void> {
   const databasesToSchemas = getDatabasesToSchemas(objects)
   const schemasToObjects = getSchemasToObjects(objects)
 
   for (const [, roleInfo] of Object.entries(yaml.roleGrants)) {
+    if (!roleInfo.usage) {
+      continue
+    }
+
     const {database: databases, schema: schemas} = roleInfo.usage
 
     if (!(databases && schemas)) {
@@ -539,7 +541,7 @@ function findDatabasesThatHaveAllSchemasGranted(databases: string[], schemas: st
       const hasAllSchemasInDatabase = [...databasesToSchemas[database]].every(s => grantedDatabaseSchemas.has(s))
 
       if (hasAllSchemasInDatabase) {
-        databasesWithAllSchemas = [database, ...databasesWithAllSchemas]
+        databasesWithAllSchemas = [...databasesWithAllSchemas, database]
       }
     }
   }
@@ -555,6 +557,8 @@ function replaceSchemasWithWildcards(databasesWithAllSchemas: string[], schemas:
     updatedSchemas = [...updatedSchemas, `${database}.*`]
   }
 
+  updatedSchemas.sort()
+
   return updatedSchemas
 }
 
@@ -569,7 +573,7 @@ function findSchemasThatHaveAllObjectsGranted(objType: string, schemas: string[]
       const hasAllObjectsInSchema = schemasToObjects[schema].every(o => grantedSchemaObjects.has(o))
 
       if (hasAllObjectsInSchema) {
-        schemasWithAllObjects = [schema, ...schemasWithAllObjects]
+        schemasWithAllObjects = [...schemasWithAllObjects, schema]
       }
     }
   }
@@ -599,6 +603,8 @@ function replaceObjectsWithWildcards(objType: string, grantedObjects: string[], 
       updatedObjects = [...updatedObjects, `${database}.*`]
     }
   }
+
+  updatedObjects.sort()
 
   return updatedObjects
 }

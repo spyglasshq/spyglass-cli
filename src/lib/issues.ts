@@ -58,10 +58,13 @@ export const ISSUE_HANDLERS: IssueHandlers = {
         contents.roleGrants[data.role][data.privilege] = {}
       }
 
+      // @ts-expect-error this will be created
       if (!contents.roleGrants[data.role][data.privilege].database) {
+        // @ts-expect-error this will be created
         contents.roleGrants[data.role][data.privilege].database = []
       }
 
+      // @ts-expect-error this will be created
       contents.roleGrants[data.role][data.privilege].database.push(data.database)
 
       return contents

@@ -45,7 +45,7 @@ describe('difftools', () => {
       expect(issueList).to.have.length(1)
 
       issues.ISSUE_HANDLERS.SR1001.fixYaml(yaml, issueList[0].data)
-      expect(yaml.roleGrants.acme_prod_all_tables_viewer.usage.database).to.deep.equal(['acme'])
+      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme'])
 
       const newIssueList = issues.ISSUE_HANDLERS.SR1001.findIssues(yaml)
       expect(newIssueList).to.have.length(0)
