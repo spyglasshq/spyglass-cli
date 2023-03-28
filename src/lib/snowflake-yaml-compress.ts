@@ -36,6 +36,7 @@ function getDatabasesToSchemas(objects: ShowObject[]): DatabasesToSchemas {
   const databasesToSchemas: DatabasesToSchemas = {}
 
   for (const obj of objects) {
+    // system schema (not a user object) that isn't granted through select/insert statements
     if (obj.schema_name.toLowerCase() === 'information_schema') {
       continue
     }
