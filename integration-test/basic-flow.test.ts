@@ -48,9 +48,9 @@ describe('basic flow', () => {
     let database = ''
 
     for (const [roleName, roleInfo] of Object.entries(yaml.roleGrants)) {
-      if (roleInfo?.usage?.database?.length > 0) {
+      if ((roleInfo.usage?.database?.length ?? 0) > 0) {
         role = roleName
-        database = roleInfo.usage.database.pop() as string
+        database = roleInfo.usage!.database.pop() as string
       }
     }
 
@@ -59,7 +59,7 @@ describe('basic flow', () => {
     const sha = await addAndCommitFile(`${tt.dir}/${tt.accountId}.yaml`)
 
     // add back the privilege that already exists
-    yaml.roleGrants[role].usage.database.push(database)
+    yaml.roleGrants[role].usage!.database.push(database)
     await writeYamlForAccountId(tt.accountId, yaml, tt.dir)
 
     // apply against the branch
