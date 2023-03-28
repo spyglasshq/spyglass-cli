@@ -307,11 +307,11 @@ export interface Entity {
 
 export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   return [
-    ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
-
-    ...getUserGrantQueries(yamlDiff.added.userGrants, true),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+
+    ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
+    ...getUserGrantQueries(yamlDiff.added.userGrants, true),
 
     ...getWarehouseQueries(yamlDiff.updated.warehouses),
   ]
