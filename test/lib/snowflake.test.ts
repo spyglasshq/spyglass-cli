@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import * as snowflake from '../../src/lib/snowflake'
+import {compressYaml} from '../../src/lib/snowflake-yaml-compress'
 import {expect} from 'chai'
 import {Yaml, PRIVILEGES, YamlRoles} from '../../src/lib/yaml'
 
@@ -75,7 +76,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects.filter(o => o.schema_name === 'schema1' && o.database_name === 'db1')
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.*'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.*'])
@@ -95,7 +96,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects.filter(o => o.schema_name === 'schema1' && o.database_name === 'db1')
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.*', 'db1.schema1.<table>'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.*'])
@@ -115,7 +116,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects.filter(o => o.database_name === 'db1')
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.schema1.*', 'db1.schema1.<table>'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.schema1'])
@@ -134,7 +135,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects.filter(o => o.database_name === 'db1' && o.schema_name === 'schema1')
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.schema1.<table>', 'db1.schema1.table1', 'db1.schema1.table3'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.*'])
@@ -161,7 +162,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.*', 'db1.<schema>', 'db2.*'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.*', 'db2.*'])
@@ -186,7 +187,7 @@ describe('snowflake', () => {
 
       const mockObjects = objects
 
-      snowflake.compressYaml(yaml, mockObjects)
+      compressYaml(yaml, mockObjects)
 
       expect(yaml.roleGrants.dataViewer?.select?.table).to.deep.equal(['db1.*', 'db1.<schema>', 'db2.schema1.*', 'db2.schema2.*'])
       expect(yaml.roleGrants.dataViewer?.usage?.schema).to.deep.equal(['db1.*', 'db2.schema1', 'db2.schema2'])

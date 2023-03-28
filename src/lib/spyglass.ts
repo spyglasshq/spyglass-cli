@@ -1,5 +1,6 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {compressYaml, Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
 
