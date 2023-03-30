@@ -4,7 +4,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
-import {PRIVILEGES, YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {PRIVILEGES, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
@@ -309,12 +309,33 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   return [
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+    ...getRolesQueries(yamlDiff.deleted.roles, false),
 
+    ...getRolesQueries(yamlDiff.added.roles, true),
     ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
     ...getUserGrantQueries(yamlDiff.added.userGrants, true),
 
     ...getWarehouseQueries(yamlDiff.updated.warehouses),
   ]
+}
+
+function getRolesQueries(roles: YamlRoleDefinitions, granted: boolean): SqlCommand[] {
+  if (!roles) return []
+
+  const queries: SqlCommand[] = []
+
+  for (const [roleName] of Object.entries(roles)) {
+    const query = granted ?
+      'create role if not exists identifier(?);' :
+      'drop role if exists identifier(?);'
+
+    queries.push({
+      query: [query, [roleName]],
+      entities: [],
+    })
+  }
+
+  return queries
 }
 
 function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand[] {
