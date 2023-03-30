@@ -57,7 +57,7 @@ userGrants:
 import {readFile, writeFile} from 'node:fs/promises'
 import {parse, stringify} from 'yaml'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {ShowFutureRoleGrant, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
+import {ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
 import {detailedDiff} from 'deep-object-diff'
 import {exists} from 'fs-extra'
 import path = require('node:path')
@@ -89,6 +89,11 @@ export interface Yaml {
    * A list of users and the roles they are granted.
    */
   userGrants: YamlUserGrants;
+
+  /**
+   * A list of roles and their definitions
+   */
+  roles: YamlRoleDefinitions;
 
   /** A list of warehouses and their configuration
    * @experimental
@@ -138,6 +143,15 @@ export interface YamlUserGrant {
   roles: string[];
 }
 
+export interface YamlRoleDefinitions {
+  [role: string]: YamlRoleDefinition;
+}
+
+export interface YamlRoleDefinition {
+  name?: string;
+  comment?: string;
+}
+
 export interface YamlDiff {
   added: Yaml;
   deleted: Yaml;
@@ -175,10 +189,11 @@ export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void>
 }
 
 // eslint-disable-next-line max-params
-export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], roleGrantsOf: ShowRoleGrantOf[], warehousesRows: Warehouse[]): Yaml {
+export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], roleGrantsOf: ShowRoleGrantOf[], warehousesRows: Warehouse[], rolesRows: ShowRole[]): Yaml {
   const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows, futureRoleGrants)
   const userGrants = usersYamlFromUserGrants(roleGrantsOf)
   const warehouses = warehousesYamlFromWarehouses(warehousesRows)
+  const roles = rolesYamlFromRoles(rolesRows)
 
   const yaml: Yaml = {
     spyglass: {
@@ -190,6 +205,7 @@ export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGr
     roleGrants,
     userGrants,
     warehouses,
+    roles,
   }
 
   deeplySortLists(yaml)
@@ -284,6 +300,17 @@ export function warehousesYamlFromWarehouses(rows: Warehouse[]): YamlWarehouses 
       auto_suspend: wh.auto_suspend,
       size: wh.size,
     }
+  }
+
+  return res
+}
+
+function rolesYamlFromRoles(rolesRows: ShowRole[]): YamlRoleDefinitions {
+  const res: YamlRoleDefinitions = {}
+
+  for (const row of rolesRows) {
+    const name = row.name.toLowerCase()
+    res[name] = {}
   }
 
   return res

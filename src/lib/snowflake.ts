@@ -4,7 +4,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
-import {PRIVILEGES, YamlDiff, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {PRIVILEGES, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
@@ -152,8 +152,9 @@ const sleep = (ms: number) => new Promise(r => {
   setTimeout(r, ms)
 })
 
-export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[], ShowRoleGrantOf[]]> {
-  const [batchedRoleNames, numRoles] = await getBatchedRoleNames(conn)
+export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[], ShowRoleGrantOf[], ShowRole[]]> {
+  const showRoles = (await sqlQuery<ShowRole>(conn, 'show roles;', [])).results
+  const [batchedRoleNames, numRoles] = await getBatchedRoleNames(showRoles)
   onStart(numRoles)
 
   await sqlQuery(conn, 'alter session set multi_statement_count = 0;', []) // enable multi statement with batch size
@@ -183,7 +184,7 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
     await sleep(1000)
   }
 
-  return [roleGrants, futureRoleGrants, roleGrantsOf]
+  return [roleGrants, futureRoleGrants, roleGrantsOf, showRoles]
 }
 
 async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
@@ -210,11 +211,10 @@ async function queryMulti<T>(conn: Connection, query: string, roleNames: string[
   return results
 }
 
-async function getBatchedRoleNames(conn: Connection): Promise<[string[][], number]> {
+async function getBatchedRoleNames(showRoles: ShowRole[]): Promise<[string[][], number]> {
   const batchSize = 10
 
-  const showRoles = await sqlQuery<ShowRole>(conn, 'show roles;', [])
-  const roleNames = showRoles.results.map(role => role.name.toLowerCase())
+  const roleNames = showRoles.map(role => role.name.toLowerCase())
 
   const batchedRoleNames: string[][] = []
 
@@ -309,12 +309,33 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   return [
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+    ...getRolesQueries(yamlDiff.deleted.roles, false),
 
+    ...getRolesQueries(yamlDiff.added.roles, true),
     ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
     ...getUserGrantQueries(yamlDiff.added.userGrants, true),
 
     ...getWarehouseQueries(yamlDiff.updated.warehouses),
   ]
+}
+
+function getRolesQueries(roles: YamlRoleDefinitions, granted: boolean): SqlCommand[] {
+  if (!roles) return []
+
+  const queries: SqlCommand[] = []
+
+  for (const [roleName] of Object.entries(roles)) {
+    const query = granted ?
+      'create role if not exists identifier(?);' :
+      'drop role if exists identifier(?);'
+
+    queries.push({
+      query: [query, [roleName]],
+      entities: [],
+    })
+  }
+
+  return queries
 }
 
 function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand[] {

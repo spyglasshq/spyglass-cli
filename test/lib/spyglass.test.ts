@@ -52,6 +52,12 @@ describe('SnowflakeSpyglass', () => {
         },
       })
 
+      expect(yaml.roles).to.deep.equal({
+        acme_prod_all_tables_viewer: {},
+        acme_prod_call_center_reader: {},
+        customer_support: {},
+      })
+
       currentYaml = yaml
     })
   })
@@ -84,6 +90,10 @@ describe('SnowflakeSpyglass', () => {
         alice_admin: {
           roles: ['acme_prod_all_tables_viewer'],
         },
+      })
+
+      expect(updatedYaml.roles).to.deep.equal({
+        acme_prod_all_tables_viewer: {},
       })
     })
   })

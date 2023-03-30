@@ -74,5 +74,16 @@
       "grantee_name": "ALICE_ADMIN",
       "granted_by": "ACCOUNTADMIN"
     }
+  ],
+  [
+    {
+      "name": "ACME_PROD_CALL_CENTER_READER"
+    },
+    {
+      "name": "CUSTOMER_SUPPORT"
+    },
+    {
+      "name": "ACME_PROD_ALL_TABLES_VIEWER"
+    }
   ]
 ]
