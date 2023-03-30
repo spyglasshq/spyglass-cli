@@ -52,16 +52,17 @@ export async function importSnowflake({accountId, onStart, onProgress, compress}
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
   const warehousesRowsPromise = showWarehouses(conn)
 
-  const [roleGrants, futureRoleGrants, roleGrantsOf] = await roleGrantsPromise
+  const [roleGrants, futureRoleGrants, roleGrantsOf, roles] = await roleGrantsPromise
 
   const grants = {
     roleGrants,
     futureRoleGrants,
     roleGrantsOf,
+    roles,
     warehouses: await warehousesRowsPromise,
   }
 
-  const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses)
+  const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses, grants.roles)
 
   if (compress) {
     yaml.spyglass.compressRecords = true

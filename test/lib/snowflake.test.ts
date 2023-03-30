@@ -263,6 +263,7 @@ function newYaml(roleGrants: YamlRoles): Yaml {
       version: 1,
       lastSyncedMs: Date.now(),
     },
+    roles: {},
   }
 }
 
