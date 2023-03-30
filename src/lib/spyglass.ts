@@ -123,6 +123,10 @@ async function _findNotExistingEntities(accountId: string, sqlCommands: SqlComma
 
   for (const entities of proposedEntities) {
     for (const entity of entities) {
+      if (entity.type === 'warehouse' || entity.type === 'user' || entity.type === 'schema' || entity.type === 'database_role') {
+        continue // not supported yet
+      }
+
       if (!existingEntities.has(`${entity.type}:${entity.id}`)) {
         res = [...res, entity]
       }
