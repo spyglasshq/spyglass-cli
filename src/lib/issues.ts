@@ -1,6 +1,7 @@
 import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
+import {forEachObjectInRoleGrants} from './yaml-util'
 
 interface IssueHandlers {
   [id: string]: IssueHandler;
@@ -75,14 +76,19 @@ export const ISSUE_HANDLERS: IssueHandlers = {
 
       const roleDatabases: {[roleName: string]: string} = {}
 
-      for (const [roleName, role] of Object.entries(yaml.roleGrants)) {
-        for (const objectId of (role?.select?.view ?? [])) {
-          const [database] = objectId.split('.')
-          if (!role.usage?.database?.includes(database)) {
-            roleDatabases[roleName] = database
-          }
+      forEachObjectInRoleGrants(yaml.roleGrants, ({roleName, roleInfo, objectId}) => {
+        const objectIdRx = /^\w*\.\w*\.\w*$/g // look for "db.schema.object" pattern
+        const objectIdMatches = objectIdRx.exec(objectId)
+        if (!objectIdMatches) {
+          return
         }
-      }
+
+        const [database] = objectId.split('.')
+
+        if (!roleInfo.usage?.database?.includes(database)) {
+          roleDatabases[roleName] = database
+        }
+      })
 
       for (const [roleName, database] of Object.entries(roleDatabases)) {
         issues.push(newSR1001({role: roleName, database}))
