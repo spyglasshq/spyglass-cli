@@ -89,8 +89,7 @@ function findDatabasesThatHaveAllSchemasGranted(databases: string[], schemas: st
 function replaceSchemasWithWildcards(databasesWithAllSchemas: string[], schemas: string[]): string[] {
   let updatedSchemas = schemas
   for (const database of databasesWithAllSchemas) {
-    const schemaWildcard = `${database}.<schema>`
-    updatedSchemas = updatedSchemas.filter(schema => !(schema.startsWith(database + '.') && schema !== schemaWildcard))
+    updatedSchemas = updatedSchemas.filter(schema => !schema.startsWith(database + '.') || schema.match('.*<.*>$'))
     updatedSchemas = [...updatedSchemas, `${database}.*`]
   }
 
@@ -124,8 +123,7 @@ function replaceObjectsWithWildcards(objType: string, grantedObjects: string[], 
 
   // delete objects and replace with a wildcard placeholder (schema level)
   for (const schema of schemasWithAllObjects) {
-    const objWildcard = `${schema}.<${objType}>`
-    updatedObjects = updatedObjects.filter(obj => !(obj.startsWith(schema + '.') && obj !== objWildcard))
+    updatedObjects = updatedObjects.filter(obj => !obj.startsWith(schema + '.') || obj.match('.*<.*>$'))
     updatedObjects = [...updatedObjects, `${schema}.*`]
   }
 
@@ -136,7 +134,7 @@ function replaceObjectsWithWildcards(objType: string, grantedObjects: string[], 
     }
 
     if ([...databasesToSchemas[database]].every(s => schemasWithAllObjects.includes(s))) {
-      updatedObjects = updatedObjects.filter(obj => !obj.startsWith(database + '.') || obj.match('.*<.*>.*'))
+      updatedObjects = updatedObjects.filter(obj => !obj.startsWith(database + '.') || obj.match('.*<.*>$'))
       updatedObjects = [...updatedObjects, `${database}.*`]
     }
   }

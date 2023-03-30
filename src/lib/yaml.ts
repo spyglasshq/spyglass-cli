@@ -38,8 +38,8 @@ userGrants:
  *
  * ### Special Operators
  *
- * As seen above, you can use `database.schema.<object_type>` to create a "future grants" statement,
- * such as `acme.prod.<view>` to grant access to all future views.
+ * As seen above, you can use `database.schema.<future>` to create a "future grants" statement,
+ * such as `acme.prod.<future>` to grant access to all future views.
  *
  * Additionally, you can use `database.schema.*` to create an "all grants" statement, such as
  * `acme.prod.*` to grant access to all current views.
@@ -253,7 +253,7 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
     const grantee = rg.grantee_name.toLowerCase()
     const privilege = rg.privilege.toLowerCase() as Privilege
     const grantObjectType = rg.grant_on.toLowerCase()
-    const name = rg.name.toLowerCase()
+    const name = rg.name.toLowerCase().replace(/<.*>/, '<future>')
 
     const role = roleGrants[grantee] ?? {}
     roleGrants[grantee] = role

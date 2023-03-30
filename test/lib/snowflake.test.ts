@@ -78,7 +78,7 @@ describe('snowflake', () => {
         expect(cmd.query).to.deep.equal(['grant insert on future tables in schema identifier(?) to role identifier(?);', ['foo.bar', 'foo_bar_viewer']])
       })
       it('generates revoke', () => {
-        const cmd = snowflake.newRevokeQuery('foo_bar_viewer', 'insert', 'table', 'foo.bar.<table>')
+        const cmd = snowflake.newRevokeQuery('foo_bar_viewer', 'insert', 'table', 'foo.bar.<future>')
         expect(cmd.query).to.deep.equal(['revoke insert on future tables in schema identifier(?) from role identifier(?);', ['foo.bar', 'foo_bar_viewer']])
       })
     })

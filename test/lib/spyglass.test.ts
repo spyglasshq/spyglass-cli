@@ -33,7 +33,7 @@ describe('SnowflakeSpyglass', () => {
         },
         acme_prod_all_tables_viewer: {
           select: {
-            table: ['acme.prod.<table>'],
+            table: ['acme.prod.<future>'],
           },
         },
         customer_support: {
@@ -75,7 +75,7 @@ describe('SnowflakeSpyglass', () => {
       expect(updatedYaml.roleGrants).to.deep.equal({
         acme_prod_all_tables_viewer: {
           select: {
-            table: ['acme.prod.<table>'],
+            table: ['acme.prod.<future>'],
           },
         },
       })
