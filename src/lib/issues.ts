@@ -1,7 +1,7 @@
 import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
-import { forEachObjectInRoleGrants } from './yaml-util';
+import {forEachObjectInRoleGrants} from './yaml-util'
 
 interface IssueHandlers {
   [id: string]: IssueHandler;
