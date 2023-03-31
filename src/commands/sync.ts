@@ -3,7 +3,7 @@ import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
 import {Yaml} from '../lib/yaml'
-import {readYamlForAccountId, writeYamlForAccountId} from '../lib/yaml-files'
+import {readYamlForAccountId, updateYamlForAccountId} from '../lib/yaml-files'
 
 export default class Sync extends BaseCommand {
   static description = 'Update an existing yaml file using the database\'s current configuration.'
@@ -26,7 +26,7 @@ export default class Sync extends BaseCommand {
 
       const newYaml = await this.fetchSync(cfg, yaml)
 
-      await writeYamlForAccountId(args['account-id'], newYaml, flags.dir)
+      await updateYamlForAccountId(args['account-id'], newYaml, flags.dir)
 
       this.log(color.bold(`Successfully updated current configuration to ${args['account-id']}.yaml.`))
     } catch (error: any) {
