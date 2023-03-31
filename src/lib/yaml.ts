@@ -68,6 +68,14 @@ export type Privilege = typeof PRIVILEGES[number]
 const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'])
 
 export type Platform = 'snowflake' | 'unspecified';
+
+/**
+ * A fully-qualified object id.
+ *
+ * For objects like tables and views, this must be of the form <database>.<schema>.<object>
+ *
+ * Example: "acme.prod.payments"
+ */
 export type ObjectId = string;
 
 /**
@@ -91,7 +99,7 @@ export interface Yaml {
   userGrants: YamlUserGrants;
 
   /**
-   * A list of roles and their definitions
+   * A list of roles and their definitions.
    */
   roles: YamlRoleDefinitions;
 
@@ -103,24 +111,61 @@ export interface Yaml {
 
 /**
  * Spyglass-specific configuration.
+ *
+ * Standard defaults are generated when `import` is invoked the first time.
  */
 export interface YamlSpyglass {
+  /**
+   * Account id of the form "org_id-account_id" (e.g. "zhjgixi-tv26532")
+   */
   accountId: string;
+
+  /**
+   * Platform name (e.g. "snowflake")
+   */
   platform: Platform;
+
+  /**
+   * Yaml protocol version (e.g. 1)
+   */
   version: number;
+
+  /**
+   * Updated automatically on calls to `sync`.
+   */
   lastSyncedMs: number;
+
+  /**
+   * If true, then future `sync` calls will replace large lists of tables/views with a wildcard ("*"),
+   * based on whether all tables in a schema or database have been granted.
+   */
   compressRecords?: boolean;
 }
 
+/**
+ * A map keyed by `role` name, and the values are the privileges granted to the role.
+ *
+ * Updating this list will result in `grant <privilege>` and `revoke <privilege>` queries being executed.
+ */
 export interface YamlRoles {
   [role: string]: YamlRole;
 }
 
 export type YamlRole = {
+  /**
+   * A map of privileges (e.g. "select", "usage") to objects.
+   */
   [privilege in Privilege]?: CurrentYamlRole;
 }
 
 export interface CurrentYamlRole {
+  /**
+   * A map of object types to object ids.
+   *
+   * Object type is a Snowflake object like "table" or "view".
+   *
+   * Object id is a fully-qualified object id (see docs for ObjectId).
+   */
   [objectType: string]: ObjectId[];
 }
 
@@ -128,21 +173,47 @@ export interface YamlWarehouses {
   [warehouse: string]: YamlWarehouse;
 }
 
+/**
+ * A warehouse. Experimental feature.
+ *
+ * Currently, updates only result in `alter warehouse` queries when the `size` property is updated.
+ */
 export interface YamlWarehouse {
+  /**
+   * Name of the warehouse.
+   */
   name: string;
+
+  /**
+   * Warehouse size (e.g. "X-Small")
+   */
   size: string;
+
   // eslint-disable-next-line camelcase
   auto_suspend: number;
 }
 
+/**
+ * A map keyed by `username`, and the values are the role grants of each user.
+ *
+ * Updating this list will result in `grant role` and `revoke role` queries being executed.
+ */
 export interface YamlUserGrants {
   [username: string]: YamlUserGrant;
 }
 
 export interface YamlUserGrant {
+  /**
+   * A list of roles granted to the user.
+   */
   roles: string[];
 }
 
+/**
+ * Role definitions.
+ *
+ * Updating this list will result in `create role` or `drop role` queries being executed.
+ */
 export interface YamlRoleDefinitions {
   [role: string]: YamlRoleDefinition;
 }
