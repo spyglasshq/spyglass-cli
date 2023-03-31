@@ -144,7 +144,7 @@ export interface YamlSpyglass {
   lastSyncedMs: number;
 
   /**
-   * If true, then future `sync` calls will replace large lists of tables/views with a wildcard ("*"),
+   * If true, then future `sync` calls will replace large lists of tables/views with a wildcard (`*`),
    * based on whether all tables in a schema or database have been granted.
    */
   compressRecords?: boolean;
