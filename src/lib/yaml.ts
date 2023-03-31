@@ -13,9 +13,9 @@ roleGrants:
   acme_prod_all_tables_viewer:
     select:
       table:
-        - acme.prod.<table>
+        - acme.prod.<future>
       view:
-        - acme.prod.<view>
+        - acme.prod.<future>
         - acme.prod.call_center
         - acme.prod.catalog_page
         - acme.prod.catalog_returns
@@ -72,7 +72,7 @@ export type Platform = 'snowflake' | 'unspecified';
 /**
  * A fully-qualified object id.
  *
- * For objects like tables and views, this must be of the form <database>.<schema>.<object>
+ * For objects like tables and views, this must be of the form `<database>.<schema>.<object>`
  *
  * Example: "acme.prod.payments"
  */
@@ -85,21 +85,29 @@ export type ObjectId = string;
 export interface Yaml {
   /**
    * Spyglass-specific configuration.
+   *
+   * Standard defaults are generated when `import` is invoked the first time.
    */
   spyglass: YamlSpyglass;
 
   /**
    * A list of roles and the privileges they are granted.
+   *
+   * Updating this list will result in `grant <privilege>` and `revoke <privilege>` queries being executed.
    */
   roleGrants: YamlRoles;
 
   /**
    * A list of users and the roles they are granted.
+   *
+   * Updating this list will result in `grant role` and `revoke role` queries being executed.
    */
   userGrants: YamlUserGrants;
 
   /**
    * A list of roles and their definitions.
+   *
+   * Updating this list will result in `create role` or `drop role` queries being executed.
    */
   roles: YamlRoleDefinitions;
 
