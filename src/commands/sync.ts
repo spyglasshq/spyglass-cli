@@ -2,7 +2,8 @@ import {Args, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
-import {readYamlForAccountId, writeYamlForAccountId, Yaml} from '../lib/yaml'
+import {Yaml} from '../lib/yaml'
+import {readYamlForAccountId, writeYamlForAccountId} from '../lib/yaml-files'
 
 export default class Sync extends BaseCommand {
   static description = 'Update an existing yaml file using the database\'s current configuration.'

@@ -1,6 +1,6 @@
 import * as issues from '../../src/lib/issues'
 import {expect, use} from 'chai'
-import {readYamlFile} from '../../src/lib/yaml'
+import {readYamlFile} from '../../src/lib/yaml-files'
 import * as chaiAsPromised from 'chai-as-promised'
 
 use(chaiAsPromised)
