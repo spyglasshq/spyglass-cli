@@ -54,13 +54,9 @@ userGrants:
  * @module yaml
  */
 
-import {readFile, writeFile} from 'node:fs/promises'
-import {parse, stringify} from 'yaml'
+import {detailedDiff} from 'deep-object-diff'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
 import {ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
-import {detailedDiff} from 'deep-object-diff'
-import {exists} from 'fs-extra'
-import path = require('node:path')
 
 export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert'] as const
 export type Privilege = typeof PRIVILEGES[number]
@@ -235,36 +231,6 @@ export interface YamlDiff {
   added: Yaml;
   deleted: Yaml;
   updated: Yaml;
-}
-
-export async function readYamlForAccountId(accountId: string, dir = '.'): Promise<Yaml> {
-  const singleYamlFilename = path.join(dir, `${accountId}.yaml`)
-
-  if (await exists(singleYamlFilename)) {
-    return readYamlFile(singleYamlFilename)
-  }
-
-  throw new Error(`file not found: ${singleYamlFilename}`)
-}
-
-export async function readYamlFile(filename: string): Promise<Yaml> {
-  const file = await readFile(filename)
-  const contents = parse(file.toString())
-  return contents
-}
-
-export async function parseYamlFile(contents: string): Promise<Yaml> {
-  return parse(contents)
-}
-
-export async function writeYamlForAccountId(accountId: string, yaml: Yaml, dir = '.'): Promise<void> {
-  const singleYamlFilename = path.join(dir, `${accountId}.yaml`)
-  // HACK: doesn't yet support multi file
-  return writeYamlFile(singleYamlFilename, yaml)
-}
-
-export async function writeYamlFile(filename: string, yaml: Yaml): Promise<void> {
-  await writeFile(filename, stringify(yaml, {sortMapEntries: true}))
 }
 
 // eslint-disable-next-line max-params

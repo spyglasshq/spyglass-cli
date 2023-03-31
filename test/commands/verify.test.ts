@@ -1,5 +1,6 @@
 import * as spyglass from '../../src/lib/spyglass'
 import * as yaml from '../../src/lib/yaml'
+import * as yamlFiles from '../../src/lib/yaml-files'
 import {expect, test} from '@oclif/test'
 
 let mockSpyglass = new spyglass.MockSpyglass()
@@ -25,7 +26,7 @@ describe('verify', () => {
 
   spytest
   .stub(spyglass, 'newSpyglass', () => mockSpyglass)
-  .stub(yaml, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
+  .stub(yamlFiles, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
   .do(mockVerify())
   .stdout()
   .command(['verify', 'account-123'])
@@ -36,7 +37,7 @@ describe('verify', () => {
 
   spytest
   .stub(spyglass, 'newSpyglass', () => mockSpyglass)
-  .stub(yaml, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
+  .stub(yamlFiles, 'readYamlForAccountId', mockReadYamlForAccountId as () => any)
   .do(mockVerifyError())
   .stdout()
   .command(['verify', 'account-123'])
@@ -59,5 +60,5 @@ function mockVerify() {
 }
 
 async function mockReadYamlForAccountId(accountId: string, _dir = '.'): Promise<yaml.Yaml> {
-  return yaml.readYamlFile('./test/testdata/sync-basic-current.yaml')
+  return yamlFiles.readYamlFile('./test/testdata/sync-basic-current.yaml')
 }

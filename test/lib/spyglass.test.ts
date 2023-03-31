@@ -4,7 +4,8 @@ import * as snowflake from '../../src/lib/snowflake'
 import * as issues from '../../src/lib/issues'
 import {expect, test} from '@oclif/test'
 import {readJSON} from 'fs-extra'
-import {readYamlFile, Yaml} from '../../src/lib/yaml'
+import {Yaml} from '../../src/lib/yaml'
+import {readYamlFile} from '../../src/lib/yaml-files'
 
 const noopFunc = () => null // progress bar no op
 

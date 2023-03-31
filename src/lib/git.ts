@@ -1,7 +1,8 @@
 import git = require('isomorphic-git')
 import fs = require('fs')
 import path = require('path')
-import {parseYamlFile, Yaml} from './yaml'
+import {Yaml} from './yaml'
+import {parseYamlFile} from './yaml-files'
 
 export async function readFileAtBranch(filepath: string, ref: string, dir = '.'): Promise<string> {
   const gitRoot = await git.findRoot({

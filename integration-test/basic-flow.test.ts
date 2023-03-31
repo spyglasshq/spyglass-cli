@@ -8,7 +8,7 @@ import * as git from 'isomorphic-git'
 import AccountsList from '../src/commands/accounts/list'
 import Import from '../src/commands/import'
 import Apply from '../src/commands/apply'
-import {readYamlForAccountId, writeYamlForAccountId} from '../src/lib/yaml'
+import {readYamlForAccountId, writeYamlForAccountId} from '../src/lib/yaml-files'
 
 process.env.NODE_ENV = 'integration-test'
 

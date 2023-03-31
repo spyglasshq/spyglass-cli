@@ -2,7 +2,8 @@ import {Args, Flags, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
-import {writeYamlForAccountId, Yaml} from '../lib/yaml'
+import {Yaml} from '../lib/yaml'
+import {writeYamlForAccountId} from '../lib/yaml-files'
 
 export default class Import extends BaseCommand {
   static description = 'Translate a database\'s current configuration into Spyglass format.'

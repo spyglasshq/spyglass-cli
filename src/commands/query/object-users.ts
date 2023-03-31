@@ -1,7 +1,7 @@
 import {Args, ux} from '@oclif/core'
 import {BaseCommand} from '../../lib/cmd'
 import {objectAccessFromYaml} from '../../lib/query'
-import {readYamlForAccountId} from '../../lib/yaml'
+import {readYamlForAccountId} from '../../lib/yaml-files'
 
 export default class ObjectUsers extends BaseCommand {
   public static enableJsonFlag = true
