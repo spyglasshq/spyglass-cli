@@ -13,6 +13,11 @@ export async function readYamlForAccountId(accountId: string, dir = '.'): Promis
   }
 
   const files = (await getFiles(dir)).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+
+  if (files.length === 0) {
+    throw new Error(`file not found: ${singleYamlFilename}`)
+  }
+
   const dividedYamls = await Promise.all(files.map(file => readYamlFile(file)))
 
   let yaml = {}
@@ -75,15 +80,15 @@ export async function updateYamlForAccountId(accountId: string, yaml: Yaml, dir 
     }
   }
 
-  if (Object.keys(yaml.roleGrants).length === 0) {
+  if (Object.keys(yaml.roleGrants ?? {}).length === 0) {
     delete (yaml as any).roleGrants
   }
 
-  if (Object.keys(yaml.userGrants).length === 0) {
+  if (Object.keys(yaml.userGrants ?? {}).length === 0) {
     delete (yaml as any).userGrants
   }
 
-  if (Object.keys(yaml.roles).length === 0) {
+  if (Object.keys(yaml.roles ?? {}).length === 0) {
     delete (yaml as any).roles
   }
 
