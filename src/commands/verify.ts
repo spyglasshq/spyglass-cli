@@ -3,7 +3,7 @@ import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
 import {Yaml} from '../lib/yaml'
-import {readYamlForAccountId, writeYamlForAccountId} from '../lib/yaml-files'
+import {readYamlForAccountId, updateYamlForAccountId} from '../lib/yaml-files'
 import {Issue, IssueDetail, ISSUE_HANDLERS} from '../lib/issues'
 import {printYamlDiff} from '../lib/print'
 
@@ -166,7 +166,7 @@ export default class Verify extends BaseCommand {
 
         const updatedContents = handler.fixYaml(contents, issue.data)
 
-        await writeYamlForAccountId(accountId, updatedContents, dir)
+        await updateYamlForAccountId(accountId, updatedContents, dir)
       }
     }
 
