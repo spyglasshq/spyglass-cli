@@ -63,8 +63,6 @@ export default class Auth extends BaseCommand {
       await saveConfig(newConfig)
     }
 
-
-
     if (flags.check) {
       ux.action.start('Checking connection')
       await checkConnection(accountId)
