@@ -121,44 +121,6 @@ export default class Verify extends BaseCommand {
 
     printYamlDiff(this, issue.yamlDiff)
 
-    if (issue.issue.id === 'SR1003') {
-      const utilizationData = [
-        {date: '2023-2-9', avgUtilization: '23%', peakUtilization: '36%', minsQueued: '0'},
-        {date: '2023-2-10', avgUtilization: '22%', peakUtilization: '45%', minsQueued: '0'},
-        {date: '2023-2-11', avgUtilization: '17%', peakUtilization: '38%', minsQueued: '0'},
-        {date: '2023-2-12', avgUtilization: '32%', peakUtilization: '54%', minsQueued: '0'},
-        {date: '2023-2-13', avgUtilization: '25%', peakUtilization: '36%', minsQueued: '0'},
-        {date: '2023-2-14', avgUtilization: '29%', peakUtilization: '40%', minsQueued: '0'},
-        {date: '2023-2-15', avgUtilization: '31%', peakUtilization: '41%', minsQueued: '0'},
-      ]
-
-      this.log(color.underline('Details'))
-      this.log(color.white('Projected Impact:'))
-      this.log(`  ${color.gray('Roles:')}                   customer_support, product_managers`)
-      this.log(`  ${color.gray('Number of Users:')}         37`)
-      this.log(`  ${color.gray('Monthly Savings:')}         $ 522`)
-      this.log('')
-      this.log(color.white('Detection Data:'))
-      ux.table(utilizationData, {
-        date: {
-          header: 'Date',
-          minWidth: 18,
-        },
-        avgUtilization: {
-          header: 'Avg. Utilization',
-        },
-        peakUtilization: {
-          header: 'Peak Utilization',
-        },
-        minsQueued: {
-          header: 'Mins. Queued',
-        },
-      }, {
-        printLine: this.log.bind(this),
-      })
-      this.log('')
-    }
-
     const handler = ISSUE_HANDLERS[issue.issue.id]
     if (handler) {
       return async (accountId: string): Promise<void> => {
