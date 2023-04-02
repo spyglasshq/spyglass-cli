@@ -1,5 +1,5 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showUsers, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
@@ -114,17 +114,19 @@ async function _findNotExistingEntities(accountId: string, sqlCommands: SqlComma
 
   const roles = await showRoles(conn)
   const objects = await showObjects(conn)
+  const users = await showUsers(conn)
 
   const existingRoles = roles.map(r => `role:${r.name.toLowerCase()}`)
   const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
   const existingAccountObjects = getDatabasesAndSchemas(objects)
-  const existingEntities = new Set([...existingRoles, ...existingObjects, ...existingAccountObjects])
+  const existingUsers = users.map(u => `user:${u.name.toLowerCase()}`)
+  const existingEntities = new Set([...existingRoles, ...existingObjects, ...existingAccountObjects, ...existingUsers])
 
   const proposedEntities = sqlCommands.map(x => x.entities)
 
   for (const entities of proposedEntities) {
     for (const entity of entities) {
-      if (entity.type === 'warehouse' || entity.type === 'user' || entity.type === 'schema' || entity.type === 'database_role') {
+      if (entity.type === 'warehouse' || entity.type === 'database_role') {
         continue // not supported yet
       }
 

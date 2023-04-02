@@ -280,6 +280,19 @@ export async function showRoles(conn: Connection): Promise<ShowRole[]> {
   return (await sqlQuery<ShowRole[]>(conn, showRolesQuery, [])).results
 }
 
+const showUsersQuery = 'show users;'
+
+export interface ShowUser {
+  name: string;
+  login_name: string;
+  display_name: string;
+  email: string;
+}
+
+export async function showUsers(conn: Connection): Promise<ShowUser[]> {
+  return (await sqlQuery<ShowUser[]>(conn, showUsersQuery, [])).results
+}
+
 export async function executeCommands(accountId: string, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
   const conn = await getConn(accountId)
 
