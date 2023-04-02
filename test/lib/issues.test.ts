@@ -10,7 +10,7 @@ describe('difftools', () => {
     it('finds many issues', async () => {
       const yaml = await readYamlFile('./test/testdata/issues-SR1001.yaml')
       const issueList = await issues.findIssues(yaml)
-      expect(issueList).to.have.length(1)
+      expect(issueList).to.have.length(2)
     })
   })
 
@@ -35,17 +35,18 @@ describe('difftools', () => {
     it('finds missing usage', async () => {
       const yaml = await readYamlFile('./test/testdata/issues-SR1001.yaml')
       const issueList = issues.ISSUE_HANDLERS.SR1001.findIssues(yaml)
-      expect(issueList).to.have.length(1)
+      expect(issueList).to.have.length(2)
     })
 
     it('fixes missing usage', async () => {
       const yaml = await readYamlFile('./test/testdata/issues-SR1001.yaml')
 
       const issueList = issues.ISSUE_HANDLERS.SR1001.findIssues(yaml)
-      expect(issueList).to.have.length(1)
+      expect(issueList).to.have.length(2)
 
       issues.ISSUE_HANDLERS.SR1001.fixYaml(yaml, issueList[0].data)
-      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme'])
+      issues.ISSUE_HANDLERS.SR1001.fixYaml(yaml, issueList[1].data)
+      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme', 'acme2'])
 
       const newIssueList = issues.ISSUE_HANDLERS.SR1001.findIssues(yaml)
       expect(newIssueList).to.have.length(0)

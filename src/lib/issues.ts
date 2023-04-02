@@ -75,7 +75,7 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     findIssues: (yaml: Yaml): Issue[] => {
       const issues: Issue[] = []
 
-      const roleDatabases: {[roleName: string]: string} = {}
+      const roleDatabases: {[roleName: string]: Set<string>} = {}
 
       forEachObjectInRoleGrants(yaml.roleGrants, ({roleName, roleInfo, objectId}) => {
         const objectIdRx = /^\w*\.\w*\.\w*$/g // look for "db.schema.object" pattern
@@ -87,12 +87,16 @@ export const ISSUE_HANDLERS: IssueHandlers = {
         const [database] = objectId.split('.')
 
         if (!roleInfo.usage?.database?.includes(database)) {
-          roleDatabases[roleName] = database
+          const schemas = roleDatabases[roleName] ?? new Set()
+          schemas.add(database)
+          roleDatabases[roleName] = schemas
         }
       })
 
-      for (const [roleName, database] of Object.entries(roleDatabases)) {
-        issues.push(newSR1001({role: roleName, database}))
+      for (const [roleName, databases] of Object.entries(roleDatabases)) {
+        for (const database of databases) {
+          issues.push(newSR1001({role: roleName, database}))
+        }
       }
 
       return issues

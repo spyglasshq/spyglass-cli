@@ -9,11 +9,11 @@ roleGrants:
         - acme.prod.catalog_page
         - acme.prod.catalog_returns
         - acme.prod.catalog_sales
+        - acme2.prod.catalog_sales
     usage:
-      # database:
-      #   - acme
       schema:
         - acme.prod
+        - acme2.prod
 spyglass:
   accountId: account-123
   lastSyncedMs: 1678883775793
