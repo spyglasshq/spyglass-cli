@@ -1,5 +1,6 @@
 import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
+import {fqSchemaId} from './snowflake'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
 import {forEachObjectInRoleGrants} from './yaml-util'
 
@@ -98,6 +99,58 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     },
   },
 
+  SR1002: {
+    fixYaml: (contents: Yaml, _data: unknown) => {
+      const data = _data as SchemaPrivilege
+
+      if (!contents.roleGrants[data.role][data.privilege]) {
+        contents.roleGrants[data.role][data.privilege] = {}
+      }
+
+      // @ts-expect-error this will be created
+      if (!contents.roleGrants[data.role][data.privilege].schema) {
+        // @ts-expect-error this will be created
+        contents.roleGrants[data.role][data.privilege].schema = []
+      }
+
+      // @ts-expect-error this will be created
+      contents.roleGrants[data.role][data.privilege].schema.push(data.schema)
+
+      return contents
+    },
+
+    findIssues: (yaml: Yaml): Issue[] => {
+      const issues: Issue[] = []
+
+      const roleSchemas: {[roleName: string]: Set<string>} = {}
+
+      forEachObjectInRoleGrants(yaml.roleGrants, ({roleName, roleInfo, objectId}) => {
+        const objectIdRx = /^\w*\.\w*\.\w*$/g // look for "db.schema.object" pattern
+        const objectIdMatches = objectIdRx.exec(objectId)
+        if (!objectIdMatches) {
+          return
+        }
+
+        const [_database, _schema] = objectId.split('.')
+        const schema = fqSchemaId(_database, _schema)
+
+        if (!roleInfo.usage?.schema?.includes(schema)) {
+          const schemas = roleSchemas[roleName] ?? new Set()
+          schemas.add(schema)
+          roleSchemas[roleName] = schemas
+        }
+      })
+
+      for (const [roleName, schemas] of Object.entries(roleSchemas)) {
+        for (const schema of schemas) {
+          issues.push(newSR1002({role: roleName, schema}))
+        }
+      }
+
+      return issues
+    },
+  },
+
   SR1003: {
     fixYaml: (contents: Yaml, _data: unknown) => {
       const data = _data as WarehouseResize
@@ -169,7 +222,19 @@ export function newSR1001({role, database}: {role: string, database: string}): I
       role,
       privilege: 'usage',
       database,
-    },
+    } as DatabasePrivilege,
+    status: 'open',
+  }
+}
+
+export function newSR1002({role, schema}: {role: string, schema: string}): Issue {
+  return {
+    issue: ISSUES.SR1002,
+    data: {
+      role,
+      privilege: 'usage',
+      schema,
+    } as SchemaPrivilege,
     status: 'open',
   }
 }

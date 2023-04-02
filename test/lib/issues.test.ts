@@ -51,4 +51,26 @@ describe('difftools', () => {
       expect(newIssueList).to.have.length(0)
     })
   })
+
+  describe('SR1002', async () => {
+    it('finds missing usage', async () => {
+      const yaml = await readYamlFile('./test/testdata/issues-SR1002.yaml')
+      const issueList = issues.ISSUE_HANDLERS.SR1002.findIssues(yaml)
+      expect(issueList).to.have.length(2)
+    })
+
+    it('fixes missing usage', async () => {
+      const yaml = await readYamlFile('./test/testdata/issues-SR1002.yaml')
+
+      const issueList = issues.ISSUE_HANDLERS.SR1002.findIssues(yaml)
+      expect(issueList).to.have.length(2)
+
+      issues.ISSUE_HANDLERS.SR1002.fixYaml(yaml, issueList[0].data)
+      issues.ISSUE_HANDLERS.SR1002.fixYaml(yaml, issueList[1].data)
+      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.schema).to.deep.equal(['acme.prod', 'acme.staging'])
+
+      const newIssueList = issues.ISSUE_HANDLERS.SR1002.findIssues(yaml)
+      expect(newIssueList).to.have.length(0)
+    })
+  })
 })
