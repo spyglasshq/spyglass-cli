@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (2023-04-03)
+## v0.2.4 (2023-04-03)
 
 #### :rocket: Enhancement
 * [#95](https://github.com/spyglasshq/spyglass-cli/pull/95) verify: implement sr1005, role not granted to sysadmin ([@spyglass-software](https://github.com/spyglass-software))
