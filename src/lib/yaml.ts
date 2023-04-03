@@ -61,7 +61,7 @@ import {ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse
 export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert'] as const
 export type Privilege = typeof PRIVILEGES[number]
 
-const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'SYSADMIN', 'PC_SPYGLASS_ROLE'])
+const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'PC_SPYGLASS_ROLE'])
 
 export type Platform = 'snowflake' | 'unspecified';
 
