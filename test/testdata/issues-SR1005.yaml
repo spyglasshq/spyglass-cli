@@ -1,0 +1,11 @@
+roles:
+  foo: {}
+  bar: {}
+  sysadmin: {}
+roleGrants:
+  foo: {}
+spyglass:
+  accountId: account-123
+  lastSyncedMs: 1678883775793
+  platform: snowflake
+  version: 1

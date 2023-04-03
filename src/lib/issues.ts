@@ -1,5 +1,6 @@
 import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
+import {mergeDeep} from './obj-merge'
 import {fqSchemaId} from './snowflake'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
 import {forEachObjectInRoleGrants} from './yaml-util'
@@ -18,7 +19,7 @@ export type IssueStatus = 'open' | 'resolved' | 'exempted'
 export interface Issue {
   id?: string;
   issue: IssueType;
-  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize | RecreatedObjectAccess;
+  data: DatabasePrivilege | SchemaPrivilege | WarehouseResize | RecreatedObjectAccess | SysadminMissingRole;
   status: IssueStatus;
 }
 
@@ -44,6 +45,10 @@ export interface RecreatedObjectAccess {
   objectType: string;
   objectId: string;
   rolePermissions: [string, Privilege][];
+}
+
+export interface SysadminMissingRole {
+  role: string;
 }
 
 export interface IssueDetail extends Issue {
@@ -169,6 +174,48 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     },
   },
 
+  SR1005: {
+    fixYaml: (contents: Yaml, _data: unknown) => {
+      const data = _data as SysadminMissingRole
+
+      const sysadminRoles = contents?.roleGrants?.sysadmin?.usage?.role ?? []
+
+      sysadminRoles.push(data.role)
+
+      const newYaml = {
+        roleGrants: {
+          sysadmin: {
+            usage: {
+              role: sysadminRoles,
+            },
+          },
+        },
+      }
+
+      mergeDeep(contents, newYaml)
+
+      return contents
+    },
+
+    findIssues: (yaml: Yaml): Issue[] => {
+      const issues: Issue[] = []
+
+      const sysadminRoles = new Set(yaml?.roleGrants?.sysadmin?.usage?.role ?? [])
+
+      for (const roleName of Object.keys(yaml.roles ?? [])) {
+        if (roleName === 'sysadmin') {
+          continue
+        }
+
+        if (!sysadminRoles.has(roleName)) {
+          issues.push(newSR1005({role: roleName}))
+        }
+      }
+
+      return issues
+    },
+  },
+
   SR1008: {
     fixYaml: (contents: Yaml, _data: unknown) => {
       return contents
@@ -239,6 +286,16 @@ export function newSR1002({role, schema}: {role: string, schema: string}): Issue
       privilege: 'usage',
       schema,
     } as SchemaPrivilege,
+    status: 'open',
+  }
+}
+
+export function newSR1005({role}: {role: string}): Issue {
+  return {
+    issue: ISSUES.SR1005,
+    data: {
+      role,
+    } as SysadminMissingRole,
     status: 'open',
   }
 }

@@ -74,4 +74,31 @@ describe('difftools', () => {
       expect(newIssueList).to.have.length(0)
     })
   })
+
+  describe('SR1005', async () => {
+    it('finds missing sysadmin roles', async () => {
+      const yaml = await readYamlFile('./test/testdata/issues-SR1005.yaml')
+      const issueList = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
+      expect(issueList).to.have.length(2)
+    })
+
+    it('fixes missing sysadmin roles', async () => {
+      const yaml = await readYamlFile('./test/testdata/issues-SR1005.yaml')
+
+      const issueList = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
+      expect(issueList).to.have.length(2)
+
+      issues.ISSUE_HANDLERS.SR1005.fixYaml(yaml, issueList[0].data)
+      expect(yaml.roleGrants.sysadmin?.usage?.role).to.deep.equal(['foo'])
+
+      const issueList2 = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
+      expect(issueList2).to.have.length(1)
+
+      issues.ISSUE_HANDLERS.SR1005.fixYaml(yaml, issueList2[0].data)
+      expect(yaml.roleGrants.sysadmin?.usage?.role).to.deep.equal(['foo', 'bar'])
+
+      const newIssueList = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
+      expect(newIssueList).to.have.length(0)
+    })
+  })
 })
