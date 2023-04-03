@@ -74,7 +74,9 @@ We love working with the community, here's a few ways to get involved:
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md)
+For submitting security issues, see [SECURITY.md](./SECURITY.md)
+
+For our security guidance to users, see [Security Best Practices #96](https://github.com/spyglasshq/spyglass-cli/discussions/96)
 
 ## Usage Analytics
 
