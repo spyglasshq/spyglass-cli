@@ -2,7 +2,7 @@ import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
 import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showRoles, showUsers, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand} from './sql'
-import {diffYaml, Yaml, yamlFromRoleGrants} from './yaml'
+import {diffYaml, Yaml, yamlFromRoleGrants, YamlRoleDefinitions} from './yaml'
 
 export interface ImportArgs {
   accountId: string;
@@ -104,19 +104,19 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
 export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml): Promise<Entity[]> {
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
-  return _findNotExistingEntities(currentYaml.spyglass.accountId, sqlCommands)
+  return _findNotExistingEntities(currentYaml.spyglass.accountId, proposedYaml.roles, sqlCommands)
 }
 
-async function _findNotExistingEntities(accountId: string, sqlCommands: SqlCommand[]): Promise<Entity[]> {
+async function _findNotExistingEntities(accountId: string, proposedRoles: YamlRoleDefinitions, sqlCommands: SqlCommand[]): Promise<Entity[]> {
   let res: Entity[] = []
 
   const conn = await getConn(accountId)
 
-  const roles = await showRoles(conn)
+  // const roles = await showRoles(conn)
   const objects = await showObjects(conn)
   const users = await showUsers(conn)
 
-  const existingRoles = roles.map(r => `role:${r.name.toLowerCase()}`)
+  const existingRoles = Object.keys(proposedRoles).map(roleName => `role:${roleName}`)
   const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
   const existingAccountObjects = getDatabasesAndSchemas(objects)
   const existingUsers = users.map(u => `user:${u.name.toLowerCase()}`)
