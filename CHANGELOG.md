@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.5 (2023-04-04)
+
+#### :rocket: Enhancement
+* [#100](https://github.com/spyglasshq/spyglass-cli/pull/100) normalize accountId to be lower case ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.2.4 (2023-04-03)
 
 #### :rocket: Enhancement
