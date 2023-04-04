@@ -6,16 +6,10 @@ import {Yaml} from './yaml'
 import {mergeDeep} from './obj-merge'
 
 export async function readYamlForAccountId(accountId: string, dir = '.'): Promise<Yaml> {
-  const singleYamlFilename = path.join(dir, `${accountId}.yaml`)
-
-  if (await exists(singleYamlFilename)) {
-    return readYamlFile(singleYamlFilename)
-  }
-
-  const files = (await getFiles(dir)).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+  const files = (await getFiles(dir)).filter(file => file.toLowerCase().endsWith('.yml') || file.toLowerCase().endsWith('.yaml'))
 
   if (files.length === 0) {
-    throw new Error(`file not found: ${singleYamlFilename}`)
+    throw new Error(`yaml not found for account id: ${accountId}`)
   }
 
   const dividedYamls = await Promise.all(files.map(file => readYamlFile(file)))

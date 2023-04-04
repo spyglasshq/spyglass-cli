@@ -6,7 +6,7 @@ export default class Auth extends BaseCommand {
   static description = 'Authenticate to your Snowflake account.'
 
   static args = {
-    accountId: Args.string({description: 'Account identifier (e.g. "zhjgixi-tv26532").', required: true}),
+    accountId: Args.string({description: 'Account identifier (e.g. "zhjgixi-tv26532").', required: true, parse: async a => a.toLowerCase()}),
   }
 
   static flags = {
@@ -18,7 +18,7 @@ export default class Auth extends BaseCommand {
 
     const {args, flags} = await this.parse(Auth)
 
-    const accountId = args.accountId.toLowerCase()
+    const accountId = args.accountId
 
     const config = await getSnowflakeConfig()
 

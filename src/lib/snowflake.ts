@@ -55,7 +55,8 @@ export async function getSnowflakeConfig(): Promise<Config | null> {
   // otherwise, default to known config location
   try {
     const data = await readFile(SNOWSQL_CONFIG_FILE)
-    return toml.parse(data.toString())
+    const config = toml.parse(data.toString()) as Config
+    return normalizeAccountIds(config)
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       return null
@@ -63,8 +64,23 @@ export async function getSnowflakeConfig(): Promise<Config | null> {
 
     throw error
   }
+}
 
-  return {}
+export function normalizeAccountIds(cfg: Config): Config {
+  const normCfg: Config = {}
+
+  for (const [accountId, connection] of Object.entries(cfg.connections ?? {})) {
+    const connections = normCfg.connections ?? {}
+
+    connections[accountId.toLowerCase()] = {
+      ...connection,
+      accountname: connection.accountname?.toLowerCase(),
+    }
+
+    normCfg.connections = connections
+  }
+
+  return normCfg
 }
 
 export async function saveConfig(config: Config): Promise<void> {

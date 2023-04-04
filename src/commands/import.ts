@@ -9,7 +9,7 @@ export default class Import extends BaseCommand {
   static description = 'Translate a database\'s current configuration into Spyglass format.'
 
   static args = {
-    accountId: Args.string({description: 'Account id to fetch configuration from.', required: true}),
+    accountId: Args.string({description: 'Account id to fetch configuration from.', required: true, parse: async a => a.toLowerCase()}),
   }
 
   static flags = {
