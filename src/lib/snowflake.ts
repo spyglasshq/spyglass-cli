@@ -90,7 +90,8 @@ export async function saveConfig(config: Config): Promise<void> {
   await fs.chmod(SNOWSQL_CONFIG_FILE, 0o600)
 }
 
-export async function getConn(accountId: string): Promise<Connection> {
+export async function getConn(_accountId: string): Promise<Connection> {
+  const accountId = _accountId.toLowerCase()
   const config = await getSnowflakeConfig()
   const connConfig = config?.connections?.[accountId]
   if (!connConfig) {
