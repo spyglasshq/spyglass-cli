@@ -9,7 +9,7 @@ export default class UserObjects extends BaseCommand {
   static description = 'Get a list of objects a user has access to.'
 
   static args = {
-    accountId: Args.string({description: 'Current account id for config.', required: true}),
+    accountId: Args.string({description: 'Current account id for config.', required: true, parse: async a => a.toLowerCase()}),
     username: Args.string({description: 'Username to look up.', required: true}),
   }
 

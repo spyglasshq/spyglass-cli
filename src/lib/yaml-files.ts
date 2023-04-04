@@ -12,10 +12,10 @@ export async function readYamlForAccountId(accountId: string, dir = '.'): Promis
     return readYamlFile(singleYamlFilename)
   }
 
-  const files = (await getFiles(dir)).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+  const files = (await getFiles(dir)).filter(file => file.toLowerCase().endsWith('.yml') || file.toLowerCase().endsWith('.yaml'))
 
   if (files.length === 0) {
-    throw new Error(`file not found: ${singleYamlFilename}`)
+    throw new Error(`yaml not found for account id: ${accountId}`)
   }
 
   const dividedYamls = await Promise.all(files.map(file => readYamlFile(file)))
@@ -55,7 +55,7 @@ export async function updateYamlForAccountId(accountId: string, yaml: Yaml, dir 
     return writeYamlFile(singleYamlFilename, yaml)
   }
 
-  const files = (await getFiles(dir)).filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+  const files = (await getFiles(dir)).filter(file => file.toLowerCase().endsWith('.yml') || file.toLowerCase().endsWith('.yaml'))
   const dividedYamls = await Promise.all(files.map(file => readYamlFile(file)))
 
   for (const dividedYaml of dividedYamls) {

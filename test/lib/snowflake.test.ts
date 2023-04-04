@@ -49,6 +49,24 @@ describe('snowflake', () => {
     }
   })
 
+  describe('normalizeAccountIds', () => {
+    it('converts everything to lowercase', () => {
+      const cfg: snowflake.Config = {
+        connections: {
+          'ACC-123': {
+            accountname: 'aCC-123',
+            username: 'tyty',
+          },
+        },
+      }
+
+      const newCfg = snowflake.normalizeAccountIds(cfg)
+
+      expect(newCfg?.connections?.['ACC-123']).to.not.exist
+      expect(newCfg?.connections?.['acc-123']).to.deep.equal({accountname: 'acc-123', username: 'tyty'})
+    })
+  })
+
   describe('query generation', () => {
     describe('basic grant', () => {
       it('generates grant', () => {

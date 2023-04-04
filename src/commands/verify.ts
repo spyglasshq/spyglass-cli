@@ -15,7 +15,7 @@ export default class Verify extends BaseCommand {
   }
 
   static args = {
-    'account-id': Args.string({description: 'Account id to scan and verify.', required: true}),
+    'account-id': Args.string({description: 'Account id to scan and verify.', required: true, parse: async a => a.toLowerCase()}),
   }
 
   async run(): Promise<void> {

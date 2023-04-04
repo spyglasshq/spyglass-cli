@@ -9,7 +9,7 @@ export default class ObjectUsers extends BaseCommand {
   static description = 'Get a list of users that have access to an object.'
 
   static args = {
-    accountId: Args.string({description: 'Current account id for config.', required: true}),
+    accountId: Args.string({description: 'Current account id for config.', required: true, parse: async a => a.toLowerCase()}),
     'object-id': Args.string({description: 'Fully qualified object ID to look up (e.g. "acme.prod.store_returns").', required: true}),
   }
 

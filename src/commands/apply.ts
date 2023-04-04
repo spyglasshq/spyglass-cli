@@ -20,7 +20,7 @@ export default class Apply extends BaseCommand {
   }
 
   static args = {
-    'account-id': Args.string({description: 'Current account id for the configuration.', required: true}),
+    'account-id': Args.string({description: 'Current account id for the configuration.', required: true, parse: async a => a.toLowerCase()}),
   }
 
   async run(): Promise<void> {
