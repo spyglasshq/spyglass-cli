@@ -23,6 +23,19 @@ export default class Apply extends BaseCommand {
     'account-id': Args.string({description: 'Current account id for the configuration.', required: true, parse: async a => a.toLowerCase()}),
   }
 
+  async readYamlAtBranch(accountId: string, ref: string, dir = '.'): Promise<Yaml | null> {
+    try {
+      const res = await readYamlAtBranch(accountId, ref, dir)
+      return res
+    } catch (error: any) {
+      if (error.code === 'NotFoundError') {
+        return null
+      }
+
+      throw error
+    }
+  }
+
   async run(): Promise<void> {
     await this.init()
 
@@ -31,7 +44,25 @@ export default class Apply extends BaseCommand {
     let sqlCommands: AppliedCommand[] = []
 
     const proposed = await readYamlForAccountId(args['account-id'], flags.dir)
-    const current = await readYamlAtBranch(args['account-id'], flags['git-ref'], flags.dir)
+    const current = await this.readYamlAtBranch(args['account-id'], flags['git-ref'], flags.dir)
+
+    if (!current) {
+      this.log(color.yellow('Spyglass failed to find a yaml file to compare against.'))
+      this.log('')
+      this.log('Try one of the following:')
+      this.log('')
+      this.log(`  (1) ${color.grey('[recommended]')} Add and commit the yaml file to git, and use the '--git-ref <branch>' flag`)
+      this.log('      to compare current changes against that branch (default: master).')
+      this.log('')
+      this.log(`  (2) ${color.grey('[not yet available]')} Use the '--no-compare' flag to apply the entire file without comparing`)
+      this.log('  to a current file. (See https://github.com/spyglasshq/spyglass-cli/issues/79)')
+      this.log('')
+      await this.logErrorAndExit({
+        message: 'yaml not found in git',
+        stack: '',
+      })
+      return
+    }
 
     ux.action.start('Checking current Snowflake configuration')
     try {
