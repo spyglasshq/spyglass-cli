@@ -72,10 +72,12 @@ describe('snowflake', () => {
       it('generates grant', () => {
         const cmd = snowflake.newGrantQuery('foo_usage', 'usage', 'schema', 'foo.bar')
         expect(cmd.query).to.deep.equal(['grant usage on schema identifier(?) to role identifier(?);', ['foo.bar', 'foo_usage']])
+        expect(cmd.entities).to.deep.equal([{type: 'role', id: 'foo_usage', action: 'create'}, {type: 'schema', id: 'foo.bar', action: 'create'}])
       })
       it('generates revoke', () => {
         const cmd = snowflake.newRevokeQuery('foo_usage', 'usage', 'schema', 'foo.bar')
         expect(cmd.query).to.deep.equal(['revoke usage on schema identifier(?) from role identifier(?);', ['foo.bar', 'foo_usage']])
+        expect(cmd.entities).to.deep.equal([{type: 'role', id: 'foo_usage', action: 'delete'}, {type: 'schema', id: 'foo.bar', action: 'delete'}])
       })
     })
 

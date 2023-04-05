@@ -333,6 +333,7 @@ export interface SqlCommand {
 export interface Entity {
   type: string;
   id: string;
+  action?: 'create' | 'update' | 'delete';
 }
 
 export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
@@ -417,6 +418,7 @@ export function newRevokeQuery(roleName: string, privilege: string, objectType: 
 }
 
 export function newQuery({roleName, privilege, objectType, objectId, grant}: NewQueryArgs): SqlCommand {
+  const action = grant ? 'create' : 'delete'
   const grantOrRevoke = grant ? 'grant' : 'revoke'
   const toOrFrom = grant ? 'to' : 'from'
 
@@ -427,8 +429,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
     return {
       query: [`${grantOrRevoke} role identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
       entities: [
-        {type: 'role', id: roleName},
-        {type: 'role', id: objectId},
+        {type: 'role', id: roleName, action},
+        {type: 'role', id: objectId, action},
       ],
     }
   }
@@ -441,8 +443,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
     return {
       query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
       entities: [
-        {type: 'role', id: roleName},
-        {type: 'schema', id: schema},
+        {type: 'role', id: roleName, action},
+        {type: 'schema', id: schema, action},
       ],
     }
   }
@@ -455,8 +457,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
     return {
       query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
       entities: [
-        {type: 'role', id: roleName},
-        {type: 'database', id: database},
+        {type: 'role', id: roleName, action},
+        {type: 'database', id: database, action},
       ],
     }
   }
@@ -469,8 +471,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
     return {
       query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
       entities: [
-        {type: 'role', id: roleName},
-        {type: 'schema', id: schema},
+        {type: 'role', id: roleName, action},
+        {type: 'schema', id: schema, action},
       ],
     }
   }
@@ -483,8 +485,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
     return {
       query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
       entities: [
-        {type: 'role', id: roleName},
-        {type: 'database', id: database},
+        {type: 'role', id: roleName, action},
+        {type: 'database', id: database, action},
       ],
     }
   }
@@ -492,8 +494,8 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
   return {
     query: [`${grantOrRevoke} ${privilege} on ${objectType} identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
     entities: [
-      {type: 'role', id: roleName},
-      {type: objectType, id: objectId},
+      {type: 'role', id: roleName, action},
+      {type: objectType, id: objectId, action},
     ],
   }
 }

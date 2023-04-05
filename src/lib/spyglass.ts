@@ -1,5 +1,5 @@
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, showUsers, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
 import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants, YamlRoleDefinitions} from './yaml'
@@ -104,17 +104,17 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
 export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml): Promise<Entity[]> {
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
-  return _findNotExistingEntities(currentYaml.spyglass.accountId, proposedYaml.roles, sqlCommands)
-}
 
-async function _findNotExistingEntities(accountId: string, proposedRoles: YamlRoleDefinitions, sqlCommands: SqlCommand[]): Promise<Entity[]> {
-  let res: Entity[] = []
+  const conn = await getConn(currentYaml.spyglass.accountId)
 
-  const conn = await getConn(accountId)
-
-  // const roles = await showRoles(conn)
   const objects = await showObjects(conn)
   const users = await showUsers(conn)
+
+  return _findNotExistingEntities(proposedYaml.roles, objects, users, sqlCommands)
+}
+
+export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions, objects: ShowObject[], users: ShowUser[], sqlCommands: SqlCommand[]): Entity[] {
+  let res: Entity[] = []
 
   const existingRoles = Object.keys(proposedRoles).map(roleName => `role:${roleName}`)
   const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
@@ -128,6 +128,12 @@ async function _findNotExistingEntities(accountId: string, proposedRoles: YamlRo
     for (const entity of entities) {
       if (entity.type === 'warehouse' || entity.type === 'database_role') {
         continue // not supported yet
+      }
+
+      // if we're deleting an object or revoking access to an object, and can't find that object
+      // then likely it's already been deleted in some other process
+      if (entity.action === 'delete') {
+        continue
       }
 
       if (!existingEntities.has(`${entity.type}:${entity.id}`)) {

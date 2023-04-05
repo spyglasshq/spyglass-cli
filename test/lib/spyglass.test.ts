@@ -4,7 +4,7 @@ import * as snowflake from '../../src/lib/snowflake'
 import * as issues from '../../src/lib/issues'
 import {expect, test} from '@oclif/test'
 import {readJSON} from 'fs-extra'
-import {Yaml} from '../../src/lib/yaml'
+import {Yaml, YamlRoleDefinitions} from '../../src/lib/yaml'
 import {readYamlFile} from '../../src/lib/yaml-files'
 
 const noopFunc = () => null // progress bar no op
@@ -120,4 +120,91 @@ describe('SnowflakeSpyglass', () => {
       expect(issue.yamlDiff.updated).to.be.empty
     })
   })
+
+  describe('findNotExistingEntities', () => {
+    it('basic empty test', () => {
+      const proposedRoles: YamlRoleDefinitions = {}
+      const objects: snowflake.ShowObject[] = []
+      const users: snowflake.ShowUser[] = []
+      const sqlCommands: snowflake.SqlCommand[] = []
+
+      const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
+      expect(missingEntities).to.have.length(0)
+    })
+
+    it('finds databases that do and don\'t exist', () => {
+      const proposedRoles: YamlRoleDefinitions = {}
+      const objects: snowflake.ShowObject[] = [
+        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+      ]
+      const users: snowflake.ShowUser[] = []
+      const sqlCommands: snowflake.SqlCommand[] = [
+        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
+        newSqlCommandWithEntities({type: 'database', id: 'doesnt_exist', action: 'create'}),
+      ]
+
+      const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
+      expect(missingEntities).to.have.length(1)
+      expect(missingEntities[0]).to.deep.equal({type: 'database', id: 'doesnt_exist', action: 'create'})
+    })
+
+    it('finds schemas that do and don\'t exist', () => {
+      const proposedRoles: YamlRoleDefinitions = {}
+      const objects: snowflake.ShowObject[] = [
+        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+      ]
+      const users: snowflake.ShowUser[] = []
+      const sqlCommands: snowflake.SqlCommand[] = [
+        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
+        newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
+        newSqlCommandWithEntities({type: 'schema', id: 'acme.doesnt_exist', action: 'create'}),
+      ]
+
+      const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
+      expect(missingEntities).to.have.length(1)
+      expect(missingEntities[0]).to.deep.equal({type: 'schema', id: 'acme.doesnt_exist', action: 'create'})
+    })
+
+    it('finds tables that do and don\'t exist', () => {
+      const proposedRoles: YamlRoleDefinitions = {}
+      const objects: snowflake.ShowObject[] = [
+        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+        {name: 'payment_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+      ]
+      const users: snowflake.ShowUser[] = []
+      const sqlCommands: snowflake.SqlCommand[] = [
+        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
+        newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
+        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.order_history', action: 'create'}),
+        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.doesnt_exist', action: 'create'}),
+      ]
+
+      const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
+      expect(missingEntities).to.have.length(1)
+      expect(missingEntities[0]).to.deep.equal({type: 'table', id: 'acme.prod.doesnt_exist', action: 'create'})
+    })
+
+    it('skips objects that don\'t exist if permissions are being revoked', () => {
+      const proposedRoles: YamlRoleDefinitions = {}
+      const objects: snowflake.ShowObject[] = [
+        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+        {name: 'payment_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+      ]
+      const users: snowflake.ShowUser[] = []
+      const sqlCommands: snowflake.SqlCommand[] = [
+        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.order_history', action: 'create'}),
+        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.doesnt_exist', action: 'delete'}),
+      ]
+
+      const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
+      expect(missingEntities).to.have.length(0)
+    })
+  })
 })
+
+function newSqlCommandWithEntities(e: snowflake.Entity): snowflake.SqlCommand {
+  return {
+    query: ['some query;', []],
+    entities: [e],
+  }
+}
