@@ -28,7 +28,7 @@ export default class Apply extends BaseCommand {
       const res = await readYamlAtBranch(accountId, ref, dir)
       return res
     } catch (error: any) {
-      if (error.code === 'NotFoundError') {
+      if (error.code === 'NotFoundError' && error.caller === 'git.resolveRef') {
         return null
       }
 
