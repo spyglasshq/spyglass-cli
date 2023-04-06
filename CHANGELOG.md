@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.6 (2023-04-06)
+
+#### :bug: Bug Fix
+* [#107](https://github.com/spyglasshq/spyglass-cli/pull/107) apply: skip drop/revoke queries on deleted objects ([@spyglass-software](https://github.com/spyglass-software))
+
+#### :memo: Documentation
+* [#105](https://github.com/spyglasshq/spyglass-cli/pull/105) apply: only show error ux when its a git ref error ([@spyglass-software](https://github.com/spyglass-software))
+* [#104](https://github.com/spyglasshq/spyglass-cli/pull/104) apply: improve error when file not found in git ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.2.5 (2023-04-04)
 
 #### :rocket: Enhancement
