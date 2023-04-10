@@ -105,7 +105,7 @@ export interface Yaml {
    *
    * Updating this list will result in `create role` or `drop role` queries being executed.
    */
-  roles: YamlRoleDefinitions;
+  roles?: YamlRoleDefinitions;
 
   /** A list of warehouses and their configuration
    * @experimental

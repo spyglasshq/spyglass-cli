@@ -70,8 +70,14 @@ export async function updateYamlForAccountId(accountId: string, yaml: Yaml, dir 
     }
 
     for (const [roleName] of Object.entries(dividedYaml.roles ?? {})) {
-      dividedYaml.roles[roleName] = yaml.roles[roleName]
-      delete yaml.roles[roleName]
+      if (dividedYaml.roles?.[roleName]) {
+        if (yaml.roles?.[roleName]) { // yaml update has this role, so update the divided yaml
+          dividedYaml.roles[roleName] = yaml.roles[roleName]
+          delete yaml.roles[roleName]
+        } else { // yaml update doesn't have this role, so delete it from the divided yaml
+          delete dividedYaml.roles[roleName]
+        }
+      }
     }
 
     if (dividedYaml.spyglass) {

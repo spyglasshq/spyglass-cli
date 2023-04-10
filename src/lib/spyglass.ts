@@ -113,10 +113,10 @@ export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Y
   return _findNotExistingEntities(proposedYaml.roles, objects, users, sqlCommands)
 }
 
-export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions, objects: ShowObject[], users: ShowUser[], sqlCommands: SqlCommand[]): Entity[] {
+export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | undefined, objects: ShowObject[], users: ShowUser[], sqlCommands: SqlCommand[]): Entity[] {
   let res: Entity[] = []
 
-  const existingRoles = Object.keys(proposedRoles).map(roleName => `role:${roleName}`)
+  const existingRoles = Object.keys(proposedRoles ?? {}).map(roleName => `role:${roleName}`)
   const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
   const existingAccountObjects = getDatabasesAndSchemas(objects)
   const existingUsers = users.map(u => `user:${u.name.toLowerCase()}`)

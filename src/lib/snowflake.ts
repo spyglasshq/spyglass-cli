@@ -350,7 +350,7 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   ]
 }
 
-function getRolesQueries(roles: YamlRoleDefinitions, granted: boolean): SqlCommand[] {
+function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolean): SqlCommand[] {
   if (!roles) return []
 
   const queries: SqlCommand[] = []
