@@ -49,7 +49,7 @@ describe('SnowflakeSpyglass', () => {
           roles: ['customer_support'],
         },
         alice_admin: {
-          roles: ['acme_prod_all_tables_viewer'],
+          roles: ['"Snowflake - Admins"', 'acme_prod_all_tables_viewer'],
         },
       })
 
@@ -57,6 +57,7 @@ describe('SnowflakeSpyglass', () => {
         acme_prod_all_tables_viewer: {},
         acme_prod_call_center_reader: {},
         customer_support: {},
+        '"Snowflake - Admins"': {},
       })
 
       currentYaml = yaml

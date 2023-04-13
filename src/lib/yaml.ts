@@ -56,7 +56,7 @@ userGrants:
 
 import {detailedDiff} from 'deep-object-diff'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
+import {normalizeRoleName, ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
 
 export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert', 'update', 'delete', 'truncate', 'references', 'read', 'write', 'operate'] as const
 export type Privilege = typeof PRIVILEGES[number]
@@ -266,7 +266,7 @@ export function usersYamlFromUserGrants(rows: ShowRoleGrantOf[]): YamlUserGrants
       continue
     }
 
-    const role = rg.role.toLowerCase()
+    const role = normalizeRoleName(rg.role)
     const username = rg.grantee_name.toLowerCase()
 
     if (!userGrants[username]) {
@@ -289,7 +289,7 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
       continue
     }
 
-    const grantee = rg.grantee_name.toLowerCase()
+    const grantee = normalizeRoleName(rg.grantee_name)
     const privilege = rg.privilege.toLowerCase() as Privilege
     const grantedObjectType = rg.granted_on.toLowerCase()
     const name = rg.name.toLowerCase()
@@ -311,7 +311,7 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
       continue
     }
 
-    const grantee = rg.grantee_name.toLowerCase()
+    const grantee = normalizeRoleName(rg.grantee_name)
     const privilege = rg.privilege.toLowerCase() as Privilege
     const grantObjectType = rg.grant_on.toLowerCase()
     const name = rg.name.toLowerCase().replace(/<.*>/, '<future>')
@@ -354,7 +354,7 @@ function rolesYamlFromRoles(rolesRows: ShowRole[]): YamlRoleDefinitions {
   const res: YamlRoleDefinitions = {}
 
   for (const row of rolesRows) {
-    const name = row.name.toLowerCase()
+    const name = normalizeRoleName(row.name)
     res[name] = {}
   }
 

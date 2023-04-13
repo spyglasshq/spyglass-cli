@@ -73,6 +73,13 @@
       "granted_to": "USER",
       "grantee_name": "ALICE_ADMIN",
       "granted_by": "ACCOUNTADMIN"
+    },
+    {
+      "created_on": "2023-02-26 12:49:41.301 -0800",
+      "role": "Snowflake - Admins",
+      "granted_to": "USER",
+      "grantee_name": "ALICE_ADMIN",
+      "granted_by": "ACCOUNTADMIN"
     }
   ],
   [
@@ -84,6 +91,9 @@
     },
     {
       "name": "ACME_PROD_ALL_TABLES_VIEWER"
+    },
+    {
+      "name": "Snowflake - Admins"
     }
   ]
 ]

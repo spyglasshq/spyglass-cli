@@ -126,6 +126,21 @@ describe('snowflake', () => {
     })
   })
 
+  describe('normalizeRoleName', () => {
+    it('normalizes all caps role names', () => {
+      expect(snowflake.normalizeRoleName('MY_ROLE')).to.equal('my_role')
+    })
+
+    it('preserves case and special characters in double-quotes', () => {
+      expect(snowflake.normalizeRoleName('My - Role')).to.equal('"My - Role"')
+    })
+
+    it('doesn\'t double-quote if its run multiple times', () => {
+      const res = snowflake.normalizeRoleName('My - Role')
+      expect(snowflake.normalizeRoleName(res)).to.equal('"My - Role"')
+    })
+  })
+
   describe('compressYaml', () => {
     const objects: snowflake.ShowObject[] = [
       newObject('table1', 'db1', 'schema1', 'table'),

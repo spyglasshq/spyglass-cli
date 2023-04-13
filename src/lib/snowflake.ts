@@ -228,10 +228,33 @@ async function queryMulti<T>(conn: Connection, query: string, roleNames: string[
   return results
 }
 
+export function normalizeRoleName(role: string): string {
+  // Support double-quoted identifiers (case-sensitive, allows special characters)
+  // https://docs.snowflake.com/en/sql-reference/identifiers-syntax
+
+  // In truth, the response from `show roles;` doesn't tell us whether this is a double-quoted identifier.
+  // As a heuristic, we look for special characters, and assume it's a double-quoted identifier if so.
+  //
+  // So, if someone is using double-quotes just for case sensitivity (e.g. "mY_RolE"), we won't catch
+  // that.
+  if (role.match(/[!#$%&'*.@^-]/g)?.length) {
+    // if it's already double-quoted, don't double-quote it again
+    if (role.startsWith('"') && role.endsWith('"')) {
+      return role
+    }
+
+    // otherwise, wrap it in quotes
+    return `"${role}"`
+  }
+
+  // Otherwise, normalize to all-lower case (non-double-quoted identifiers are case-insensitive)
+  return role.toLowerCase()
+}
+
 async function getBatchedRoleNames(showRoles: ShowRole[]): Promise<[string[][], number]> {
   const batchSize = 10
 
-  const roleNames = showRoles.map(role => role.name.toLowerCase())
+  const roleNames = showRoles.map(role => normalizeRoleName(role.name))
 
   const batchedRoleNames: string[][] = []
 
