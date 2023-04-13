@@ -1,5 +1,18 @@
 # Changelog
 
+
+## v0.3.0 (2023-04-13)
+
+#### :bug: Bug Fix
+* [#113](https://github.com/spyglasshq/spyglass-cli/pull/113) support double-quoted identifiers with special characters ([@spyglass-software](https://github.com/spyglass-software))
+* [#111](https://github.com/spyglasshq/spyglass-cli/pull/111) yaml: make roles key optional ([@spyglass-software](https://github.com/spyglass-software))
+
+#### :house: Internal
+* [#114](https://github.com/spyglasshq/spyglass-cli/pull/114) npm update ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.2.6 (2023-04-06)
 
 #### :bug: Bug Fix
