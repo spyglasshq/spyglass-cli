@@ -134,6 +134,11 @@ describe('snowflake', () => {
     it('preserves case and special characters in double-quotes', () => {
       expect(snowflake.normalizeRoleName('My - Role')).to.equal('"My - Role"')
     })
+
+    it('doesn\'t double-quote if its run multiple times', () => {
+      const res = snowflake.normalizeRoleName('My - Role')
+      expect(snowflake.normalizeRoleName(res)).to.equal('"My - Role"')
+    })
   })
 
   describe('compressYaml', () => {
