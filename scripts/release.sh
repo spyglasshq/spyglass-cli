@@ -2,10 +2,12 @@
 
 set -euxo pipefail
 
+newversion=$1 # major | minor | patch | premajor | preminor | prepatch | prerelease | from-git
+
 previous_version=$(jq -r .version package.json)
 
 # Increment the version, commit, and tag
-npm version patch
+npm version "$newversion"
 
 latest_version=$(jq -r .version package.json)
 
