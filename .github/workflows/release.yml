@@ -30,6 +30,8 @@ jobs:
       - name: Git commit and push
         shell: bash
         run: |
+          git config --global user.name 'spyglass-software'
+          git config --global user.email 'devs@spyglass.software'
           ./scripts/release.sh "${{ inputs.versionType }}"
           git show HEAD
 
