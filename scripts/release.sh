@@ -17,7 +17,8 @@ npx lerna-changelog --from="v$previous_version" --to="v$latest_version" >>CHANGE
 tail -n +2 CHANGELOG.md >>CHANGELOG.md.tmp
 
 mv CHANGELOG.md.tmp CHANGELOG.md
+rm CHANGELOG.md.tmp
 
-git add CHANGELOG.md
-git commit --amend --no-edit
+git add CHANGELOG.md package.json package-lock.json
+git commit -m "$latest_version"
 git tag -a "$latest_version" -m "$latest_version"
