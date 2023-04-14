@@ -7,7 +7,7 @@ newversion=$1 # major | minor | patch | premajor | preminor | prepatch | prerele
 previous_version=$(jq -r .version package.json)
 
 # Increment the version, commit, and tag
-npm version "$newversion" --no-git-tag-version
+npm version "$newversion"
 
 latest_version=$(jq -r .version package.json)
 
@@ -19,6 +19,7 @@ tail -n +2 CHANGELOG.md >>CHANGELOG.md.tmp
 mv CHANGELOG.md.tmp CHANGELOG.md
 rm CHANGELOG.md.tmp
 
-git add CHANGELOG.md package.json package-lock.json
-git commit -m "$latest_version"
+git add CHANGELOG.md
+git commit --amend --no-edit
+git tag -d "$latest_version" # delete old tag on orphaned (pre-edit) commit
 git tag -a "$latest_version" -m "$latest_version"
