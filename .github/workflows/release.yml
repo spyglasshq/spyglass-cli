@@ -24,7 +24,6 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
           cache: npm
-          token: ${{ secrets.NPM_ACCESS_TOKEN }}
 
       - name: Git commit and push
         shell: bash
