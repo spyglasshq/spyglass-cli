@@ -1,0 +1,38 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      versionType:
+        description: 'Semantic version increment type.'
+        required: true
+        type: choice
+        options:
+        - patch (v1.2.3 -> v1.2.4)
+        - minor (v1.2.3 -> v1.3.0)
+        - major (v1.2.3 -> v2.0.0)
+
+jobs:
+  all-tests:
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]
+        node_version: [lts/*]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: npm
+          token: ${{ secrets.NPM_ACCESS_TOKEN }}
+
+      - name: Git commit and push
+        shell: bash
+        run: |
+          ./scripts/release.sh "${{ inputs.versionType }}"
+          git show HEAD
+
+      # - run: npm ci
+      # - run: npm run cover
+      #   env:
+      #     SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
