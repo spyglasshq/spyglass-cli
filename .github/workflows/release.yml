@@ -1,4 +1,4 @@
-name: release
+name: Release and Publish
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +12,7 @@ on:
         - major (v1.2.3 -> v2.0.0)
 
 jobs:
-  all-tests:
+  release:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
