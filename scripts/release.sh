@@ -20,5 +20,5 @@ mv CHANGELOG.md.tmp CHANGELOG.md
 
 git add CHANGELOG.md
 git commit --amend --no-edit
-git tag -d "$latest_version" # delete old tag on orphaned (pre-edit) commit
+git tag -d "v$latest_version" # delete old tag on orphaned (pre-edit) commit
 git tag -a "$latest_version" -m "$latest_version"
