@@ -34,6 +34,8 @@ jobs:
           git config --global user.email 'devs@spyglass.software'
           ./scripts/release.sh "${{ inputs.versionType }}"
           git show HEAD
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
       # - run: npm run cover
       #   env:
