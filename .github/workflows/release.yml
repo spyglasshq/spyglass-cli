@@ -30,6 +30,10 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run cover
+        env:
+          SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
+
       - name: Git commit and push
         shell: bash
         run: |
@@ -37,13 +41,11 @@ jobs:
           git config --global user.email 'devs@spyglass.software'
           ./scripts/release.sh "${{ inputs.versionType }}"
           git show HEAD
+          git push
+          git push --tags
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      # - run: npm run cover
-      #   env:
-      #     SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
-
-      # - run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
