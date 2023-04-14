@@ -34,6 +34,11 @@ jobs:
         env:
           SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Git commit and push
         shell: bash
         run: |
