@@ -49,3 +49,12 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+
+      - name: Create the docs directory locally in CI
+        run: npx typedoc src/lib/index.ts
+
+      - name: Deploy docs 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        with:
+          branch: gh-pages
+          folder: docs
