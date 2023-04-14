@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       versionType:
-        description: 'Semantic version increment type.'
+        description: 'Semantic version increment type. Patch (v1.2.4), Minor (v1.3.0), Major (v2.0.0)'
         required: true
         type: choice
         options:
-        - patch (v1.2.3 -> v1.2.4)
-        - minor (v1.2.3 -> v1.3.0)
-        - major (v1.2.3 -> v2.0.0)
+        - patch
+        - minor
+        - major
 
 jobs:
   release:
