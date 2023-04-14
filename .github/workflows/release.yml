@@ -35,3 +35,7 @@ jobs:
       # - run: npm run cover
       #   env:
       #     SNOWSQL_CONFIG: ${{ secrets.SNOWSQL_CONFIG }}
+
+      # - run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
