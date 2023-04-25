@@ -29,7 +29,7 @@
     "isomorphic-git": "^1.23.0",
     "snowflake-sdk": "^1.6.21",
     "winston": "^3.8.2",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.2"
   },
   "devDependencies": {
     "@oclif/test": "^2.3.16",
