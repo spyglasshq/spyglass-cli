@@ -16,6 +16,17 @@ export interface QueryOptions {
   dontReject?: boolean;
 }
 
+export interface SqlCommand {
+  query: Query;
+  entities: Entity[];
+}
+
+export interface Entity {
+  type: string;
+  id: string;
+  action?: 'create' | 'update' | 'delete';
+}
+
 // interpolateQuery is only used for debugging, not for actually templating strings for queries!!!
 function interpolateQuery(q: Query): string {
   let [sql] = q
