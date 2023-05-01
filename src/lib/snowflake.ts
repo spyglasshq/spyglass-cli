@@ -5,7 +5,7 @@ import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
 import {PRIVILEGES, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
-import {AppliedCommand, Query, sqlQueries, sqlQuery} from './sql'
+import {AppliedCommand, Query, SqlCommand, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
 export const SNOWSQL_CONFIG_DIR = path.join(process.env.HOME ?? '', '.snowsql')
@@ -333,9 +333,7 @@ export async function showUsers(conn: Connection): Promise<ShowUser[]> {
   return (await sqlQuery<ShowUser[]>(conn, showUsersQuery, [])).results
 }
 
-export async function executeCommands(accountId: string, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
-  const conn = await getConn(accountId)
-
+export async function executeCommands(conn: Connection, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
   let results: AppliedCommand[] = []
 
   for (const query of queries) {
@@ -346,17 +344,6 @@ export async function executeCommands(accountId: string, queries: Query[], dryRu
   }
 
   return results
-}
-
-export interface SqlCommand {
-  query: Query;
-  entities: Entity[];
-}
-
-export interface Entity {
-  type: string;
-  id: string;
-  action?: 'create' | 'update' | 'delete';
 }
 
 export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {

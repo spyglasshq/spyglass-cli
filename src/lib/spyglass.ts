@@ -1,7 +1,8 @@
+import {Connection} from 'snowflake-sdk'
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {Entity, executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, SqlCommand, sqlCommandsFromYamlDiff} from './snowflake'
+import {executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
 import {compressYaml} from './snowflake-yaml-compress'
-import {AppliedCommand} from './sql'
+import {AppliedCommand, Entity, SqlCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants, YamlRoleDefinitions} from './yaml'
 
 export interface ImportArgs {
@@ -17,11 +18,21 @@ export interface SyncArgs {
   onProgress: (x: number) => void;
 }
 
+export interface CheckArgs {
+  currentYaml: Yaml
+  proposedYaml: Yaml
+}
+
+export interface CheckResult {
+  notExistingEntities: Entity[]
+}
+
 export interface Spyglass {
   import(args: ImportArgs): Promise<Yaml>
   verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail>
   sync(args: SyncArgs): Promise<Yaml>
   apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]>
+  check(args: CheckArgs): Promise<CheckResult>
 }
 
 // mostly needed for test mocking purposes
@@ -29,9 +40,19 @@ export function newSpyglass(): Spyglass {
   return new SnowflakeSpyglass()
 }
 
+export interface SnowflakeSpyglassInit {
+  conn?: Connection
+}
+
 export class SnowflakeSpyglass implements Spyglass {
+  conn?: Connection
+
+  constructor(init?: SnowflakeSpyglassInit) {
+    this.conn = init?.conn
+  }
+
   async import(args: ImportArgs): Promise<Yaml> {
-    return importSnowflake(args)
+    return importSnowflake(args, this.conn)
   }
 
   async verify(yaml: Yaml, issueId?: string): Promise<Issue[] | IssueDetail> {
@@ -39,16 +60,24 @@ export class SnowflakeSpyglass implements Spyglass {
   }
 
   async sync(args: SyncArgs): Promise<Yaml> {
-    return syncSnowflake(args)
+    return syncSnowflake(args, this.conn)
   }
 
   async apply(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
-    return applySnowflake(currentYaml, proposedYaml, dryRun)
+    return applySnowflake(currentYaml, proposedYaml, dryRun, this.conn)
+  }
+
+  async check(args: CheckArgs): Promise<CheckResult> {
+    const notExistingEntities = await findNotExistingEntities(args.currentYaml, args.proposedYaml, this.conn)
+    return {notExistingEntities}
   }
 }
 
-export async function importSnowflake({accountId, onStart, onProgress, compress}: ImportArgs): Promise<Yaml> {
-  const conn = await getConn(accountId)
+export async function importSnowflake({accountId, onStart, onProgress, compress}: ImportArgs, conn?: Connection): Promise<Yaml> {
+  if (!conn) {
+    conn = await getConn(accountId)
+  }
+
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
   const warehousesRowsPromise = showWarehouses(conn)
 
@@ -81,8 +110,8 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
   return findIssues(yaml)
 }
 
-export async function syncSnowflake(args: SyncArgs): Promise<Yaml> {
-  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, compress: args.yaml.spyglass?.compressRecords, ...args})
+export async function syncSnowflake(args: SyncArgs, conn?: Connection): Promise<Yaml> {
+  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, compress: args.yaml.spyglass?.compressRecords, ...args}, conn)
 
   latestYaml.spyglass = args.yaml.spyglass
   latestYaml.spyglass.lastSyncedMs = Date.now()
@@ -90,7 +119,11 @@ export async function syncSnowflake(args: SyncArgs): Promise<Yaml> {
   return latestYaml
 }
 
-export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean): Promise<AppliedCommand[]> {
+export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryRun: boolean, conn?: Connection): Promise<AppliedCommand[]> {
+  if (!conn) {
+    conn = await getConn(currentYaml.spyglass.accountId)
+  }
+
   // Compute raw yaml differences.
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
 
@@ -98,14 +131,16 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
   const sqlDiff = sqlCommands.map(x => x.query)
 
-  return executeCommands(currentYaml.spyglass.accountId, sqlDiff, dryRun)
+  return executeCommands(conn, sqlDiff, dryRun)
 }
 
-export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml): Promise<Entity[]> {
+export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml, conn?: Connection): Promise<Entity[]> {
+  if (!conn) {
+    conn = await getConn(currentYaml.spyglass.accountId)
+  }
+
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
-
-  const conn = await getConn(currentYaml.spyglass.accountId)
 
   const objects = await showObjects(conn)
   const users = await showUsers(conn)
@@ -161,6 +196,7 @@ export class MockSpyglass implements Spyglass {
   _verify?: Issue[] | IssueDetail
   _sync?: Yaml
   _apply?: AppliedCommand[]
+  _check?: CheckResult
   _error?: Error
 
   async import(_args: ImportArgs): Promise<Yaml> {
@@ -197,5 +233,14 @@ export class MockSpyglass implements Spyglass {
     }
 
     return this._apply
+  }
+
+  async check(_args: CheckArgs): Promise<CheckResult> {
+    if (this._error) throw this._error
+    if (!this._check) {
+      throw new Error('mock check result not defined')
+    }
+
+    return this._check
   }
 }
