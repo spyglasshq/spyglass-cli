@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.1 (2023-05-01)
+
+#### :house: Internal
+* [#131](https://github.com/spyglasshq/spyglass-cli/pull/131) allow injecting a snowflake conn ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 
 ## v0.3.0 (2023-04-13)
 
