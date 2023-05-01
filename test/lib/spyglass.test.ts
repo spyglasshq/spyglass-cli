@@ -6,6 +6,7 @@ import {expect, test} from '@oclif/test'
 import {readJSON} from 'fs-extra'
 import {Yaml, YamlRoleDefinitions} from '../../src/lib/yaml'
 import {readYamlFile} from '../../src/lib/yaml-files'
+import {Entity, SqlCommand} from '../../src/lib/sql'
 
 const noopFunc = () => null // progress bar no op
 
@@ -127,7 +128,7 @@ describe('SnowflakeSpyglass', () => {
       const proposedRoles: YamlRoleDefinitions = {}
       const objects: snowflake.ShowObject[] = []
       const users: snowflake.ShowUser[] = []
-      const sqlCommands: snowflake.SqlCommand[] = []
+      const sqlCommands: SqlCommand[] = []
 
       const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
       expect(missingEntities).to.have.length(0)
@@ -139,7 +140,7 @@ describe('SnowflakeSpyglass', () => {
         {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
       ]
       const users: snowflake.ShowUser[] = []
-      const sqlCommands: snowflake.SqlCommand[] = [
+      const sqlCommands: SqlCommand[] = [
         newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
         newSqlCommandWithEntities({type: 'database', id: 'doesnt_exist', action: 'create'}),
       ]
@@ -155,7 +156,7 @@ describe('SnowflakeSpyglass', () => {
         {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
       ]
       const users: snowflake.ShowUser[] = []
-      const sqlCommands: snowflake.SqlCommand[] = [
+      const sqlCommands: SqlCommand[] = [
         newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
         newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
         newSqlCommandWithEntities({type: 'schema', id: 'acme.doesnt_exist', action: 'create'}),
@@ -173,7 +174,7 @@ describe('SnowflakeSpyglass', () => {
         {name: 'payment_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
       ]
       const users: snowflake.ShowUser[] = []
-      const sqlCommands: snowflake.SqlCommand[] = [
+      const sqlCommands: SqlCommand[] = [
         newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
         newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
         newSqlCommandWithEntities({type: 'table', id: 'acme.prod.order_history', action: 'create'}),
@@ -192,7 +193,7 @@ describe('SnowflakeSpyglass', () => {
         {name: 'payment_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
       ]
       const users: snowflake.ShowUser[] = []
-      const sqlCommands: snowflake.SqlCommand[] = [
+      const sqlCommands: SqlCommand[] = [
         newSqlCommandWithEntities({type: 'table', id: 'acme.prod.order_history', action: 'create'}),
         newSqlCommandWithEntities({type: 'table', id: 'acme.prod.doesnt_exist', action: 'delete'}),
       ]
@@ -203,7 +204,7 @@ describe('SnowflakeSpyglass', () => {
   })
 })
 
-function newSqlCommandWithEntities(e: snowflake.Entity): snowflake.SqlCommand {
+function newSqlCommandWithEntities(e: Entity): SqlCommand {
   return {
     query: ['some query;', []],
     entities: [e],
