@@ -12,6 +12,8 @@ export interface Role {
 }
 
 export function userAccessFromYaml(yaml: Yaml, username: string): UserAccess {
+  username = username.toLowerCase()
+
   const res = {
     username,
     objects: new Array<Record<string, unknown>>(),
@@ -57,6 +59,8 @@ export interface UserRoles {
 }
 
 export function userRolesFromYaml(yaml: Yaml, username: string): UserRoles {
+  username = username.toLowerCase()
+
   const res = {
     username,
     roles: new Array<Role>(),
@@ -88,6 +92,8 @@ export interface ObjectAccess {
 }
 
 export function objectAccessFromYaml(yaml: Yaml, targetObjectId: string): ObjectAccess {
+  targetObjectId = targetObjectId.toLowerCase()
+
   const res = {
     objectId: targetObjectId,
     users: new Array<Record<string, unknown>>(),
