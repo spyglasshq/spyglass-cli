@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.2 (2023-05-12)
+
+#### :bug: Bug Fix
+* [#136](https://github.com/spyglasshq/spyglass-cli/pull/136) Add privileges to result of `query:user-objects` command ([@spyglass-software](https://github.com/spyglass-software))
+* [#132](https://github.com/spyglasshq/spyglass-cli/pull/132) Make queries inputs case-insensitive ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.3.1 (2023-05-01)
 
 #### :house: Internal
