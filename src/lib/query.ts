@@ -43,6 +43,7 @@ export function userAccessFromYaml(yaml: Yaml, username: string): UserAccess {
           res.objects.push({
             objectType,
             objectId,
+            privilege,
             roleChain: [...role.parents, role.name],
           })
         }

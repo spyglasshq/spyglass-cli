@@ -30,6 +30,9 @@ export default class UserObjects extends BaseCommand {
       objectId: {
         header: 'Object ID',
       },
+      privilege: {
+        header: 'Privilege',
+      },
       roleChain: {
         header: 'Role Chain',
         get: row => (row.roleChain as string[]).join(' -> '),
