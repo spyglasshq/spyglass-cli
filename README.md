@@ -17,6 +17,8 @@ Manage your Snowflake access controls as code.
 
 ## Overview
 
+For a detailed explanation, see our [Introducing Snowflake Access-as-Code](https://blog.spyglass.software/p/introducing-snowflake-access-as-code) post.
+
 Basic usage of this tool looks like:
 
 ```
