@@ -333,12 +333,27 @@ export async function showUsers(conn: Connection): Promise<ShowUser[]> {
   return (await sqlQuery<ShowUser[]>(conn, showUsersQuery, [])).results
 }
 
+// Deprecated. Use executeSqlCommands() instead.
 export async function executeCommands(conn: Connection, queries: Query[], dryRun = false): Promise<AppliedCommand[]> {
   let results: AppliedCommand[] = []
 
   for (const query of queries) {
     // eslint-disable-next-line no-await-in-loop
     const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
+
+    results = [...results, res]
+  }
+
+  return results
+}
+
+export async function executeSqlCommands(conn: Connection, sqlCommands: SqlCommand[], dryRun = false): Promise<AppliedCommand[]> {
+  let results: AppliedCommand[] = []
+
+  for (const {query, entities} of sqlCommands) {
+    // eslint-disable-next-line no-await-in-loop
+    const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
+    res.entities = entities
 
     results = [...results, res]
   }

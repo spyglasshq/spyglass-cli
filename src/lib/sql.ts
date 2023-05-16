@@ -9,6 +9,7 @@ export interface AppliedCommand {
   results: any[];
   error?: string;
   errorCode?: number;
+  entities?: Entity[];
 }
 
 export interface QueryOptions {
