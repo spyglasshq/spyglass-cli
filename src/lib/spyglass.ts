@@ -1,6 +1,6 @@
 import {Connection} from 'snowflake-sdk'
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
-import {executeCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
+import {executeSqlCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
 import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand, Entity, SqlCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants, YamlRoleDefinitions} from './yaml'
@@ -129,9 +129,8 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
 
   // Convert differences to SQL commands.
   const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
-  const sqlDiff = sqlCommands.map(x => x.query)
 
-  return executeCommands(conn, sqlDiff, dryRun)
+  return executeSqlCommands(conn, sqlCommands, dryRun)
 }
 
 export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml, conn?: Connection): Promise<Entity[]> {
