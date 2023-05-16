@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.3 (2023-05-16)
+
+#### :house: Internal
+* [#139](https://github.com/spyglasshq/spyglass-cli/pull/139) apply: Calls return a list of entities affected ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.3.2 (2023-05-12)
 
 #### :bug: Bug Fix
