@@ -141,9 +141,21 @@ export interface YamlSpyglass {
 
   /**
    * If true, then future `sync` calls will replace large lists of tables/views with a wildcard (`*`),
-   * based on whether all tables in a schema or database have been granted.
+   * based on whether all tables in a schema or database have been granted. Experimental.
    */
   compressRecords?: boolean;
+
+  /**
+   * An optional file splitting strategy to divide the single yaml file into multiple files. Experimental.
+   *
+   * Possible values:
+   * - `roles`: Create directories for roles, which includes all role and grant info in a single file
+   *   per role, as well as a directory for users and their grants.
+   * - `objects`: Create directories for objects, which include role grants for those specific objects.
+   *   Directories for roles and users are still created for permissions that aren't directly related to
+   *   objects.
+   */
+  fileSplitStrategy?: string;
 }
 
 /**
