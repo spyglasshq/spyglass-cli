@@ -174,8 +174,6 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
   const [batchedRoleNames, numRoles] = await getBatchedRoleNames(showRoles)
   onStart(numRoles)
 
-  await sqlQuery(conn, 'alter session set multi_statement_count = 0;', []) // enable multi statement with batch size
-
   let roleGrants: ShowRoleGrant[] = []
   let futureRoleGrants: ShowFutureRoleGrant[] = []
   let roleGrantsOf: ShowRoleGrantOf[] = []
