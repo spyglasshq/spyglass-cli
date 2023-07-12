@@ -56,12 +56,12 @@ userGrants:
 
 import {detailedDiff} from 'deep-object-diff'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
-import {normalizeRoleName, ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
+import {ListGrantsToRolesFullScanResult, ShowDatabaseRole, ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
 
 export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert', 'update', 'delete', 'truncate', 'references', 'read', 'write', 'operate'] as const
 export type Privilege = typeof PRIVILEGES[number]
 
-const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN', 'PC_SPYGLASS_ROLE'])
+const EXCLUDED_ROLES = new Set(['accountadmin', 'securityadmin', 'useradmin', 'orgadmin', 'pc_spyglass_role'])
 
 export type Platform = 'snowflake' | 'unspecified';
 
@@ -106,6 +106,20 @@ export interface Yaml {
    * Updating this list will result in `create role` or `drop role` queries being executed.
    */
   roles?: YamlRoleDefinitions;
+
+  /**
+   * A list of database roles and their definitions.
+   *
+   * Updating this list will result in `create database role` or `drop database role` queries being executed.
+   */
+  databaseRoles?: YamlDatabaseRoleDefinitions;
+
+  /**
+   * A list of database roles and the privileges they are granted.
+   *
+   * Updating this list will result in `database grant <privilege>` and `database revoke <privilege>` queries being executed.
+   */
+  databaseRoleGrants: YamlRoles;
 
   /** A list of warehouses and their configuration
    * @experimental
@@ -239,6 +253,15 @@ export interface YamlRoleDefinition {
   comment?: string;
 }
 
+/**
+ * Database role definitions.
+ *
+ * Updating this list will result in `create database role` or `drop database role` queries being executed.
+ */
+export interface YamlDatabaseRoleDefinitions {
+  [role: string]: YamlRoleDefinition;
+}
+
 export interface YamlDiff {
   added: Yaml;
   deleted: Yaml;
@@ -246,11 +269,8 @@ export interface YamlDiff {
 }
 
 // eslint-disable-next-line max-params
-export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGrant[], futureRoleGrants: ShowFutureRoleGrant[], roleGrantsOf: ShowRoleGrantOf[], warehousesRows: Warehouse[], rolesRows: ShowRole[]): Yaml {
-  const roleGrants = rolesYamlFromRoleGrants(roleGrantsRows, futureRoleGrants)
-  const userGrants = usersYamlFromUserGrants(roleGrantsOf)
-  const warehouses = warehousesYamlFromWarehouses(warehousesRows)
-  const roles = rolesYamlFromRoles(rolesRows)
+export function yamlFromRoleGrants(accountId: string, allGrants: ListGrantsToRolesFullScanResult, warehouses: Warehouse[]): Yaml {
+  const {roleGrants, futureRoleGrants, roleGrantsOf, roles, databaseRoles, databaseRoleGrants, databaseFutureRoleGrants, databaseRoleGrantsOf} = allGrants
 
   const yaml: Yaml = {
     spyglass: {
@@ -259,10 +279,12 @@ export function yamlFromRoleGrants(accountId: string, roleGrantsRows: ShowRoleGr
       accountId,
       lastSyncedMs: Date.now(),
     },
-    roleGrants,
-    userGrants,
-    warehouses,
-    roles,
+    roleGrants: rolesYamlFromRoleGrants(roleGrants, futureRoleGrants),
+    userGrants: usersYamlFromUserGrants([...roleGrantsOf, ...databaseRoleGrantsOf]),
+    warehouses: warehousesYamlFromWarehouses(warehouses),
+    roles: rolesYamlFromRoles(roles),
+    databaseRoles: databaseRolesYamlFromRoles(databaseRoles),
+    databaseRoleGrants: rolesYamlFromRoleGrants(databaseRoleGrants, databaseFutureRoleGrants),
   }
 
   deeplySortLists(yaml)
@@ -278,8 +300,7 @@ export function usersYamlFromUserGrants(rows: ShowRoleGrantOf[]): YamlUserGrants
       continue
     }
 
-    const role = normalizeRoleName(rg.role)
-    const username = rg.grantee_name.toLowerCase()
+    const {role, grantee_name: username} = rg
 
     if (!userGrants[username]) {
       userGrants[username] = {
@@ -301,10 +322,13 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
       continue
     }
 
-    const grantee = normalizeRoleName(rg.grantee_name)
-    const privilege = rg.privilege.toLowerCase() as Privilege
-    const grantedObjectType = rg.granted_on.toLowerCase()
-    const name = rg.name.toLowerCase()
+    const {
+      name,
+      grantee_name: grantee,
+      privilege: _privilege,
+      granted_on: grantedObjectType,
+    } = rg
+    const privilege = _privilege as Privilege
 
     const role = roleGrants[grantee] ?? {}
     roleGrants[grantee] = role
@@ -323,10 +347,14 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
       continue
     }
 
-    const grantee = normalizeRoleName(rg.grantee_name)
-    const privilege = rg.privilege.toLowerCase() as Privilege
-    const grantObjectType = rg.grant_on.toLowerCase()
-    const name = rg.name.toLowerCase().replace(/<.*>/, '<future>')
+    const {
+      grantee_name: grantee,
+      privilege: _privilege,
+      grant_on: grantObjectType,
+      name: _name,
+    } = rg
+    const privilege = _privilege as Privilege
+    const name = _name.replace(/<.*>/, '<future>')
 
     const role = roleGrants[grantee] ?? {}
     roleGrants[grantee] = role
@@ -350,9 +378,8 @@ export function warehousesYamlFromWarehouses(rows: Warehouse[]): YamlWarehouses 
   const res: YamlWarehouses = {}
 
   for (const wh of rows) {
-    const name = wh.name.toLowerCase()
-    res[name] = {
-      name,
+    res[wh.name] = {
+      name: wh.name,
       // eslint-disable-next-line camelcase
       auto_suspend: wh.auto_suspend,
       size: wh.size,
@@ -365,8 +392,17 @@ export function warehousesYamlFromWarehouses(rows: Warehouse[]): YamlWarehouses 
 function rolesYamlFromRoles(rolesRows: ShowRole[]): YamlRoleDefinitions {
   const res: YamlRoleDefinitions = {}
 
-  for (const row of rolesRows) {
-    const name = normalizeRoleName(row.name)
+  for (const {name} of rolesRows) {
+    res[name] = {}
+  }
+
+  return res
+}
+
+function databaseRolesYamlFromRoles(rolesRows: ShowDatabaseRole[]): YamlDatabaseRoleDefinitions {
+  const res: YamlDatabaseRoleDefinitions = {}
+
+  for (const {name} of rolesRows) {
     res[name] = {}
   }
 

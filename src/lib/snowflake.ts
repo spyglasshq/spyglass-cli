@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable camelcase */
 import * as fs from 'fs-extra'
 import {readFile, writeFile} from 'node:fs/promises'
@@ -165,14 +166,57 @@ export interface ShowRoleGrantOf {
   granted_by: string;
 }
 
+export interface ShowDatabase {
+  created_on: Date;
+  name: string;
+  // ... more fields
+}
+
+export interface ShowDatabaseRole {
+  created_on: Date;
+  name: string;
+  is_default: boolean;
+  is_current: boolean;
+  is_inherited: boolean;
+  granted_to_roles: number;
+  granted_to_database_roles: number;
+  granted_database_roles: number;
+  owner: string;
+  comment: string;
+  owner_role_type: string;
+}
+
+export interface DatabaseRoleName {
+  database: string;
+  role: string;
+}
+
 const sleep = (ms: number) => new Promise(r => {
   setTimeout(r, ms)
 })
 
-export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<[ShowRoleGrant[], ShowFutureRoleGrant[], ShowRoleGrantOf[], ShowRole[]]> {
-  const showRoles = (await sqlQuery<ShowRole>(conn, 'show roles;', [])).results
-  const [batchedRoleNames, numRoles] = await getBatchedRoleNames(showRoles)
-  onStart(numRoles)
+export interface ListGrantsToRolesFullScanResult {
+  roleGrants: ShowRoleGrant[]
+  futureRoleGrants: ShowFutureRoleGrant[]
+  roleGrantsOf: ShowRoleGrantOf[]
+  roles: ShowRole[]
+  databaseRoles: ShowDatabaseRole[]
+  databaseFutureRoleGrants: ShowFutureRoleGrant[]
+  databaseRoleGrants: ShowRoleGrant[]
+  databaseRoleGrantsOf: ShowRoleGrantOf[]
+}
+
+export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: number) => void, onProgress: (x: number) => void): Promise<ListGrantsToRolesFullScanResult> {
+  const roles = await showRoles(conn)
+  const roleNames = roles.map(role => role.name)
+  const [batchedRoleNames, numRoles] = getBatchedNames(roleNames)
+
+  const [databaseNames, databaseRoles] = await getDatabaseRoles(conn)
+  const databaseRoleNames = databaseRoles.map(role => role.name)
+  const [batchedDatabaseRoleNames, numDatabaseRoles] = getBatchedNames(databaseRoleNames)
+  const [batchedDatabaseNames, numDatabaseNames] = getBatchedNames(databaseNames)
+
+  onStart(numRoles + numDatabaseRoles + numDatabaseNames)
 
   let roleGrants: ShowRoleGrant[] = []
   let futureRoleGrants: ShowFutureRoleGrant[] = []
@@ -180,38 +224,141 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
   let numRolesQueried = 0
 
   for (const roleNames of batchedRoleNames) {
-    // eslint-disable-next-line no-await-in-loop
     const _roleGrants = await queryRoleGrants(conn, roleNames)
     roleGrants = [...roleGrants, ..._roleGrants]
 
-    // eslint-disable-next-line no-await-in-loop
     const _futureRoleGrants = await queryFutureRoleGrants(conn, roleNames)
     futureRoleGrants = [...futureRoleGrants, ..._futureRoleGrants]
 
-    // eslint-disable-next-line no-await-in-loop
     const _roleGrantsOf = await queryRoleGrantsOf(conn, roleNames)
     roleGrantsOf = [...roleGrantsOf, ..._roleGrantsOf]
 
     numRolesQueried += roleNames.length
     onProgress(numRolesQueried)
 
-    // eslint-disable-next-line no-await-in-loop
     await sleep(1000)
   }
 
-  return [roleGrants, futureRoleGrants, roleGrantsOf, showRoles]
+  let databaseRoleGrants: ShowRoleGrant[] = []
+  let databaseFutureRoleGrants: ShowFutureRoleGrant[] = []
+  let databaseRoleGrantsOf: ShowRoleGrantOf[] = []
+
+  for (const databaseNames of batchedDatabaseNames) {
+    const _futureRoleGrants = await queryFutureDatabaseRoleGrants(conn, databaseNames)
+    databaseFutureRoleGrants = [...databaseFutureRoleGrants, ..._futureRoleGrants]
+  }
+
+  for (const roleNames of batchedDatabaseRoleNames) {
+    const _roleGrants = await queryDatabaseRoleGrants(conn, roleNames)
+    databaseRoleGrants = [...databaseRoleGrants, ..._roleGrants]
+
+    const _roleGrantsOf = await queryDatabaseRoleGrantsOf(conn, roleNames)
+    databaseRoleGrantsOf = [...databaseRoleGrantsOf, ..._roleGrantsOf]
+
+    numRolesQueried += roleNames.length
+    onProgress(numRolesQueried)
+
+    await sleep(1000)
+  }
+
+  return {roleGrants, futureRoleGrants, roleGrantsOf, roles, databaseRoles, databaseRoleGrants, databaseFutureRoleGrants, databaseRoleGrantsOf}
 }
 
 async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
-  return queryMulti<ShowRoleGrant>(conn, 'show grants to role identifier(?);', roleNames)
+  const res = await queryMulti<ShowRoleGrant>(conn, 'show grants to role identifier(?);', roleNames)
+  for (const rg of res) {
+    rg.grantee_name = normalizeRoleName(rg.grantee_name)
+    rg.privilege = rg.privilege.toLowerCase()
+    rg.granted_on = rg.granted_on.toLowerCase()
+    rg.name = rg.name.toLowerCase()
+  }
+
+  return res
 }
 
 async function queryFutureRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowFutureRoleGrant[]> {
-  return queryMulti<ShowFutureRoleGrant>(conn, 'show future grants to role identifier(?);', roleNames)
+  const res = await queryMulti<ShowFutureRoleGrant>(conn, 'show future grants to role identifier(?);', roleNames)
+  for (const rg of res) {
+    rg.grantee_name = normalizeRoleName(rg.grantee_name)
+    rg.privilege = rg.privilege.toLowerCase()
+    rg.grant_on = rg.grant_on.toLowerCase()
+    rg.name = rg.name.toLowerCase()
+  }
+
+  return res
 }
 
 async function queryRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
-  return queryMulti<ShowRoleGrantOf>(conn, 'show grants of role identifier(?);', roleNames)
+  const res = await queryMulti<ShowRoleGrantOf>(conn, 'show grants of role identifier(?);', roleNames)
+  for (const role of res) {
+    role.role = normalizeRoleName(role.role)
+    role.grantee_name = role.grantee_name.toLowerCase()
+  }
+
+  return res
+}
+
+async function getDatabaseRoles(conn: Connection): Promise<[string[], ShowDatabaseRole[]]> {
+  const showDatabases = (await sqlQuery<ShowDatabase>(conn, 'show databases;', [])).results as ShowDatabase[]
+  const databaseNames = showDatabases.map(db => db.name.toLowerCase()).filter(db => db !== 'snowflake')
+  const [batchedDatabaseNames] = getBatchedNames(databaseNames)
+
+  let databaseRoles: ShowDatabaseRole[] = []
+
+  for (const databaseNames of batchedDatabaseNames) {
+    const _databaseRoles = await queryDatabaseRoles(conn, databaseNames)
+    databaseRoles = [...databaseRoles, ..._databaseRoles]
+  }
+
+  return [databaseNames, databaseRoles]
+}
+
+async function queryDatabaseRoles(conn: Connection, databaseNames: string[]): Promise<ShowDatabaseRole[]> {
+  const res = await queryMultiV2<ShowDatabaseRole>(conn, 'show database roles in database identifier(?);', databaseNames)
+
+  return res.map(([role, database]) => {
+    role.name = normalizeRoleName(role.name)
+    role.name = `${database}.${role.name}`
+    return role
+  })
+}
+
+async function queryDatabaseRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
+  const res = await queryMultiV2<ShowRoleGrant>(conn, 'show grants to database role identifier(?);', roleNames)
+
+  return res.map(([roleGrant, roleName]) => {
+    roleGrant.grantee_name = roleName
+    roleGrant.privilege = roleGrant.privilege.toLowerCase()
+    roleGrant.granted_on = roleGrant.granted_on.toLowerCase()
+    roleGrant.name = roleGrant.name.toLowerCase()
+
+    return roleGrant
+  })
+}
+
+async function queryFutureDatabaseRoleGrants(conn: Connection, databaseNames: string[]): Promise<ShowFutureRoleGrant[]> {
+  const res = await queryMultiV2<ShowFutureRoleGrant>(conn, 'show future grants in database identifier(?);', databaseNames)
+
+  return res.map(([roleGrant, database]) => {
+    roleGrant.grantee_name = normalizeRoleName(roleGrant.grantee_name)
+    roleGrant.grantee_name = `${database}.${roleGrant.grantee_name}`
+    roleGrant.privilege = roleGrant.privilege.toLowerCase()
+    roleGrant.grant_on = roleGrant.grant_on.toLowerCase()
+    roleGrant.name = roleGrant.name.toLowerCase()
+
+    return roleGrant
+  })
+}
+
+async function queryDatabaseRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
+  const res = await queryMultiV2<ShowRoleGrantOf>(conn, 'show grants of database role identifier(?);', roleNames)
+
+  return res.map(([roleGrant, roleName]) => {
+    roleGrant.role = roleName
+    roleGrant.grantee_name = roleGrant.grantee_name.toLowerCase()
+
+    return roleGrant
+  })
 }
 
 async function queryMulti<T>(conn: Connection, query: string, roleNames: string[]): Promise<T[]> {
@@ -226,6 +373,22 @@ async function queryMulti<T>(conn: Connection, query: string, roleNames: string[
   return results
 }
 
+type MultiRes<T> = [t: T, param: string]
+
+async function queryMultiV2<T>(conn: Connection, query: string, params: string[]): Promise<MultiRes<T>[]> {
+  const queries: Query[] = params.map(param => ([query, [param]]))
+  const res = await sqlQueries<T>(conn, queries)
+
+  const results: MultiRes<T>[] = []
+  for (const [i, r] of res.entries()) {
+    for (const result of r.results) {
+      results.push([result as T, params[i]])
+    }
+  }
+
+  return results
+}
+
 export function normalizeRoleName(role: string): string {
   // Support double-quoted identifiers (case-sensitive, allows special characters)
   // https://docs.snowflake.com/en/sql-reference/identifiers-syntax
@@ -235,7 +398,7 @@ export function normalizeRoleName(role: string): string {
   //
   // So, if someone is using double-quotes just for case sensitivity (e.g. "mY_RolE"), we won't catch
   // that.
-  if (role.match(/[!#$%&'*.@^-]/g)?.length) {
+  if (role.match(/[\s!#$%&'*.@^-]/g)?.length) {
     // if it's already double-quoted, don't double-quote it again
     if (role.startsWith('"') && role.endsWith('"')) {
       return role
@@ -249,15 +412,13 @@ export function normalizeRoleName(role: string): string {
   return role.toLowerCase()
 }
 
-async function getBatchedRoleNames(showRoles: ShowRole[]): Promise<[string[][], number]> {
+function getBatchedNames(names: string[]): [string[][], number] {
   const batchSize = 10
-
-  const roleNames = showRoles.map(role => normalizeRoleName(role.name))
 
   const batchedRoleNames: string[][] = []
 
   let batchIndex = 0
-  for (const roleName of roleNames) {
+  for (const name of names) {
     if (batchedRoleNames[batchIndex]?.length >= batchSize) {
       batchIndex++
     }
@@ -266,10 +427,10 @@ async function getBatchedRoleNames(showRoles: ShowRole[]): Promise<[string[][], 
       batchedRoleNames[batchIndex] = []
     }
 
-    batchedRoleNames[batchIndex] = [...batchedRoleNames[batchIndex], roleName]
+    batchedRoleNames[batchIndex] = [...batchedRoleNames[batchIndex], name]
   }
 
-  return [batchedRoleNames, roleNames.length]
+  return [batchedRoleNames, names.length]
 }
 
 const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users where deleted_on is null;'
@@ -296,7 +457,12 @@ export interface Warehouse {
 }
 
 export async function showWarehouses(conn: Connection): Promise<Warehouse[]> {
-  return (await sqlQuery<Warehouse[]>(conn, showWarehousesQuery, [])).results
+  const res = (await sqlQuery<Warehouse[]>(conn, showWarehousesQuery, [])).results as Warehouse[]
+  for (const wh of res) {
+    wh.name = wh.name.toLowerCase()
+  }
+
+  return res
 }
 
 const showObjectsQuery = 'show objects;'
@@ -315,7 +481,12 @@ export async function showObjects(conn: Connection): Promise<ShowObject[]> {
 const showRolesQuery = 'show roles;'
 
 export async function showRoles(conn: Connection): Promise<ShowRole[]> {
-  return (await sqlQuery<ShowRole[]>(conn, showRolesQuery, [])).results
+  const res = (await sqlQuery<ShowRole[]>(conn, showRolesQuery, [])).results as ShowRole[]
+  for (const role of res) {
+    role.name = normalizeRoleName(role.name)
+  }
+
+  return res
 }
 
 const showUsersQuery = 'show users;'
@@ -360,6 +531,16 @@ export async function executeSqlCommands(conn: Connection, sqlCommands: SqlComma
 }
 
 export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
+  // When generating SQL commands, we must be careful about ordering.
+  //
+  // For example, a role needs to exist in order for it to be granted. So
+  // we must create the role before granting it. On the other side, we should
+  // delete grants before deleting the role itself. (In the case of Snowflake,
+  // grants are deleted when you delete a role, but that's not a guarantee we
+  // can rely on in the general case).
+  //
+  // Deletes occur before creates for a reason, but I can't recall off the top
+  // of my head as of this writing.
   return [
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
