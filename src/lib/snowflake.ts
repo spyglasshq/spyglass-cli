@@ -346,16 +346,17 @@ async function queryFutureDatabaseRoleGrants(conn: Connection, databaseNames: st
   const res = await queryMultiV2<ShowFutureRoleGrant>(conn, 'show future grants in database identifier(?);', databaseNames)
 
   return res
-  .filter(([rg]) => rg.grant_to === 'database_role') // important since 'future grants in database' returns both database role and non database roles
   .map(([roleGrant, database]) => {
     roleGrant.grantee_name = normalizeRoleName(roleGrant.grantee_name)
     roleGrant.grantee_name = `${database}.${roleGrant.grantee_name}`
     roleGrant.privilege = roleGrant.privilege.toLowerCase()
     roleGrant.grant_on = roleGrant.grant_on.toLowerCase()
+    roleGrant.grant_to = roleGrant.grant_to.toLowerCase()
     roleGrant.name = roleGrant.name.toLowerCase()
 
     return roleGrant
   })
+  .filter(rg => rg.grant_to === 'database_role') // important since 'future grants in database' returns both database role and non database roles
 }
 
 async function queryDatabaseRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
