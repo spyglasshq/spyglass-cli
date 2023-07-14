@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.1 (2023-07-14)
+
+#### :bug: Bug Fix
+* [#173](https://github.com/spyglasshq/spyglass-cli/pull/173) Fix database role permission filter ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.4.0 (2023-07-14)
 
 #### :rocket: Enhancement
