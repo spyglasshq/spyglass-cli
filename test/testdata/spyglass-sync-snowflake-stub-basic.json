@@ -1,28 +1,32 @@
-[
-  [],
-  [
+{
+  "roleGrants": [],
+  "futureRoleGrants": [
     {
       "created_on": "2023-03-10 06:29:45.905 -0800",
-      "privilege": "SELECT",
-      "grant_on": "TABLE",
-      "name": "ACME.PROD.<TABLE>",
-      "grant_to": "ROLE",
-      "grantee_name": "ACME_PROD_ALL_TABLES_VIEWER",
+      "privilege": "select",
+      "grant_on": "table",
+      "name": "acme.prod.<table>",
+      "grant_to": "role",
+      "grantee_name": "acme_prod_all_tables_viewer",
       "grant_option": "false"
     }
   ],
-  [
+  "roleGrantsOf": [
     {
       "created_on": "2023-02-26 12:49:41.301 -0800",
-      "role": "ACME_PROD_ALL_TABLES_VIEWER",
-      "granted_to": "USER",
-      "grantee_name": "ALICE_ADMIN",
-      "granted_by": "ACCOUNTADMIN"
+      "role": "acme_prod_all_tables_viewer",
+      "granted_to": "user",
+      "grantee_name": "alice_admin",
+      "granted_by": "accountadmin"
     }
   ],
-  [
+  "roles": [
     {
-      "name": "ACME_PROD_ALL_TABLES_VIEWER"
+      "name": "acme_prod_all_tables_viewer"
     }
-  ]
-]
+  ],
+  "databaseRoles": [],
+  "databaseFutureRoleGrants": [],
+  "databaseRoleGrants": [],
+  "databaseRoleGrantsOf": []
+}

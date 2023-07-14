@@ -14,8 +14,8 @@ export interface ImportArgs {
 
 export interface SyncArgs {
   yaml: Yaml;
-  onStart: (x: number) => void;
-  onProgress: (x: number) => void;
+  onStart: (total: number) => void;
+  onProgress: (current: number) => void;
 }
 
 export interface CheckArgs {
@@ -81,17 +81,10 @@ export async function importSnowflake({accountId, onStart, onProgress, compress}
   const roleGrantsPromise = listGrantsToRolesFullScan(conn, onStart, onProgress)
   const warehousesRowsPromise = showWarehouses(conn)
 
-  const [roleGrants, futureRoleGrants, roleGrantsOf, roles] = await roleGrantsPromise
+  const allGrants = await roleGrantsPromise
+  const warehouses = await warehousesRowsPromise
 
-  const grants = {
-    roleGrants,
-    futureRoleGrants,
-    roleGrantsOf,
-    roles,
-    warehouses: await warehousesRowsPromise,
-  }
-
-  const yaml = yamlFromRoleGrants(accountId, grants.roleGrants, grants.futureRoleGrants, grants.roleGrantsOf, grants.warehouses, grants.roles)
+  const yaml = yamlFromRoleGrants(accountId, allGrants, warehouses)
 
   if (compress) {
     yaml.spyglass.compressRecords = true
@@ -160,7 +153,7 @@ export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | un
 
   for (const entities of proposedEntities) {
     for (const entity of entities) {
-      if (entity.type === 'warehouse' || entity.type === 'database_role') {
+      if (entity.type === 'warehouse' || entity.type === 'database_role' || entity.type === 'database role') {
         continue // not supported yet
       }
 
