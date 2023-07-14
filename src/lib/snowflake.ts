@@ -5,7 +5,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
-import {PRIVILEGES, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {PRIVILEGES, YamlDatabaseRoleDefinitions, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, SqlCommand, sqlQueries, sqlQuery} from './sql'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
@@ -218,6 +218,8 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
 
   onStart(numRoles + numDatabaseRoles + numDatabaseNames)
 
+  // Collect all standard roles and their grants
+
   let roleGrants: ShowRoleGrant[] = []
   let futureRoleGrants: ShowFutureRoleGrant[] = []
   let roleGrantsOf: ShowRoleGrantOf[] = []
@@ -238,6 +240,8 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
 
     await sleep(1000)
   }
+
+  // Collect all database roles and their grants
 
   let databaseRoleGrants: ShowRoleGrant[] = []
   let databaseFutureRoleGrants: ShowFutureRoleGrant[] = []
@@ -337,9 +341,13 @@ async function queryDatabaseRoleGrants(conn: Connection, roleNames: string[]): P
 }
 
 async function queryFutureDatabaseRoleGrants(conn: Connection, databaseNames: string[]): Promise<ShowFutureRoleGrant[]> {
+  // There isn't a `show future grants to database role` query, so we have to query for future grants in the database.
+  // This returns both database roles and non database roles, so we need to filter out non-database roles later.
   const res = await queryMultiV2<ShowFutureRoleGrant>(conn, 'show future grants in database identifier(?);', databaseNames)
 
-  return res.map(([roleGrant, database]) => {
+  return res
+  .filter(([rg]) => rg.grant_to === 'database_role') // important since 'future grants in database' returns both database role and non database roles
+  .map(([roleGrant, database]) => {
     roleGrant.grantee_name = normalizeRoleName(roleGrant.grantee_name)
     roleGrant.grantee_name = `${database}.${roleGrant.grantee_name}`
     roleGrant.privilege = roleGrant.privilege.toLowerCase()
@@ -507,7 +515,6 @@ export async function executeCommands(conn: Connection, queries: Query[], dryRun
   let results: AppliedCommand[] = []
 
   for (const query of queries) {
-    // eslint-disable-next-line no-await-in-loop
     const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
 
     results = [...results, res]
@@ -520,7 +527,6 @@ export async function executeSqlCommands(conn: Connection, sqlCommands: SqlComma
   let results: AppliedCommand[] = []
 
   for (const {query, entities} of sqlCommands) {
-    // eslint-disable-next-line no-await-in-loop
     const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
     res.entities = entities
 
@@ -542,12 +548,16 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   // Deletes occur before creates for a reason, but I can't recall off the top
   // of my head as of this writing.
   return [
+    ...getRoleGrantQueries(yamlDiff.deleted.databaseRoleGrants, false, true),
     ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
     ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+    ...getDatabaseRolesQueries(yamlDiff.deleted.databaseRoles, true),
     ...getRolesQueries(yamlDiff.deleted.roles, false),
 
     ...getRolesQueries(yamlDiff.added.roles, true),
+    ...getDatabaseRolesQueries(yamlDiff.added.databaseRoles, true),
     ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
+    ...getRoleGrantQueries(yamlDiff.added.databaseRoleGrants, true, true),
     ...getUserGrantQueries(yamlDiff.added.userGrants, true),
 
     ...getWarehouseQueries(yamlDiff.updated.warehouses),
@@ -573,7 +583,7 @@ function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolea
   return queries
 }
 
-function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand[] {
+function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean, database = false): SqlCommand[] {
   if (!yamlRoles) return []
 
   const queries: SqlCommand[] = []
@@ -583,7 +593,7 @@ function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean): SqlCommand
       const objectLists = role[privilege] ?? {}
       for (const [objectType, objectIds] of Object.entries(objectLists)) {
         for (const objectId of objectIds) {
-          const query = granted ? newGrantQuery(roleName, privilege, objectType, objectId) : newRevokeQuery(roleName, privilege, objectType, objectId)
+          const query = granted ? newGrantQuery({roleName, privilege, objectType, objectId, database}) : newRevokeQuery({roleName, privilege, objectType, objectId, database})
           queries.push(query)
         }
       }
@@ -605,36 +615,42 @@ export function sanitizeObjectType(objectType: string): void {
   }
 }
 
-interface NewQueryArgs {
+interface NewQueryBaseArgs {
   roleName: string;
   privilege: string;
   objectType: string;
   objectId: string;
+  database: boolean;
+}
+
+interface NewQueryArgs extends NewQueryBaseArgs {
   grant: boolean;
 }
 
-export function newGrantQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
-  return newQuery({roleName, privilege, objectType, objectId, grant: true})
+export function newGrantQuery(args: NewQueryBaseArgs): SqlCommand {
+  return newQuery({grant: true, ...args})
 }
 
-export function newRevokeQuery(roleName: string, privilege: string, objectType: string, objectId: string): SqlCommand {
-  return newQuery({roleName, privilege, objectType, objectId, grant: false})
+export function newRevokeQuery(args: NewQueryBaseArgs): SqlCommand {
+  return newQuery({grant: false, ...args})
 }
 
-export function newQuery({roleName, privilege, objectType, objectId, grant}: NewQueryArgs): SqlCommand {
+export function newQuery({roleName, privilege, objectType, objectId, grant, database}: NewQueryArgs): SqlCommand {
   const action = grant ? 'create' : 'delete'
   const grantOrRevoke = grant ? 'grant' : 'revoke'
   const toOrFrom = grant ? 'to' : 'from'
+  const roleOrDatabaseRole = database ? 'database role' : 'role'
 
   sanitizePrivilege(privilege)
   sanitizeObjectType(objectType)
 
-  if (privilege === 'usage' && objectType === 'role') {
+  if (privilege === 'usage' && (objectType === 'role' || objectType === 'database_role')) {
+    const roleType = objectType === 'role' ? 'role' : 'database role'
     return {
-      query: [`${grantOrRevoke} role identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
+      query: [`${grantOrRevoke} ${roleType} identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [objectId, roleName]],
       entities: [
-        {type: 'role', id: roleName, action},
-        {type: 'role', id: objectId, action},
+        {type: roleOrDatabaseRole, id: roleName, action},
+        {type: roleType, id: objectId, action},
       ],
     }
   }
@@ -645,9 +661,9 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
   if (futureSchemaMatches) {
     const [, schema] = futureSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in schema identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [schema, roleName]],
       entities: [
-        {type: 'role', id: roleName, action},
+        {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'schema', id: schema, action},
       ],
     }
@@ -659,9 +675,9 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
   if (futureDatabaseMatches) {
     const [, database] = futureDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in database identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [database, roleName]],
       entities: [
-        {type: 'role', id: roleName, action},
+        {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'database', id: database, action},
       ],
     }
@@ -673,9 +689,9 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
   if (allObjectsInSchemaMatches) {
     const [, schema] = allObjectsInSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in schema identifier(?) ${toOrFrom} role identifier(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in schema identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [schema, roleName]],
       entities: [
-        {type: 'role', id: roleName, action},
+        {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'schema', id: schema, action},
       ],
     }
@@ -687,18 +703,18 @@ export function newQuery({roleName, privilege, objectType, objectId, grant}: New
   if (allObjectsInDatabaseMatches) {
     const [, database] = allObjectsInDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in database identifier(?) ${toOrFrom} role identifier(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in database identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [database, roleName]],
       entities: [
-        {type: 'role', id: roleName, action},
+        {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'database', id: database, action},
       ],
     }
   }
 
   return {
-    query: [`${grantOrRevoke} ${privilege} on ${objectType} identifier(?) ${toOrFrom} role identifier(?);`, [objectId, roleName]],
+    query: [`${grantOrRevoke} ${privilege} on ${objectType} identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [objectId, roleName]],
     entities: [
-      {type: 'role', id: roleName, action},
+      {type: roleOrDatabaseRole, id: roleName, action},
       {type: objectType, id: objectId, action},
     ],
   }
@@ -756,4 +772,23 @@ export function fqSchemaId(database: string, schema: string): string {
 
 export function fqDatabaseId(database: string): string {
   return database.toLowerCase()
+}
+
+function getDatabaseRolesQueries(roles: YamlDatabaseRoleDefinitions | undefined, granted: boolean): SqlCommand[] {
+  if (!roles) return []
+
+  const queries: SqlCommand[] = []
+
+  for (const [roleName] of Object.entries(roles)) {
+    const query = granted ?
+      'create database role if not exists identifier(?);' :
+      'drop database role if exists identifier(?);'
+
+    queries.push({
+      query: [query, [roleName]],
+      entities: [],
+    })
+  }
+
+  return queries
 }

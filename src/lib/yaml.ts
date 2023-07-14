@@ -268,7 +268,6 @@ export interface YamlDiff {
   updated: Yaml;
 }
 
-// eslint-disable-next-line max-params
 export function yamlFromRoleGrants(accountId: string, allGrants: ListGrantsToRolesFullScanResult, warehouses: Warehouse[]): Yaml {
   const {roleGrants, futureRoleGrants, roleGrantsOf, roles, databaseRoles, databaseRoleGrants, databaseFutureRoleGrants, databaseRoleGrantsOf} = allGrants
 

@@ -153,7 +153,7 @@ export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | un
 
   for (const entities of proposedEntities) {
     for (const entity of entities) {
-      if (entity.type === 'warehouse' || entity.type === 'database_role') {
+      if (entity.type === 'warehouse' || entity.type === 'database_role' || entity.type === 'database role') {
         continue // not supported yet
       }
 
