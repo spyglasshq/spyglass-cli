@@ -26,7 +26,7 @@ and deserialized to yaml files.</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">Yaml</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L81">yaml.ts:81</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L81">yaml.ts:81</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -34,7 +34,9 @@ and deserialized to yaml files.</p>
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="yaml.Yaml.html#roleGrants" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>role<wbr/>Grants</span></a>
+<div class="tsd-index-list"><a href="yaml.Yaml.html#databaseRoleGrants" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>database<wbr/>Role<wbr/>Grants?</span></a>
+<a href="yaml.Yaml.html#databaseRoles" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>database<wbr/>Roles?</span></a>
+<a href="yaml.Yaml.html#roleGrants" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>role<wbr/>Grants</span></a>
 <a href="yaml.Yaml.html#roles" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>roles?</span></a>
 <a href="yaml.Yaml.html#spyglass" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>spyglass</span></a>
 <a href="yaml.Yaml.html#userGrants" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>user<wbr/>Grants</span></a>
@@ -42,15 +44,33 @@ and deserialized to yaml files.</p>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
+<section class="tsd-panel tsd-member"><a id="databaseRoleGrants" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>database<wbr/>Role<wbr/>Grants</span><a href="#databaseRoleGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">database<wbr/>Role<wbr/>Grants</span><span class="tsd-signature-symbol">?:</span> <a href="yaml.YamlRoles.html" class="tsd-signature-type tsd-kind-interface">YamlRoles</a></div>
+<div class="tsd-comment tsd-typography"><p>A list of database roles and the privileges they are granted.</p>
+<p>Updating this list will result in <code>database grant &lt;privilege&gt;</code> and <code>database revoke &lt;privilege&gt;</code> queries being executed.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L122">yaml.ts:122</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="databaseRoles" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>database<wbr/>Roles</span><a href="#databaseRoles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">database<wbr/>Roles</span><span class="tsd-signature-symbol">?:</span> <a href="yaml.YamlDatabaseRoleDefinitions.html" class="tsd-signature-type tsd-kind-interface">YamlDatabaseRoleDefinitions</a></div>
+<div class="tsd-comment tsd-typography"><p>A list of database roles and their definitions.</p>
+<p>Updating this list will result in <code>create database role</code> or <code>drop database role</code> queries being executed.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L115">yaml.ts:115</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="roleGrants" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>role<wbr/>Grants</span><a href="#roleGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
+<h3 class="tsd-anchor-link"><span>role<wbr/>Grants</span><a href="#roleGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">role<wbr/>Grants</span><span class="tsd-signature-symbol">:</span> <a href="yaml.YamlRoles.html" class="tsd-signature-type tsd-kind-interface">YamlRoles</a></div>
 <div class="tsd-comment tsd-typography"><p>A list of roles and the privileges they are granted.</p>
 <p>Updating this list will result in <code>grant &lt;privilege&gt;</code> and <code>revoke &lt;privilege&gt;</code> queries being executed.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L94">yaml.ts:94</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L94">yaml.ts:94</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="roles" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>roles</span><a href="#roles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">roles</span><span class="tsd-signature-symbol">?:</span> <a href="yaml.YamlRoleDefinitions.html" class="tsd-signature-type tsd-kind-interface">YamlRoleDefinitions</a></div>
@@ -59,7 +79,7 @@ and deserialized to yaml files.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L108">yaml.ts:108</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L108">yaml.ts:108</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="spyglass" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>spyglass</span><a href="#spyglass" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">spyglass</span><span class="tsd-signature-symbol">:</span> <a href="yaml.YamlSpyglass.html" class="tsd-signature-type tsd-kind-interface">YamlSpyglass</a></div>
@@ -68,7 +88,7 @@ and deserialized to yaml files.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L87">yaml.ts:87</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L87">yaml.ts:87</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="userGrants" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>user<wbr/>Grants</span><a href="#userGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">user<wbr/>Grants</span><span class="tsd-signature-symbol">:</span> <a href="yaml.YamlUserGrants.html" class="tsd-signature-type tsd-kind-interface">YamlUserGrants</a></div>
@@ -77,7 +97,7 @@ and deserialized to yaml files.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L101">yaml.ts:101</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L101">yaml.ts:101</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="warehouses" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagExperimental">Experimental</code> <span>warehouses</span><a href="#warehouses" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">warehouses</span><span class="tsd-signature-symbol">:</span> <a href="yaml.YamlWarehouses.html" class="tsd-signature-type tsd-kind-interface">YamlWarehouses</a></div>
@@ -85,7 +105,7 @@ and deserialized to yaml files.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L113">yaml.ts:113</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L127">yaml.ts:127</a></li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -105,6 +125,8 @@ and deserialized to yaml files.</p>
 <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <ul>
+<li><a href="#databaseRoleGrants" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>database<wbr/>Role<wbr/>Grants</span></a></li>
+<li><a href="#databaseRoles" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>database<wbr/>Roles</span></a></li>
 <li><a href="#roleGrants" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>role<wbr/>Grants</span></a></li>
 <li><a href="#roles" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>roles</span></a></li>
 <li><a href="#spyglass" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>spyglass</span></a></li>
@@ -120,6 +142,7 @@ and deserialized to yaml files.</p>
 <ul class="tsd-nested-navigation">
 <li><a href="yaml.CurrentYamlRole.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Current<wbr/>Yaml<wbr/>Role</span></a></li>
 <li><a href="yaml.Yaml.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml</span></a></li>
+<li><a href="yaml.YamlDatabaseRoleDefinitions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Database<wbr/>Role<wbr/>Definitions</span></a></li>
 <li><a href="yaml.YamlDiff.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Diff</span></a></li>
 <li><a href="yaml.YamlRoleDefinition.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Role<wbr/>Definition</span></a></li>
 <li><a href="yaml.YamlRoleDefinitions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Role<wbr/>Definitions</span></a></li>

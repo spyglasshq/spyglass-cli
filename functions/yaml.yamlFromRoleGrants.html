@@ -18,7 +18,7 @@
 <h1>Function yamlFromRoleGrants</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="yamlFromRoleGrants"><span class="tsd-kind-call-signature">yaml<wbr/>From<wbr/>Role<wbr/>Grants</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountId</span>, <span class="tsd-kind-parameter">roleGrantsRows</span>, <span class="tsd-kind-parameter">futureRoleGrants</span>, <span class="tsd-kind-parameter">roleGrantsOf</span>, <span class="tsd-kind-parameter">warehousesRows</span>, <span class="tsd-kind-parameter">rolesRows</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/yaml.Yaml.html" class="tsd-signature-type tsd-kind-interface">Yaml</a><a href="#yamlFromRoleGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="yamlFromRoleGrants"><span class="tsd-kind-call-signature">yaml<wbr/>From<wbr/>Role<wbr/>Grants</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountId</span>, <span class="tsd-kind-parameter">allGrants</span>, <span class="tsd-kind-parameter">warehouses</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/yaml.Yaml.html" class="tsd-signature-type tsd-kind-interface">Yaml</a><a href="#yamlFromRoleGrants" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -26,18 +26,12 @@
 <li>
 <h5><span class="tsd-kind-parameter">accountId</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">roleGrantsRows</span>: <a href="../interfaces/snowflake.ShowRoleGrant.html" class="tsd-signature-type tsd-kind-interface">ShowRoleGrant</a><span class="tsd-signature-symbol">[]</span></h5></li>
+<h5><span class="tsd-kind-parameter">allGrants</span>: <a href="../interfaces/snowflake.ListGrantsToRolesFullScanResult.html" class="tsd-signature-type tsd-kind-interface">ListGrantsToRolesFullScanResult</a></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">futureRoleGrants</span>: <a href="../interfaces/snowflake.ShowFutureRoleGrant.html" class="tsd-signature-type tsd-kind-interface">ShowFutureRoleGrant</a><span class="tsd-signature-symbol">[]</span></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">roleGrantsOf</span>: <a href="../interfaces/snowflake.ShowRoleGrantOf.html" class="tsd-signature-type tsd-kind-interface">ShowRoleGrantOf</a><span class="tsd-signature-symbol">[]</span></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">warehousesRows</span>: <a href="../interfaces/snowflake.Warehouse.html" class="tsd-signature-type tsd-kind-interface">Warehouse</a><span class="tsd-signature-symbol">[]</span></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">rolesRows</span>: <a href="../interfaces/snowflake.ShowRole.html" class="tsd-signature-type tsd-kind-interface">ShowRole</a><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">warehouses</span>: <a href="../interfaces/snowflake.Warehouse.html" class="tsd-signature-type tsd-kind-interface">Warehouse</a><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/yaml.Yaml.html" class="tsd-signature-type tsd-kind-interface">Yaml</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/07f8c7c/src/lib/yaml.ts#L249">yaml.ts:249</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/spyglasshq/spyglass-cli/blob/649a853/src/lib/yaml.ts#L271">yaml.ts:271</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -63,6 +57,7 @@
 <ul class="tsd-nested-navigation">
 <li><a href="../interfaces/yaml.CurrentYamlRole.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Current<wbr/>Yaml<wbr/>Role</span></a></li>
 <li><a href="../interfaces/yaml.Yaml.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml</span></a></li>
+<li><a href="../interfaces/yaml.YamlDatabaseRoleDefinitions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Database<wbr/>Role<wbr/>Definitions</span></a></li>
 <li><a href="../interfaces/yaml.YamlDiff.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Diff</span></a></li>
 <li><a href="../interfaces/yaml.YamlRoleDefinition.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Role<wbr/>Definition</span></a></li>
 <li><a href="../interfaces/yaml.YamlRoleDefinitions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Yaml<wbr/>Role<wbr/>Definitions</span></a></li>
