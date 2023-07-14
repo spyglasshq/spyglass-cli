@@ -583,7 +583,7 @@ function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolea
   return queries
 }
 
-function getRoleGrantQueries(yamlRoles: YamlRoles, granted: boolean, database = false): SqlCommand[] {
+function getRoleGrantQueries(yamlRoles?: YamlRoles, granted?: boolean, database?: boolean): SqlCommand[] {
   if (!yamlRoles) return []
 
   const queries: SqlCommand[] = []
@@ -620,7 +620,7 @@ interface NewQueryBaseArgs {
   privilege: string;
   objectType: string;
   objectId: string;
-  database: boolean;
+  database?: boolean;
 }
 
 interface NewQueryArgs extends NewQueryBaseArgs {

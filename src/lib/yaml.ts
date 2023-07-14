@@ -119,7 +119,7 @@ export interface Yaml {
    *
    * Updating this list will result in `database grant <privilege>` and `database revoke <privilege>` queries being executed.
    */
-  databaseRoleGrants: YamlRoles;
+  databaseRoleGrants?: YamlRoles;
 
   /** A list of warehouses and their configuration
    * @experimental
@@ -295,7 +295,7 @@ export function usersYamlFromUserGrants(rows: ShowRoleGrantOf[]): YamlUserGrants
   const userGrants: YamlUserGrants = {}
 
   for (const rg of rows) {
-    if (rg.granted_to !== 'USER') {
+    if (rg.granted_to.toLowerCase() !== 'user') {
       continue
     }
 
