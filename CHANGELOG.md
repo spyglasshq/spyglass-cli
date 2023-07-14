@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.0 (2023-07-14)
+
+#### :rocket: Enhancement
+* [#172](https://github.com/spyglasshq/spyglass-cli/pull/172) Add support for database roles ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.3.4 (2023-06-14)
 
 #### :rocket: Enhancement
