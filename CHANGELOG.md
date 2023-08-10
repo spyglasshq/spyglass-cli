@@ -4,6 +4,7 @@
 
 #### :bug: Bug Fix
 * [#195](https://github.com/spyglasshq/spyglass-cli/pull/195) yaml: add 'create stage' to allowed privileges ([@spyglass-software](https://github.com/spyglass-software))
+* [#196](https://github.com/spyglasshq/spyglass-cli/pull/196) apply-dry-run: only look for supported entities existence ([@spyglass-software](https://github.com/spyglass-software))
 
 #### Committers: 1
 - Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
