@@ -134,5 +134,10 @@ export const ISSUES: { [id: string]: IssueType } = ([
     name: 'Warehouse costs could be reduced by setting a lower auto-suspend time limit.',
     type: 'cost',
   },
+  {
+    id: 'SR1027',
+    name: 'Table appears inactive (hasn\'t been accessed recently).',
+    type: 'cost',
+  },
 // eslint-disable-next-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries
 ]).reduce((obj, issue) => ({[issue.id]: issue, ...obj}), {})
