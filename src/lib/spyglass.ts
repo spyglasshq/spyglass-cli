@@ -140,6 +140,8 @@ export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Y
   return _findNotExistingEntities(proposedYaml.roles, objects, users, sqlCommands)
 }
 
+const supportedNonExistingEntities = new Set(['database', 'schema', 'user', 'role', 'table', 'view'])
+
 export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | undefined, objects: ShowObject[], users: ShowUser[], sqlCommands: SqlCommand[]): Entity[] {
   let res: Entity[] = []
 
@@ -153,7 +155,7 @@ export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | un
 
   for (const entities of proposedEntities) {
     for (const entity of entities) {
-      if (entity.type === 'warehouse' || entity.type === 'database_role' || entity.type === 'database role') {
+      if (!supportedNonExistingEntities.has(entity.type)) {
         continue // not supported yet
       }
 
