@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.2 (2023-08-10)
+
+#### :bug: Bug Fix
+* [#195](https://github.com/spyglasshq/spyglass-cli/pull/195) yaml: add 'create stage' to allowed privileges ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.4.1 (2023-07-14)
 
 #### :bug: Bug Fix
