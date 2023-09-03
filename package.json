@@ -37,7 +37,7 @@
     "@types/chai-as-promised": "^7.1.5",
     "@types/fs-extra": "^11.0.1",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.18.46",
+    "@types/node": "^16.18.47",
     "@types/snowflake-sdk": "^1.6.13",
     "@types/supports-color": "^8.1.1",
     "chai": "^4",
