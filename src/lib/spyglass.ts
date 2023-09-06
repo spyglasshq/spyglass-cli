@@ -121,9 +121,19 @@ export async function applySnowflake(currentYaml: Yaml, proposedYaml: Yaml, dryR
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
 
   // Convert differences to SQL commands.
-  const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
+  let appliedCommands: AppliedCommand[] = []
+  const sqlCommandBatches = sqlCommandsFromYamlDiff(yamlDiff)
 
-  return executeSqlCommands(conn, sqlCommands, dryRun)
+  // Execute the batches sequentially in order, because some queries may depend on others.
+  for (const sqlCommands of sqlCommandBatches) {
+    // eslint-disable-next-line no-await-in-loop
+    const cmds = await executeSqlCommands(conn, sqlCommands, dryRun)
+
+    // eslint-disable-next-line unicorn/prefer-spread
+    appliedCommands = appliedCommands.concat(cmds)
+  }
+
+  return appliedCommands
 }
 
 export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Yaml, conn?: Connection): Promise<Entity[]> {
@@ -132,7 +142,8 @@ export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Y
   }
 
   const yamlDiff = diffYaml(currentYaml, proposedYaml)
-  const sqlCommands = sqlCommandsFromYamlDiff(yamlDiff)
+  const sqlCommandBatches = sqlCommandsFromYamlDiff(yamlDiff)
+  const sqlCommands = sqlCommandBatches.flat()
 
   const objects = await showObjects(conn)
   const users = await showUsers(conn)
