@@ -562,7 +562,7 @@ export async function executeSqlCommands(conn: Connection, sqlCommands: SqlComma
   return results
 }
 
-export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
+export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[][] {
   // When generating SQL commands, we must be careful about ordering.
   //
   // For example, a role needs to exist in order for it to be granted. So
@@ -574,19 +574,27 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[] {
   // Deletes occur before creates for a reason, but I can't recall off the top
   // of my head as of this writing.
   return [
-    ...getRoleGrantQueries(yamlDiff.deleted.databaseRoleGrants, false, true),
-    ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
-    ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
-    ...getDatabaseRolesQueries(yamlDiff.deleted.databaseRoles, true),
-    ...getRolesQueries(yamlDiff.deleted.roles, false),
-
-    ...getRolesQueries(yamlDiff.added.roles, true),
-    ...getDatabaseRolesQueries(yamlDiff.added.databaseRoles, true),
-    ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
-    ...getRoleGrantQueries(yamlDiff.added.databaseRoleGrants, true, true),
-    ...getUserGrantQueries(yamlDiff.added.userGrants, true),
-
-    ...getWarehouseQueries(yamlDiff.updated.warehouses),
+    [
+      ...getRoleGrantQueries(yamlDiff.deleted.databaseRoleGrants, false, true),
+      ...getRoleGrantQueries(yamlDiff.deleted.roleGrants, false),
+      ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
+    ],
+    [
+      ...getDatabaseRolesQueries(yamlDiff.deleted.databaseRoles, true),
+      ...getRolesQueries(yamlDiff.deleted.roles, false),
+    ],
+    [
+      ...getRolesQueries(yamlDiff.added.roles, true),
+      ...getDatabaseRolesQueries(yamlDiff.added.databaseRoles, true),
+    ],
+    [
+      ...getRoleGrantQueries(yamlDiff.added.roleGrants, true),
+      ...getRoleGrantQueries(yamlDiff.added.databaseRoleGrants, true, true),
+      ...getUserGrantQueries(yamlDiff.added.userGrants, true),
+    ],
+    [
+      ...getWarehouseQueries(yamlDiff.updated.warehouses),
+    ],
   ]
 }
 
