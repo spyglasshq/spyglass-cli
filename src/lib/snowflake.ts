@@ -7,6 +7,7 @@ import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
 import {PRIVILEGES, YamlDatabaseRoleDefinitions, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, SqlCommand, sqlQueries, sqlQuery} from './sql'
+import {RateLimiter, WaitGroup} from './ratelimit'
 
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
 export const SNOWSQL_CONFIG_DIR = path.join(process.env.HOME ?? '', '.snowsql')
@@ -525,14 +526,38 @@ export async function executeCommands(conn: Connection, queries: Query[], dryRun
 }
 
 export async function executeSqlCommands(conn: Connection, sqlCommands: SqlCommand[], dryRun = false): Promise<AppliedCommand[]> {
-  let results: AppliedCommand[] = []
+  const rateLimitPerSecond = dryRun ? 0 : 25
+  const rl = new RateLimiter(rateLimitPerSecond)
+  const wg = new WaitGroup()
+  const results: AppliedCommand[] = []
 
   for (const {query, entities} of sqlCommands) {
-    const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
-    res.entities = entities
+    // Increment the wait group *synchronously*, so we can know whether any async work is in-progress.
+    wg.add();
 
-    results = [...results, res]
+    // Run the async work in the background (with no guarantee of when it will actually start).
+    (async () => {
+      try {
+        // Wait for some capacity in the rate limiter.
+        await rl.wait()
+
+        const res = await sqlQuery(conn, query[0], query[1], {dryRun, dontReject: true})
+        res.entities = entities
+        results.push(res)
+      } catch (error) {
+        console.error(error) // really shouldn't happen, but log just in case.
+      } finally {
+        // Decrement the wait group, so we know we've finished some async work.
+        wg.done()
+      }
+    })()
   }
+
+  // Wait for all items in the wait group to be "done"
+  await wg.wait()
+
+  // Clean up the rate limiter.
+  rl.close()
 
   return results
 }
