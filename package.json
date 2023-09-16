@@ -32,7 +32,7 @@
     "yaml": "^2.3.2"
   },
   "devDependencies": {
-    "@oclif/test": "^2.4.7",
+    "@oclif/test": "^2.5.4",
     "@types/chai": "^4",
     "@types/chai-as-promised": "^7.1.6",
     "@types/fs-extra": "^11.0.1",
