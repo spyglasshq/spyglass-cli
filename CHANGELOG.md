@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.6 (2023-09-20)
+
+#### :bug: Bug Fix
+* [#228](https://github.com/spyglasshq/spyglass-cli/pull/228) fix database role deletion ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 
 
 
