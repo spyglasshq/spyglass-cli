@@ -580,7 +580,7 @@ export function sqlCommandsFromYamlDiff(yamlDiff: YamlDiff): SqlCommand[][] {
       ...getUserGrantQueries(yamlDiff.deleted.userGrants, false),
     ],
     [
-      ...getDatabaseRolesQueries(yamlDiff.deleted.databaseRoles, true),
+      ...getDatabaseRolesQueries(yamlDiff.deleted.databaseRoles, false),
       ...getRolesQueries(yamlDiff.deleted.roles, false),
     ],
     [
