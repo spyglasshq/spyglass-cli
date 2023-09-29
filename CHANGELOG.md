@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.7 (2023-09-29)
+
+#### :house: Internal
+* [#231](https://github.com/spyglasshq/spyglass-cli/pull/231) upgrade to snowflake-sdk@1.9 ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.4.6 (2023-09-20)
 
 #### :bug: Bug Fix

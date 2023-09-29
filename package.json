@@ -1,6 +1,6 @@
 {
   "name": "spyglass-cli",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Spyglass command-line interface",
   "author": "Spyglass Software, Inc.",
   "bin": {
