@@ -5,7 +5,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 
 use(chaiAsPromised)
 
-describe('difftools', () => {
+describe('issues', () => {
   describe('findIssues', async () => {
     it('finds many issues', async () => {
       const yaml = await readYamlFile('./test/testdata/issues-SR1001.yaml')
@@ -22,12 +22,12 @@ describe('difftools', () => {
 
     it('gets issue detail', async () => {
       const yaml = await readYamlFile('./test/testdata/issues-SR1001.yaml')
-      const issue = await issues.getIssueDetail(yaml, 'fbf1af0675dc')
+      const issue = await issues.getIssueDetail(yaml, '4492bb31ea09')
 
       const data = issue.data as issues.DatabasePrivilege
-      expect(data.role).to.equal('acme_prod_all_tables_viewer')
-      expect(data.privilege).to.equal('usage')
-      expect(data.database).to.equal('acme')
+      expect(data.role).to.equal('ACME_PROD_ALL_TABLES_VIEWER')
+      expect(data.privilege).to.equal('USAGE')
+      expect(data.database).to.equal('ACME')
     })
   })
 
@@ -46,7 +46,7 @@ describe('difftools', () => {
 
       issues.ISSUE_HANDLERS.SR1001.fixYaml(yaml, issueList[0].data)
       issues.ISSUE_HANDLERS.SR1001.fixYaml(yaml, issueList[1].data)
-      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme', 'acme2'])
+      expect(yaml.roleGrants.ACME_PROD_ALL_TABLES_VIEWER?.USAGE?.DATABASE).to.deep.equal(['ACME', 'ACME2'])
 
       const newIssueList = issues.ISSUE_HANDLERS.SR1001.findIssues(yaml)
       expect(newIssueList).to.have.length(0)
@@ -68,7 +68,7 @@ describe('difftools', () => {
 
       issues.ISSUE_HANDLERS.SR1002.fixYaml(yaml, issueList[0].data)
       issues.ISSUE_HANDLERS.SR1002.fixYaml(yaml, issueList[1].data)
-      expect(yaml.roleGrants.acme_prod_all_tables_viewer?.usage?.schema).to.deep.equal(['acme.prod', 'acme.staging'])
+      expect(yaml.roleGrants.ACME_PROD_ALL_TABLES_VIEWER?.USAGE?.SCHEMA).to.deep.equal(['ACME.PROD', 'ACME.STAGING'])
 
       const newIssueList = issues.ISSUE_HANDLERS.SR1002.findIssues(yaml)
       expect(newIssueList).to.have.length(0)
@@ -89,13 +89,13 @@ describe('difftools', () => {
       expect(issueList).to.have.length(2)
 
       issues.ISSUE_HANDLERS.SR1005.fixYaml(yaml, issueList[0].data)
-      expect(yaml.roleGrants.sysadmin?.usage?.role).to.deep.equal(['foo'])
+      expect(yaml.roleGrants.SYSADMIN?.USAGE?.ROLE).to.deep.equal(['FOO'])
 
       const issueList2 = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
       expect(issueList2).to.have.length(1)
 
       issues.ISSUE_HANDLERS.SR1005.fixYaml(yaml, issueList2[0].data)
-      expect(yaml.roleGrants.sysadmin?.usage?.role).to.deep.equal(['foo', 'bar'])
+      expect(yaml.roleGrants.SYSADMIN?.USAGE?.ROLE).to.deep.equal(['BAR', 'FOO'])
 
       const newIssueList = issues.ISSUE_HANDLERS.SR1005.findIssues(yaml)
       expect(newIssueList).to.have.length(0)

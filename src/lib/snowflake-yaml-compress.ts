@@ -6,20 +6,24 @@ export async function compressYaml(yaml: Yaml, objects: ShowObject[]): Promise<v
   const schemasToObjects = getSchemasToObjects(objects)
 
   for (const [, roleInfo] of Object.entries(yaml.roleGrants)) {
-    if (!roleInfo.usage) {
+    if (!roleInfo.USAGE) {
       continue
     }
 
-    const {database: databases, schema: schemas} = roleInfo.usage
+    const {DATABASE: databases, SCHEMA: schemas} = roleInfo.USAGE
 
     if (!(databases && schemas)) {
       continue
     }
 
     const databasesWithAllSchemas = findDatabasesThatHaveAllSchemasGranted(databases, schemas, databasesToSchemas)
-    roleInfo.usage.schema = replaceSchemasWithWildcards(databasesWithAllSchemas, schemas)
+    roleInfo.USAGE.SCHEMA = replaceSchemasWithWildcards(databasesWithAllSchemas, schemas)
 
     for (const permissions of Object.values(roleInfo)) {
+      if (!permissions) {
+        continue
+      }
+
       for (const [objType, grantedObjects] of Object.entries(permissions)) {
         const schemasWithAllObjects = findSchemasThatHaveAllObjectsGranted(objType, schemas, grantedObjects, schemasToObjects)
         permissions[objType] = replaceObjectsWithWildcards(objType, grantedObjects, schemasWithAllObjects, databasesWithAllSchemas, databasesToSchemas)
@@ -60,7 +64,7 @@ function getSchemasToObjects(objects: ShowObject[]): SchemasToObjects {
   for (const obj of objects) {
     const schema = fqSchemaId(obj.database_name, obj.schema_name)
     let fqdnObjects = schemasToObjects[schema] ?? []
-    const objId = obj.kind.toLowerCase() + ':' + fqObjectId(obj.database_name, obj.schema_name, obj.name)
+    const objId = obj.kind + ':' + fqObjectId(obj.database_name, obj.schema_name, obj.name)
     fqdnObjects = [objId, ...fqdnObjects]
     schemasToObjects[schema] = fqdnObjects
   }

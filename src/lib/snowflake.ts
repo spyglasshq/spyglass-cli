@@ -108,7 +108,7 @@ export async function checkConnection(accountId: string): Promise<void> {
   await sqlQuery(conn, 'SELECT 1;', [])
 }
 
-const grantsToRolesQuery = 'select * from snowflake.account_usage.grants_to_roles where deleted_on is null;'
+const grantsToRolesQuery = 'SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_ROLES WHERE DELETED_ON IS NULL;'
 
 export interface RoleGrant {
   PRIVILEGE: string;
@@ -270,42 +270,35 @@ export async function listGrantsToRolesFullScan(conn: Connection, onStart: (x: n
 }
 
 async function queryRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
-  const res = await queryMulti<ShowRoleGrant>(conn, 'show grants to role identifier(?);', roleNames)
+  const res = await queryMulti<ShowRoleGrant>(conn, 'SHOW GRANTS TO ROLE IDENTIFIER(?);', roleNames)
   for (const rg of res) {
     rg.grantee_name = normalizeRoleName(rg.grantee_name)
-    rg.privilege = rg.privilege.toLowerCase()
-    rg.granted_on = rg.granted_on.toLowerCase()
-    rg.name = rg.name.toLowerCase()
   }
 
   return res
 }
 
 async function queryFutureRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowFutureRoleGrant[]> {
-  const res = await queryMulti<ShowFutureRoleGrant>(conn, 'show future grants to role identifier(?);', roleNames)
+  const res = await queryMulti<ShowFutureRoleGrant>(conn, 'SHOW FUTURE GRANTS TO ROLE IDENTIFIER(?);', roleNames)
   for (const rg of res) {
     rg.grantee_name = normalizeRoleName(rg.grantee_name)
-    rg.privilege = rg.privilege.toLowerCase()
-    rg.grant_on = rg.grant_on.toLowerCase()
-    rg.name = rg.name.toLowerCase()
   }
 
   return res
 }
 
 async function queryRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
-  const res = await queryMulti<ShowRoleGrantOf>(conn, 'show grants of role identifier(?);', roleNames)
+  const res = await queryMulti<ShowRoleGrantOf>(conn, 'SHOW GRANTS OF ROLE IDENTIFIER(?);', roleNames)
   for (const role of res) {
     role.role = normalizeRoleName(role.role)
-    role.grantee_name = role.grantee_name.toLowerCase()
   }
 
   return res
 }
 
 async function getDatabaseRoles(conn: Connection): Promise<[string[], ShowDatabaseRole[]]> {
-  const showDatabases = (await sqlQuery<ShowDatabase>(conn, 'show databases;', [])).results as ShowDatabase[]
-  const databaseNames = showDatabases.map(db => db.name.toLowerCase()).filter(db => db !== 'snowflake')
+  const showDatabases = (await sqlQuery<ShowDatabase>(conn, 'SHOW DATABASES;', [])).results as ShowDatabase[]
+  const databaseNames = showDatabases.map(db => db.name).filter(db => db !== 'SNOWFLAKE')
   const [batchedDatabaseNames] = getBatchedNames(databaseNames)
 
   let databaseRoles: ShowDatabaseRole[] = []
@@ -319,7 +312,7 @@ async function getDatabaseRoles(conn: Connection): Promise<[string[], ShowDataba
 }
 
 async function queryDatabaseRoles(conn: Connection, databaseNames: string[]): Promise<ShowDatabaseRole[]> {
-  const res = await queryMultiV2<ShowDatabaseRole>(conn, 'show database roles in database identifier(?);', databaseNames)
+  const res = await queryMultiV2<ShowDatabaseRole>(conn, 'SHOW DATABASE ROLES IN DATABASE IDENTIFIER(?);', databaseNames)
 
   return res.map(([role, database]) => {
     role.name = normalizeRoleName(role.name)
@@ -329,13 +322,10 @@ async function queryDatabaseRoles(conn: Connection, databaseNames: string[]): Pr
 }
 
 async function queryDatabaseRoleGrants(conn: Connection, roleNames: string[]): Promise<ShowRoleGrant[]> {
-  const res = await queryMultiV2<ShowRoleGrant>(conn, 'show grants to database role identifier(?);', roleNames)
+  const res = await queryMultiV2<ShowRoleGrant>(conn, 'SHOW GRANTS TO DATABASE ROLE IDENTIFIER(?);', roleNames)
 
   return res.map(([roleGrant, roleName]) => {
     roleGrant.grantee_name = roleName
-    roleGrant.privilege = roleGrant.privilege.toLowerCase()
-    roleGrant.granted_on = roleGrant.granted_on.toLowerCase()
-    roleGrant.name = roleGrant.name.toLowerCase()
 
     return roleGrant
   })
@@ -344,28 +334,23 @@ async function queryDatabaseRoleGrants(conn: Connection, roleNames: string[]): P
 async function queryFutureDatabaseRoleGrants(conn: Connection, databaseNames: string[]): Promise<ShowFutureRoleGrant[]> {
   // There isn't a `show future grants to database role` query, so we have to query for future grants in the database.
   // This returns both database roles and non database roles, so we need to filter out non-database roles later.
-  const res = await queryMultiV2<ShowFutureRoleGrant>(conn, 'show future grants in database identifier(?);', databaseNames)
+  const res = await queryMultiV2<ShowFutureRoleGrant>(conn, 'SHOW FUTURE GRANTS IN DATABASE IDENTIFIER(?);', databaseNames)
 
   return res
   .map(([roleGrant, database]) => {
     roleGrant.grantee_name = normalizeRoleName(roleGrant.grantee_name)
     roleGrant.grantee_name = `${database}.${roleGrant.grantee_name}`
-    roleGrant.privilege = roleGrant.privilege.toLowerCase()
-    roleGrant.grant_on = roleGrant.grant_on.toLowerCase()
-    roleGrant.grant_to = roleGrant.grant_to.toLowerCase()
-    roleGrant.name = roleGrant.name.toLowerCase()
 
     return roleGrant
   })
-  .filter(rg => rg.grant_to === 'database_role') // important since 'future grants in database' returns both database role and non database roles
+  .filter(rg => rg.grant_to === 'DATABASE_ROLE') // important since 'future grants in database' returns both database role and non database roles
 }
 
 async function queryDatabaseRoleGrantsOf(conn: Connection, roleNames: string[]): Promise<ShowRoleGrantOf[]> {
-  const res = await queryMultiV2<ShowRoleGrantOf>(conn, 'show grants of database role identifier(?);', roleNames)
+  const res = await queryMultiV2<ShowRoleGrantOf>(conn, 'SHOW GRANTS OF DATABASE ROLE IDENTIFIER(?);', roleNames)
 
   return res.map(([roleGrant, roleName]) => {
     roleGrant.role = roleName
-    roleGrant.grantee_name = roleGrant.grantee_name.toLowerCase()
 
     return roleGrant
   })
@@ -399,6 +384,10 @@ async function queryMultiV2<T>(conn: Connection, query: string, params: string[]
   return results
 }
 
+// Start with a letter (A-Z, a-z) or an underscore (“_”).
+// Contain only letters, underscores, decimal digits (0-9), and dollar signs (“$”).
+// Are stored and resolved as uppercase characters (e.g. id is stored and resolved as ID).
+
 export function normalizeRoleName(role: string): string {
   // Support double-quoted identifiers (case-sensitive, allows special characters)
   // https://docs.snowflake.com/en/sql-reference/identifiers-syntax
@@ -418,8 +407,8 @@ export function normalizeRoleName(role: string): string {
     return `"${role}"`
   }
 
-  // Otherwise, normalize to all-lower case (non-double-quoted identifiers are case-insensitive)
-  return role.toLowerCase()
+  // Otherwise, return as it is (non-double-quoted identifiers are case-insensitive)
+  return role
 }
 
 function getBatchedNames(names: string[]): [string[][], number] {
@@ -443,7 +432,7 @@ function getBatchedNames(names: string[]): [string[][], number] {
   return [batchedRoleNames, names.length]
 }
 
-const grantsToUsersQuery = 'select * from snowflake.account_usage.grants_to_users where deleted_on is null;'
+const grantsToUsersQuery = 'SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS WHERE DELETED_ON IS NULL;'
 
 export interface UserGrant {
   CREATED_ON: string;
@@ -458,7 +447,7 @@ export async function listGrantsToUsers(conn: Connection): Promise<UserGrant[]> 
   return (await sqlQuery<UserGrant[]>(conn, grantsToUsersQuery, [])).results
 }
 
-const showWarehousesQuery = 'show warehouses;'
+const showWarehousesQuery = 'SHOW WAREHOUSES;'
 
 export interface Warehouse {
   name: string;
@@ -468,14 +457,10 @@ export interface Warehouse {
 
 export async function showWarehouses(conn: Connection): Promise<Warehouse[]> {
   const res = (await sqlQuery<Warehouse[]>(conn, showWarehousesQuery, [])).results as Warehouse[]
-  for (const wh of res) {
-    wh.name = wh.name.toLowerCase()
-  }
-
   return res
 }
 
-const showObjectsQuery = 'show objects;'
+const showObjectsQuery = 'SHOW OBJECTS;'
 
 export interface ShowObject {
   name: string;
@@ -488,7 +473,7 @@ export async function showObjects(conn: Connection): Promise<ShowObject[]> {
   return (await sqlQuery<ShowObject[]>(conn, showObjectsQuery, [])).results
 }
 
-const showRolesQuery = 'show roles;'
+const showRolesQuery = 'SHOW ROLES;'
 
 export async function showRoles(conn: Connection): Promise<ShowRole[]> {
   const res = (await sqlQuery<ShowRole[]>(conn, showRolesQuery, [])).results as ShowRole[]
@@ -499,7 +484,7 @@ export async function showRoles(conn: Connection): Promise<ShowRole[]> {
   return res
 }
 
-const showUsersQuery = 'show users;'
+const showUsersQuery = 'SHOW USERS;'
 
 export interface ShowUser {
   name: string;
@@ -605,8 +590,8 @@ function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolea
 
   for (const [roleName] of Object.entries(roles)) {
     const query = granted ?
-      'create role if not exists identifier(?);' :
-      'drop role if exists identifier(?);'
+      'CREATE ROLE IF NOT EXISTS IDENTIFIER(?);' :
+      'DROP ROLE IF EXISTS IDENTIFIER(?);'
 
     queries.push({
       query: [query, [roleName]],
@@ -671,17 +656,17 @@ export function newRevokeQuery(args: NewQueryBaseArgs): SqlCommand {
 
 export function newQuery({roleName, privilege, objectType, objectId, grant, database}: NewQueryArgs): SqlCommand {
   const action = grant ? 'create' : 'delete'
-  const grantOrRevoke = grant ? 'grant' : 'revoke'
-  const toOrFrom = grant ? 'to' : 'from'
-  const roleOrDatabaseRole = database ? 'database role' : 'role'
+  const grantOrRevoke = grant ? 'GRANT' : 'REVOKE'
+  const toOrFrom = grant ? 'TO' : 'FROM'
+  const roleOrDatabaseRole = database ? 'DATABASE ROLE' : 'ROLE'
 
   sanitizePrivilege(privilege)
   sanitizeObjectType(objectType)
 
-  if (privilege === 'usage' && (objectType === 'role' || objectType === 'database_role')) {
-    const roleType = objectType === 'role' ? 'role' : 'database role'
+  if (privilege === 'USAGE' && (objectType === 'ROLE' || objectType === 'DATABASE_ROLE')) {
+    const roleType = objectType === 'ROLE' ? 'ROLE' : 'DATABASE ROLE'
     return {
-      query: [`${grantOrRevoke} ${roleType} identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [objectId, roleName]],
+      query: [`${grantOrRevoke} ${roleType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
         {type: roleType, id: objectId, action},
@@ -695,10 +680,10 @@ export function newQuery({roleName, privilege, objectType, objectId, grant, data
   if (futureSchemaMatches) {
     const [, schema] = futureSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in schema identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privilege} ON FUTURE ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
-        {type: 'schema', id: schema, action},
+        {type: 'SCHEMA', id: schema, action},
       ],
     }
   }
@@ -709,10 +694,10 @@ export function newQuery({roleName, privilege, objectType, objectId, grant, data
   if (futureDatabaseMatches) {
     const [, database] = futureDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on future ${objectType}s in database identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privilege} ON FUTURE ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
-        {type: 'database', id: database, action},
+        {type: 'DATABASE', id: database, action},
       ],
     }
   }
@@ -723,10 +708,10 @@ export function newQuery({roleName, privilege, objectType, objectId, grant, data
   if (allObjectsInSchemaMatches) {
     const [, schema] = allObjectsInSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in schema identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privilege} ON ALL ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
-        {type: 'schema', id: schema, action},
+        {type: 'SCHEMA', id: schema, action},
       ],
     }
   }
@@ -737,16 +722,16 @@ export function newQuery({roleName, privilege, objectType, objectId, grant, data
   if (allObjectsInDatabaseMatches) {
     const [, database] = allObjectsInDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} on all ${objectType}s in database identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privilege} ON ALL ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
-        {type: 'database', id: database, action},
+        {type: 'DATABASE', id: database, action},
       ],
     }
   }
 
   return {
-    query: [`${grantOrRevoke} ${privilege} on ${objectType} identifier(?) ${toOrFrom} ${roleOrDatabaseRole} identifier(?);`, [objectId, roleName]],
+    query: [`${grantOrRevoke} ${privilege} ON ${objectType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
     entities: [
       {type: roleOrDatabaseRole, id: roleName, action},
       {type: objectType, id: objectId, action},
@@ -762,13 +747,13 @@ function getUserGrantQueries(yamlUserGrants: YamlUserGrants, granted: boolean): 
   for (const [username, user] of Object.entries(yamlUserGrants)) {
     for (const roleName of user.roles) {
       const query = granted ?
-        'grant role identifier(?) to user identifier(?);' :
-        'revoke role identifier(?) from user identifier(?);'
+        'GRANT ROLE IDENTIFIER(?) TO USER IDENTIFIER(?);' :
+        'REVOKE ROLE IDENTIFIER(?) FROM USER IDENTIFIER(?);'
       queries.push({
         query: [query, [roleName, username]],
         entities: [
-          {type: 'role', id: roleName},
-          {type: 'user', id: username},
+          {type: 'ROLE', id: roleName},
+          {type: 'USER', id: username},
         ],
       })
     }
@@ -785,9 +770,9 @@ function getWarehouseQueries(yamlWarehouses: YamlWarehouses): SqlCommand[] {
   for (const [warehouseName, warehouse] of Object.entries(yamlWarehouses)) {
     if (warehouse?.size) {
       queries.push({
-        query: ['alter warehouse identifier(?) set warehouse_size = ?;', [warehouseName, warehouse.size]],
+        query: ['ALTER WAREHOUSE IDENTIFIER(?) SET WAREHOUSE_SIZE = ?;', [warehouseName, warehouse.size]],
         entities: [
-          {type: 'warehouse', id: warehouseName},
+          {type: 'WAREHOUSE', id: warehouseName},
         ],
       })
     }
@@ -797,15 +782,15 @@ function getWarehouseQueries(yamlWarehouses: YamlWarehouses): SqlCommand[] {
 }
 
 export function fqObjectId(database: string, schema: string, objectId: string): string {
-  return [database.toLowerCase(), schema.toLowerCase(), objectId.toLowerCase()].join('.')
+  return [database, schema, objectId].join('.')
 }
 
 export function fqSchemaId(database: string, schema: string): string {
-  return [database.toLowerCase(), schema.toLowerCase()].join('.')
+  return [database, schema].join('.')
 }
 
 export function fqDatabaseId(database: string): string {
-  return database.toLowerCase()
+  return database
 }
 
 function getDatabaseRolesQueries(roles: YamlDatabaseRoleDefinitions | undefined, granted: boolean): SqlCommand[] {
@@ -815,8 +800,8 @@ function getDatabaseRolesQueries(roles: YamlDatabaseRoleDefinitions | undefined,
 
   for (const [roleName] of Object.entries(roles)) {
     const query = granted ?
-      'create database role if not exists identifier(?);' :
-      'drop database role if exists identifier(?);'
+      'CREATE DATABASE ROLE IF NOT EXISTS IDENTIFIER(?);' :
+      'DROP DATABASE ROLE IF EXISTS IDENTIFIER(?);'
 
     queries.push({
       query: [query, [roleName]],
