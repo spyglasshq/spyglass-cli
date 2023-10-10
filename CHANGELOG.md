@@ -4,6 +4,9 @@
 
 #### :bug: Bug Fix
 * [#237](https://github.com/spyglasshq/spyglass-cli/pull/237) import/sync no longer forces all names to lower case ([@spyglass-software](https://github.com/spyglass-software))
+  * This is a significant breaking change that impacts `sync` and `import` primarily.
+  * Previously, when importing/syncing Snowflake privileges, Spyglass CLI would coerce all names into lowercase.
+  * After this change, Spyglass CLI makes no effort to normalize or mutate the names of Snowflake users, databases, schemas, roles, privileges, and objects.
 
 #### Committers: 1
 - Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
