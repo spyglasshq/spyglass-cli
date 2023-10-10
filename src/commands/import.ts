@@ -1,4 +1,4 @@
-import {Args, Flags, ux} from '@oclif/core'
+import {Args, ux} from '@oclif/core'
 import {BaseCommand} from '../lib/cmd'
 import color from '@oclif/color'
 import {Config, getConfig} from '../lib/config'
@@ -12,9 +12,7 @@ export default class Import extends BaseCommand {
     accountId: Args.string({description: 'Account id to fetch configuration from.', required: true, parse: async a => a.toLowerCase()}),
   }
 
-  static flags = {
-    compress: Flags.boolean({description: 'Whether to compress records and replace them with a wildcard (*) where applicable.', default: false}),
-  }
+  static flags = {}
 
   async run(): Promise<void> {
     await this.init()
@@ -63,7 +61,6 @@ export default class Import extends BaseCommand {
       accountId,
       onStart: total => progress.start(total, 0),
       onProgress: current => progress.update(current),
-      compress: true,
     })
 
     progress.stop()

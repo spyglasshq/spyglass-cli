@@ -13,9 +13,9 @@ roleGrants:
   acme_prod_all_tables_viewer:
     select:
       table:
-        - acme.prod.<future>
+        - acme.prod.<FUTURE>
       view:
-        - acme.prod.<future>
+        - acme.prod.<FUTURE>
         - acme.prod.call_center
         - acme.prod.catalog_page
         - acme.prod.catalog_returns
@@ -38,8 +38,8 @@ userGrants:
  *
  * ### Special Operators
  *
- * As seen above, you can use `database.schema.<future>` to create a "future grants" statement,
- * such as `acme.prod.<future>` to grant access to all future views.
+ * As seen above, you can use `database.schema.<FUTURE>` to create a "future grants" statement,
+ * such as `acme.prod.<FUTURE>` to grant access to all future views.
  *
  * Additionally, you can use `database.schema.*` to create an "all grants" statement, such as
  * `acme.prod.*` to grant access to all current views.
@@ -58,10 +58,89 @@ import {detailedDiff} from 'deep-object-diff'
 import {deeplyConvertSetsToStringLists, deeplyConvertStringListsToSets, deeplySortLists, replaceUndefinedValuesWithDeletedValues} from './difftools'
 import {ListGrantsToRolesFullScanResult, ShowDatabaseRole, ShowFutureRoleGrant, ShowRole, ShowRoleGrant, ShowRoleGrantOf, Warehouse} from './snowflake'
 
-export const PRIVILEGES = ['apply', 'apply masking policy', 'apply row access policy', 'apply tag', 'audit', 'create account', 'create credential', 'create data exchange listing', 'create failover group', 'create integration', 'create replication group', 'create role', 'create share', 'create stage', 'execute alert', 'execute managed task', 'execute task', 'import share', 'manage account support cases', 'manage user support cases', 'monitor', 'monitor execution', 'monitor security', 'monitor usage', 'override share restrictions', 'ownership', 'purchase data exchange listing', 'reference_usage', 'select', 'usage', 'insert', 'update', 'delete', 'truncate', 'references', 'read', 'write', 'operate', 'create database role'] as const
+export const PRIVILEGES = [
+  'all privileges',
+  'apply',
+  'apply masking policy',
+  'apply row access policy',
+  'apply tag',
+  'audit',
+  'create account',
+  'create credential',
+  'create data exchange listing',
+  'create failover group',
+  'create integration',
+  'create replication group',
+  'create role',
+  'create share',
+  'execute alert',
+  'execute managed task',
+  'execute task',
+  'import share',
+  'manage account support cases',
+  'manage user support cases',
+  'monitor',
+  'monitor execution',
+  'monitor security',
+  'monitor usage',
+  'override share restrictions',
+  'ownership',
+  'purchase data exchange listing',
+  'reference_usage',
+  'select',
+  'usage',
+  'insert',
+  'update',
+  'delete',
+  'truncate',
+  'references',
+  'read',
+  'write',
+  'operate',
+  'create database role',
+  'ALL PRIVILEGES',
+  'APPLY',
+  'APPLY MASKING POLICY',
+  'APPLY ROW ACCESS POLICY',
+  'APPLY TAG',
+  'AUDIT',
+  'CREATE ACCOUNT',
+  'CREATE CREDENTIAL',
+  'CREATE DATA EXCHANGE LISTING',
+  'CREATE FAILOVER GROUP',
+  'CREATE INTEGRATION',
+  'CREATE REPLICATION GROUP',
+  'CREATE ROLE',
+  'CREATE SHARE',
+  'EXECUTE ALERT',
+  'EXECUTE MANAGED TASK',
+  'EXECUTE TASK',
+  'IMPORT SHARE',
+  'MANAGE ACCOUNT SUPPORT CASES',
+  'MANAGE USER SUPPORT CASES',
+  'MONITOR',
+  'MONITOR EXECUTION',
+  'MONITOR SECURITY',
+  'MONITOR USAGE',
+  'OVERRIDE SHARE RESTRICTIONS',
+  'OWNERSHIP',
+  'PURCHASE DATA EXCHANGE LISTING',
+  'REFERENCE_USAGE',
+  'SELECT',
+  'USAGE',
+  'INSERT',
+  'UPDATE',
+  'DELETE',
+  'TRUNCATE',
+  'REFERENCES',
+  'READ',
+  'WRITE',
+  'OPERATE',
+  'CREATE DATABASE ROLE',
+]
 export type Privilege = typeof PRIVILEGES[number]
 
-const EXCLUDED_ROLES = new Set(['accountadmin', 'securityadmin', 'useradmin', 'orgadmin', 'pc_spyglass_role'])
+const EXCLUDED_ROLES = new Set(['ACCOUNTADMIN', 'SECURITYADMIN', 'USERADMIN', 'ORGADMIN'])
 
 export type Platform = 'snowflake' | 'unspecified';
 
@@ -295,7 +374,7 @@ export function usersYamlFromUserGrants(rows: ShowRoleGrantOf[]): YamlUserGrants
   const userGrants: YamlUserGrants = {}
 
   for (const rg of rows) {
-    if (rg.granted_to.toLowerCase() !== 'user') {
+    if (rg.granted_to !== 'USER') {
       continue
     }
 
@@ -353,7 +432,7 @@ export function rolesYamlFromRoleGrants(rows: ShowRoleGrant[], futureRoleGrants:
       name: _name,
     } = rg
     const privilege = _privilege as Privilege
-    const name = _name.replace(/<.*>/, '<future>')
+    const name = _name.replace(/<.*>/, '<FUTURE>')
 
     const role = roleGrants[grantee] ?? {}
     roleGrants[grantee] = role

@@ -1,6 +1,6 @@
 import {sha256} from './crypto'
 import {IssueType, ISSUES} from './issue-list'
-import {mergeDeep} from './obj-merge'
+import {mergeDeepAndCombineLists} from './obj-merge'
 import {fqSchemaId} from './snowflake'
 import {diffYaml, Privilege, Yaml, YamlDiff} from './yaml'
 import {forEachObjectInRoleGrants} from './yaml-util'
@@ -66,13 +66,13 @@ export const ISSUE_HANDLERS: IssueHandlers = {
       }
 
       // @ts-expect-error this will be created
-      if (!contents.roleGrants[data.role][data.privilege].database) {
+      if (!contents.roleGrants[data.role][data.privilege].DATABASE) {
         // @ts-expect-error this will be created
-        contents.roleGrants[data.role][data.privilege].database = []
+        contents.roleGrants[data.role][data.privilege].DATABASE = []
       }
 
       // @ts-expect-error this will be created
-      contents.roleGrants[data.role][data.privilege].database.push(data.database)
+      contents.roleGrants[data.role][data.privilege].DATABASE.push(data.database)
 
       return contents
     },
@@ -91,10 +91,10 @@ export const ISSUE_HANDLERS: IssueHandlers = {
 
         const [database] = objectId.split('.')
 
-        if (!roleInfo.usage?.database?.includes(database)) {
-          const schemas = roleDatabases[roleName] ?? new Set()
-          schemas.add(database)
-          roleDatabases[roleName] = schemas
+        if (!roleInfo.USAGE?.DATABASE?.includes(database)) {
+          const dbs = roleDatabases[roleName] ?? new Set()
+          dbs.add(database)
+          roleDatabases[roleName] = dbs
         }
       })
 
@@ -117,13 +117,13 @@ export const ISSUE_HANDLERS: IssueHandlers = {
       }
 
       // @ts-expect-error this will be created
-      if (!contents.roleGrants[data.role][data.privilege].schema) {
+      if (!contents.roleGrants[data.role][data.privilege].SCHEMA) {
         // @ts-expect-error this will be created
-        contents.roleGrants[data.role][data.privilege].schema = []
+        contents.roleGrants[data.role][data.privilege].SCHEMA = []
       }
 
       // @ts-expect-error this will be created
-      contents.roleGrants[data.role][data.privilege].schema.push(data.schema)
+      contents.roleGrants[data.role][data.privilege].SCHEMA.push(data.schema)
 
       return contents
     },
@@ -143,7 +143,7 @@ export const ISSUE_HANDLERS: IssueHandlers = {
         const [_database, _schema] = objectId.split('.')
         const schema = fqSchemaId(_database, _schema)
 
-        if (!roleInfo.usage?.schema?.includes(schema)) {
+        if (!roleInfo.USAGE?.SCHEMA?.includes(schema)) {
           const schemas = roleSchemas[roleName] ?? new Set()
           schemas.add(schema)
           roleSchemas[roleName] = schemas
@@ -178,21 +178,21 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     fixYaml: (contents: Yaml, _data: unknown) => {
       const data = _data as SysadminMissingRole
 
-      const sysadminRoles = contents?.roleGrants?.sysadmin?.usage?.role ?? []
+      const sysadminRoles = contents?.roleGrants?.sysadmin?.USAGE?.ROLE ?? []
 
       sysadminRoles.push(data.role)
 
       const newYaml = {
         roleGrants: {
-          sysadmin: {
-            usage: {
-              role: sysadminRoles,
+          SYSADMIN: {
+            USAGE: {
+              ROLE: sysadminRoles,
             },
           },
         },
       }
 
-      mergeDeep(contents, newYaml)
+      mergeDeepAndCombineLists(contents, newYaml)
 
       return contents
     },
@@ -200,10 +200,10 @@ export const ISSUE_HANDLERS: IssueHandlers = {
     findIssues: (yaml: Yaml): Issue[] => {
       const issues: Issue[] = []
 
-      const sysadminRoles = new Set(yaml?.roleGrants?.sysadmin?.usage?.role ?? [])
+      const sysadminRoles = new Set(yaml?.roleGrants?.SYSADMIN?.USAGE?.ROLE ?? [])
 
-      for (const roleName of Object.keys(yaml.roles ?? [])) {
-        if (roleName === 'sysadmin') {
+      for (const roleName of Object.keys(yaml.roles ?? {})) {
+        if (roleName === 'SYSADMIN') {
           continue
         }
 
@@ -271,7 +271,7 @@ export function newSR1001({role, database}: {role: string, database: string}): I
     issue: ISSUES.SR1001,
     data: {
       role,
-      privilege: 'usage',
+      privilege: 'USAGE',
       database,
     } as DatabasePrivilege,
     status: 'open',
@@ -283,7 +283,7 @@ export function newSR1002({role, schema}: {role: string, schema: string}): Issue
     issue: ISSUES.SR1002,
     data: {
       role,
-      privilege: 'usage',
+      privilege: 'USAGE',
       schema,
     } as SchemaPrivilege,
     status: 'open',

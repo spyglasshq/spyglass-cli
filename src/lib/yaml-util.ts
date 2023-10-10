@@ -11,7 +11,7 @@ interface ObjectIdIter {
 export function forEachObjectInRoleGrants(roleGrants: YamlRoles, fn: (_: ObjectIdIter) => void): void {
   for (const [roleName, roleInfo] of Object.entries(roleGrants)) {
     for (const [privilege, objectLists] of Object.entries(roleInfo)) {
-      for (const [objectType, objectIds] of Object.entries(objectLists)) {
+      for (const [objectType, objectIds] of Object.entries(objectLists ?? {})) {
         for (const objectId of objectIds) {
           fn({
             roleName,

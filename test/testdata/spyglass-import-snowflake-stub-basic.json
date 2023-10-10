@@ -2,95 +2,95 @@
   "roleGrants": [
     {
       "created_on": "2023-02-26 12:40:02.747 -0800",
-      "privilege": "select",
-      "granted_on": "view",
-      "name": "acme.prod.call_center",
-      "granted_to": "role",
-      "grantee_name": "acme_prod_call_center_reader",
+      "privilege": "SELECT",
+      "granted_on": "VIEW",
+      "name": "ACME.PROD.CALL_CENTER",
+      "granted_to": "ROLE",
+      "grantee_name": "ACME_PROD_CALL_CENTER_READER",
       "grant_option": "false",
-      "granted_by": "accountadmin"
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:40:02.747 -0800",
-      "privilege": "usage",
-      "granted_on": "database",
-      "name": "acme",
-      "granted_to": "role",
-      "grantee_name": "acme_prod_call_center_reader",
+      "privilege": "USAGE",
+      "granted_on": "DATABASE",
+      "name": "ACME",
+      "granted_to": "ROLE",
+      "grantee_name": "ACME_PROD_CALL_CENTER_READER",
       "grant_option": "false",
-      "granted_by": "accountadmin"
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:40:02.747 -0800",
-      "privilege": "usage",
-      "granted_on": "schema",
-      "name": "acme.prod",
-      "granted_to": "role",
-      "grantee_name": "acme_prod_call_center_reader",
+      "privilege": "USAGE",
+      "granted_on": "SCHEMA",
+      "name": "ACME.PROD",
+      "granted_to": "ROLE",
+      "grantee_name": "ACME_PROD_CALL_CENTER_READER",
       "grant_option": "false",
-      "granted_by": "accountadmin"
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:40:02.747 -0800",
-      "privilege": "usage",
-      "granted_on": "role",
-      "name": "acme_prod_call_center_reader",
-      "granted_to": "role",
-      "grantee_name": "customer_support",
+      "privilege": "USAGE",
+      "granted_on": "ROLE",
+      "name": "ACME_PROD_CALL_CENTER_READER",
+      "granted_to": "ROLE",
+      "grantee_name": "CUSTOMER_SUPPORT",
       "grant_option": "false",
-      "granted_by": "accountadmin"
+      "granted_by": "ACCOUNTADMIN"
     }
   ],
   "futureRoleGrants": [
     {
       "created_on": "2023-03-10 06:29:45.905 -0800",
-      "privilege": "select",
-      "grant_on": "table",
-      "name": "acme.prod.<table>",
-      "grant_to": "role",
-      "grantee_name": "acme_prod_all_tables_viewer",
+      "privilege": "SELECT",
+      "grant_on": "TABLE",
+      "name": "ACME.PROD.<TABLE>",
+      "grant_to": "ROLE",
+      "grantee_name": "ACME_PROD_ALL_TABLES_VIEWER",
       "grant_option": "false"
     }
   ],
   "roleGrantsOf": [
     {
       "created_on": "2023-02-26 12:49:23.439 -0800",
-      "role": "acme_prod_call_center_reader",
-      "granted_to": "role",
-      "grantee_name": "customer_support",
-      "granted_by": "accountadmin"
+      "role": "ACME_PROD_CALL_CENTER_READER",
+      "granted_to": "ROLE",
+      "grantee_name": "CUSTOMER_SUPPORT",
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:49:41.301 -0800",
-      "role": "customer_support",
-      "granted_to": "user",
-      "grantee_name": "chuck_support",
-      "granted_by": "accountadmin"
+      "role": "CUSTOMER_SUPPORT",
+      "granted_to": "USER",
+      "grantee_name": "CHUCK_SUPPORT",
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:49:41.301 -0800",
-      "role": "acme_prod_all_tables_viewer",
-      "granted_to": "user",
-      "grantee_name": "alice_admin",
-      "granted_by": "accountadmin"
+      "role": "ACME_PROD_ALL_TABLES_VIEWER",
+      "granted_to": "USER",
+      "grantee_name": "ALICE_ADMIN",
+      "granted_by": "ACCOUNTADMIN"
     },
     {
       "created_on": "2023-02-26 12:49:41.301 -0800",
       "role": "\"Snowflake - Admins\"",
-      "granted_to": "user",
-      "grantee_name": "alice_admin",
-      "granted_by": "accountadmin"
+      "granted_to": "USER",
+      "grantee_name": "ALICE_ADMIN",
+      "granted_by": "ACCOUNTADMIN"
     }
   ],
   "roles": [
     {
-      "name": "acme_prod_call_center_reader"
+      "name": "ACME_PROD_CALL_CENTER_READER"
     },
     {
-      "name": "customer_support"
+      "name": "CUSTOMER_SUPPORT"
     },
     {
-      "name": "acme_prod_all_tables_viewer"
+      "name": "ACME_PROD_ALL_TABLES_VIEWER"
     },
     {
       "name": "\"Snowflake - Admins\""

@@ -24,40 +24,40 @@ describe('SnowflakeSpyglass', () => {
       const yaml = await spyg.import({accountId: 'account-123', onStart: noopFunc, onProgress: noopFunc})
 
       expect(yaml.roleGrants).to.deep.equal({
-        acme_prod_call_center_reader: {
-          select: {
-            view: ['acme.prod.call_center'],
+        ACME_PROD_CALL_CENTER_READER: {
+          SELECT: {
+            VIEW: ['ACME.PROD.CALL_CENTER'],
           },
-          usage: {
-            database: ['acme'],
-            schema: ['acme.prod'],
-          },
-        },
-        acme_prod_all_tables_viewer: {
-          select: {
-            table: ['acme.prod.<future>'],
+          USAGE: {
+            DATABASE: ['ACME'],
+            SCHEMA: ['ACME.PROD'],
           },
         },
-        customer_support: {
-          usage: {
-            role: ['acme_prod_call_center_reader'],
+        ACME_PROD_ALL_TABLES_VIEWER: {
+          SELECT: {
+            TABLE: ['ACME.PROD.<FUTURE>'],
+          },
+        },
+        CUSTOMER_SUPPORT: {
+          USAGE: {
+            ROLE: ['ACME_PROD_CALL_CENTER_READER'],
           },
         },
       })
 
       expect(yaml.userGrants).to.deep.equal({
-        chuck_support: {
-          roles: ['customer_support'],
+        CHUCK_SUPPORT: {
+          roles: ['CUSTOMER_SUPPORT'],
         },
-        alice_admin: {
-          roles: ['"Snowflake - Admins"', 'acme_prod_all_tables_viewer'],
+        ALICE_ADMIN: {
+          roles: ['"Snowflake - Admins"', 'ACME_PROD_ALL_TABLES_VIEWER'],
         },
       })
 
       expect(yaml.roles).to.deep.equal({
-        acme_prod_all_tables_viewer: {},
-        acme_prod_call_center_reader: {},
-        customer_support: {},
+        ACME_PROD_ALL_TABLES_VIEWER: {},
+        ACME_PROD_CALL_CENTER_READER: {},
+        CUSTOMER_SUPPORT: {},
         '"Snowflake - Admins"': {},
       })
 
@@ -82,26 +82,26 @@ describe('SnowflakeSpyglass', () => {
       expect(updatedYaml.spyglass.lastSyncedMs).to.not.equal(oldSpyglass.lastSyncedMs)
 
       expect(updatedYaml.roleGrants).to.deep.equal({
-        acme_prod_all_tables_viewer: {
-          select: {
-            table: ['acme.prod.<future>'],
+        ACME_PROD_ALL_TABLES_VIEWER: {
+          SELECT: {
+            TABLE: ['ACME.PROD.<FUTURE>'],
           },
         },
       })
 
       expect(updatedYaml.userGrants).to.deep.equal({
-        alice_admin: {
-          roles: ['acme_prod_all_tables_viewer'],
+        ALICE_ADMIN: {
+          roles: ['ACME_PROD_ALL_TABLES_VIEWER'],
         },
       })
 
       expect(updatedYaml.roles).to.deep.equal({
-        acme_prod_all_tables_viewer: {},
+        ACME_PROD_ALL_TABLES_VIEWER: {},
       })
     })
   })
 
-  const mockIssues: issues.Issue[] = [issues.newSR1001({role: 'acme_user', database: 'acme'})]
+  const mockIssues: issues.Issue[] = [issues.newSR1001({role: 'ACME_USER', database: 'ACME'})]
   mockIssues[0].id = 'issue-123'
   describe('verify', () => {
     test
@@ -115,9 +115,9 @@ describe('SnowflakeSpyglass', () => {
     test
     .it('returns details when an arg is passed', async () => {
       const yaml = await readYamlFile('test/testdata/issues-SR1001.yaml')
-      const issue = (await spyg.verify(yaml, 'fbf1af0675dc')) as issues.IssueDetail
+      const issue = (await spyg.verify(yaml, '4492bb31ea09')) as issues.IssueDetail
 
-      expect(issue.yamlDiff.added.roleGrants.acme_prod_all_tables_viewer?.usage?.database).to.deep.equal(['acme'])
+      expect(issue.yamlDiff.added.roleGrants.ACME_PROD_ALL_TABLES_VIEWER?.USAGE?.DATABASE).to.deep.equal(['ACME'])
       expect(issue.yamlDiff.deleted).to.be.empty
       expect(issue.yamlDiff.updated).to.be.empty
     })
@@ -137,53 +137,53 @@ describe('SnowflakeSpyglass', () => {
     it('finds databases that do and don\'t exist', () => {
       const proposedRoles: YamlRoleDefinitions = {}
       const objects: snowflake.ShowObject[] = [
-        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+        {name: 'ORDER_HISTORY', database_name: 'ACME', schema_name: 'PROD', kind: 'TABLE'},
       ]
       const users: snowflake.ShowUser[] = []
       const sqlCommands: SqlCommand[] = [
-        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
-        newSqlCommandWithEntities({type: 'database', id: 'doesnt_exist', action: 'create'}),
+        newSqlCommandWithEntities({type: 'DATABASE', id: 'ACME', action: 'create'}),
+        newSqlCommandWithEntities({type: 'DATABASE', id: 'DOESNT_EXIST', action: 'create'}),
       ]
 
       const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
       expect(missingEntities).to.have.length(1)
-      expect(missingEntities[0]).to.deep.equal({type: 'database', id: 'doesnt_exist', action: 'create'})
+      expect(missingEntities[0]).to.deep.equal({type: 'DATABASE', id: 'DOESNT_EXIST', action: 'create'})
     })
 
     it('finds schemas that do and don\'t exist', () => {
       const proposedRoles: YamlRoleDefinitions = {}
       const objects: snowflake.ShowObject[] = [
-        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+        {name: 'ORDER_HISTORY', database_name: 'ACME', schema_name: 'PROD', kind: 'TABLE'},
       ]
       const users: snowflake.ShowUser[] = []
       const sqlCommands: SqlCommand[] = [
-        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
-        newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
-        newSqlCommandWithEntities({type: 'schema', id: 'acme.doesnt_exist', action: 'create'}),
+        newSqlCommandWithEntities({type: 'DATABASE', id: 'ACME', action: 'create'}),
+        newSqlCommandWithEntities({type: 'SCHEMA', id: 'ACME.PROD', action: 'create'}),
+        newSqlCommandWithEntities({type: 'SCHEMA', id: 'ACME.DOESNT_EXIST', action: 'create'}),
       ]
 
       const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
       expect(missingEntities).to.have.length(1)
-      expect(missingEntities[0]).to.deep.equal({type: 'schema', id: 'acme.doesnt_exist', action: 'create'})
+      expect(missingEntities[0]).to.deep.equal({type: 'SCHEMA', id: 'ACME.DOESNT_EXIST', action: 'create'})
     })
 
     it('finds tables that do and don\'t exist', () => {
       const proposedRoles: YamlRoleDefinitions = {}
       const objects: snowflake.ShowObject[] = [
-        {name: 'order_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
-        {name: 'payment_history', database_name: 'acme', schema_name: 'prod', kind: 'table'},
+        {name: 'ORDER_HISTORY', database_name: 'ACME', schema_name: 'PROD', kind: 'TABLE'},
+        {name: 'PAYMENT_HISTORY', database_name: 'ACME', schema_name: 'PROD', kind: 'TABLE'},
       ]
       const users: snowflake.ShowUser[] = []
       const sqlCommands: SqlCommand[] = [
-        newSqlCommandWithEntities({type: 'database', id: 'acme', action: 'create'}),
-        newSqlCommandWithEntities({type: 'schema', id: 'acme.prod', action: 'create'}),
-        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.order_history', action: 'create'}),
-        newSqlCommandWithEntities({type: 'table', id: 'acme.prod.doesnt_exist', action: 'create'}),
+        newSqlCommandWithEntities({type: 'DATABASE', id: 'ACME', action: 'create'}),
+        newSqlCommandWithEntities({type: 'SCHEMA', id: 'ACME.PROD', action: 'create'}),
+        newSqlCommandWithEntities({type: 'TABLE', id: 'ACME.PROD.ORDER_HISTORY', action: 'create'}),
+        newSqlCommandWithEntities({type: 'TABLE', id: 'ACME.PROD.DOESNT_EXIST', action: 'create'}),
       ]
 
       const missingEntities = spyglass._findNotExistingEntities(proposedRoles, objects, users, sqlCommands)
       expect(missingEntities).to.have.length(1)
-      expect(missingEntities[0]).to.deep.equal({type: 'table', id: 'acme.prod.doesnt_exist', action: 'create'})
+      expect(missingEntities[0]).to.deep.equal({type: 'TABLE', id: 'ACME.PROD.DOESNT_EXIST', action: 'create'})
     })
 
     it('skips objects that don\'t exist if permissions are being revoked', () => {

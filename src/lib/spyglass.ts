@@ -1,7 +1,6 @@
 import {Connection} from 'snowflake-sdk'
 import {findIssues, getIssueDetail, Issue, IssueDetail} from './issues'
 import {executeSqlCommands, fqDatabaseId, fqObjectId, fqSchemaId, getConn, listGrantsToRolesFullScan, ShowObject, showObjects, ShowUser, showUsers, showWarehouses, sqlCommandsFromYamlDiff} from './snowflake'
-import {compressYaml} from './snowflake-yaml-compress'
 import {AppliedCommand, Entity, SqlCommand} from './sql'
 import {diffYaml, Yaml, yamlFromRoleGrants, YamlRoleDefinitions} from './yaml'
 
@@ -9,7 +8,6 @@ export interface ImportArgs {
   accountId: string;
   onStart: (x: number) => void;
   onProgress: (x: number) => void;
-  compress?: boolean;
 }
 
 export interface SyncArgs {
@@ -73,7 +71,7 @@ export class SnowflakeSpyglass implements Spyglass {
   }
 }
 
-export async function importSnowflake({accountId, onStart, onProgress, compress}: ImportArgs, conn?: Connection): Promise<Yaml> {
+export async function importSnowflake({accountId, onStart, onProgress}: ImportArgs, conn?: Connection): Promise<Yaml> {
   if (!conn) {
     conn = await getConn(accountId)
   }
@@ -85,12 +83,6 @@ export async function importSnowflake({accountId, onStart, onProgress, compress}
   const warehouses = await warehousesRowsPromise
 
   const yaml = yamlFromRoleGrants(accountId, allGrants, warehouses)
-
-  if (compress) {
-    yaml.spyglass.compressRecords = true
-    const objects = await showObjects(conn)
-    compressYaml(yaml, objects)
-  }
 
   return yaml
 }
@@ -104,9 +96,9 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
 }
 
 export async function syncSnowflake(args: SyncArgs, conn?: Connection): Promise<Yaml> {
-  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, compress: args.yaml.spyglass?.compressRecords, ...args}, conn)
+  const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, ...args}, conn)
 
-  latestYaml.spyglass = args.yaml.spyglass
+  latestYaml.spyglass = structuredClone(args.yaml.spyglass)
   latestYaml.spyglass.lastSyncedMs = Date.now()
 
   return latestYaml
@@ -151,15 +143,15 @@ export async function findNotExistingEntities(currentYaml: Yaml, proposedYaml: Y
   return _findNotExistingEntities(proposedYaml.roles, objects, users, sqlCommands)
 }
 
-const supportedNonExistingEntities = new Set(['database', 'schema', 'user', 'role', 'table', 'view'])
+const supportedNonExistingEntities = new Set(['DATABASE', 'SCHEMA', 'USER', 'ROLE', 'TABLE', 'VIEW'])
 
 export function _findNotExistingEntities(proposedRoles: YamlRoleDefinitions | undefined, objects: ShowObject[], users: ShowUser[], sqlCommands: SqlCommand[]): Entity[] {
   let res: Entity[] = []
 
-  const existingRoles = Object.keys(proposedRoles ?? {}).map(roleName => `role:${roleName}`)
-  const existingObjects = objects.map(o => `${o.kind.toLowerCase()}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
+  const existingRoles = Object.keys(proposedRoles ?? {}).map(roleName => `ROLE:${roleName}`)
+  const existingObjects = objects.map(o => `${o.kind}:${fqObjectId(o.database_name, o.schema_name, o.name)}`)
   const existingAccountObjects = getDatabasesAndSchemas(objects)
-  const existingUsers = users.map(u => `user:${u.name.toLowerCase()}`)
+  const existingUsers = users.map(u => `USER:${u.name}`)
   const existingEntities = new Set([...existingRoles, ...existingObjects, ...existingAccountObjects, ...existingUsers])
 
   const proposedEntities = sqlCommands.map(x => x.entities)
@@ -189,8 +181,8 @@ function getDatabasesAndSchemas(objects: ShowObject[]): string[] {
   const res: Set<string> = new Set()
 
   for (const obj of objects) {
-    res.add(`database:${fqDatabaseId(obj.database_name)}`)
-    res.add(`schema:${fqSchemaId(obj.database_name, obj.schema_name)}`)
+    res.add(`DATABASE:${fqDatabaseId(obj.database_name)}`)
+    res.add(`SCHEMA:${fqSchemaId(obj.database_name, obj.schema_name)}`)
   }
 
   return [...res]

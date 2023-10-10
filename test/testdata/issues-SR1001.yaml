@@ -1,25 +1,25 @@
 roleGrants:
-  acme_prod_all_tables_viewer:
-    select:
-      table:
-        - acme.prod.<table>
-      view:
-        - acme.prod.<view>
-        - acme.prod.call_center
-        - acme.prod.catalog_page
-        - acme.prod.catalog_returns
-        - acme.prod.catalog_sales
-        - acme2.prod.catalog_sales
-    usage:
-      schema:
-        - acme.prod
-        - acme2.prod
+  ACME_PROD_ALL_TABLES_VIEWER:
+    SELECT:
+      TABLE:
+        - ACME.PROD.<FUTURE>
+      VIEW:
+        - ACME.PROD.<FUTURE>
+        - ACME.PROD.CALL_CENTER
+        - ACME.PROD.CATALOG_PAGE
+        - ACME.PROD.CATALOG_RETURNS
+        - ACME.PROD.CATALOG_SALES
+        - ACME2.PROD.CATALOG_SALES
+    USAGE:
+      SCHEMA:
+        - ACME.PROD
+        - ACME2.PROD
 spyglass:
   accountId: account-123
   lastSyncedMs: 1678883775793
   platform: snowflake
   version: 1
 userGrants:
-  charles_stevens:
+  CHARLES_STEVENS:
     roles:
-      - acme_prod_all_tables_viewer
+      - ACME_PROD_ALL_TABLES_VIEWER

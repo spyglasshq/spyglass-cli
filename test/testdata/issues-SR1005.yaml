@@ -1,9 +1,9 @@
 roles:
-  foo: {}
-  bar: {}
-  sysadmin: {}
+  FOO: {}
+  BAR: {}
+  SYSADMIN: {}
 roleGrants:
-  foo: {}
+  FOO: {}
 spyglass:
   accountId: account-123
   lastSyncedMs: 1678883775793

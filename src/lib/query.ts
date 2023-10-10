@@ -29,13 +29,13 @@ export function userAccessFromYaml(yaml: Yaml, username: string): UserAccess {
 
     // TYLER: check for infinite loop in yaml
 
-    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.usage?.role ?? []
+    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.USAGE?.role ?? []
     const inheritedRoles = inheritedRoleNames.map(name => ({name, parents: [...role.parents, role.name]}))
     rolesToDescend = [...rolesToDescend, ...inheritedRoles]
 
     for (const [privilege, objectLists] of Object.entries(yaml.roleGrants?.[role.name] ?? {})) {
-      for (const [objectType, objectIds] of Object.entries(objectLists)) {
-        if (privilege === 'usage' && objectType === 'role') {
+      for (const [objectType, objectIds] of Object.entries(objectLists ?? {})) {
+        if (privilege === 'USAGE' && objectType === 'ROLE') {
           continue
         }
 
@@ -77,7 +77,7 @@ export function userRolesFromYaml(yaml: Yaml, username: string): UserRoles {
 
     // TYLER: check for infinite loop in yaml
 
-    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.usage?.role ?? []
+    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.USAGE?.role ?? []
     const inheritedRoles = inheritedRoleNames.map(name => ({name, parents: [...role.parents, role.name]}))
     rolesToDescend = [...rolesToDescend, ...inheritedRoles]
 
@@ -112,13 +112,13 @@ export function objectAccessFromYaml(yaml: Yaml, targetObjectId: string): Object
 
     // TYLER: check for infinite loop in yaml
 
-    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.usage?.role ?? []
+    const inheritedRoleNames = yaml.roleGrants?.[role.name]?.USAGE?.role ?? []
     const inheritedRoles = inheritedRoleNames.map(name => ({name, parents: [...role.parents, role.name]}))
     rolesToDescend = [...rolesToDescend, ...inheritedRoles]
 
     for (const [privilege, objectLists] of Object.entries(yaml.roleGrants?.[role.name] ?? {})) {
-      for (const [objectType, objectIds] of Object.entries(objectLists)) {
-        if (privilege === 'usage' && objectType === 'role') {
+      for (const [objectType, objectIds] of Object.entries(objectLists ?? {})) {
+        if (privilege === 'USAGE' && objectType === 'ROLE') {
           continue
         }
 
