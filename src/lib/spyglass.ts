@@ -98,7 +98,7 @@ export async function verifySnowflake(yaml: Yaml, issueId?: string): Promise<Iss
 export async function syncSnowflake(args: SyncArgs, conn?: Connection): Promise<Yaml> {
   const latestYaml = await importSnowflake({accountId: args.yaml.spyglass.accountId, ...args}, conn)
 
-  latestYaml.spyglass = args.yaml.spyglass
+  latestYaml.spyglass = structuredClone(args.yaml.spyglass)
   latestYaml.spyglass.lastSyncedMs = Date.now()
 
   return latestYaml
