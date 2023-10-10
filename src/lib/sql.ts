@@ -40,7 +40,7 @@ function interpolateQuery(q: Query): string {
   }
 
   // eslint-disable-next-line unicorn/better-regex, no-useless-escape
-  const sql2 = sql.replace(/(identifier\(')([\w.\.]+)('\))/g, '$2') // replace "identifier('foo')" with "foo"
+  const sql2 = sql.replace(/(IDENTIFIER\(')([\w.\.]+)('\))/g, '$2') // replace "IDENTIFIER('foo')" with "foo"
   return sql2
 }
 
