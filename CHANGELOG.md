@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.0 (2023-10-10)
+
+#### :bug: Bug Fix
+* [#237](https://github.com/spyglasshq/spyglass-cli/pull/237) import/sync no longer forces all names to lower case ([@spyglass-software](https://github.com/spyglass-software))
+
+#### Committers: 1
+- Spyglass Software, Inc. ([@spyglass-software](https://github.com/spyglass-software))
+
 ## v0.4.7 (2023-09-29)
 
 #### :house: Internal
