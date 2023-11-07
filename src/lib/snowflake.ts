@@ -623,7 +623,7 @@ function getRoleGrantQueries(yamlRoles?: YamlRoles, granted?: boolean, database?
 }
 
 export function sanitizePrivilege(privilege: string): void {
-  if (!(/^[\w ]+$/.test(privilege))) {
+  if (!(/^[\w .]+$/.test(privilege))) {
     throw new Error('invalid privilege')
   }
 }
