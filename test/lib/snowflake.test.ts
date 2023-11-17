@@ -1,6 +1,6 @@
 import * as snowflake from '../../src/lib/snowflake'
 import {expect} from 'chai'
-import {PRIVILEGES} from '../../src/lib/yaml'
+import {PRIVILEGES, YamlRoles} from '../../src/lib/yaml'
 
 describe('snowflake', () => {
   it('sanitizePrivilege accepts good privileges', async () => {
@@ -136,6 +136,46 @@ describe('snowflake', () => {
     it('doesn\'t double-quote if its run multiple times', () => {
       const res = snowflake.normalizeRoleName('My - Role')
       expect(snowflake.normalizeRoleName(res)).to.equal('"My - Role"')
+    })
+  })
+
+  describe('getRoleGrantQueries', () => {
+    it('succeeds in base case', () => {
+      const yamlRoles: YamlRoles = {
+        myRole: {USAGE: {DATABASE: ['acme']}},
+      }
+      const cmds = snowflake.getRoleGrantQueries(yamlRoles, true /* granted */)
+      expect(cmds).to.have.length(1)
+      expect(cmds[0].query).to.deep.equal(['GRANT USAGE ON DATABASE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['acme', 'myRole']])
+    })
+
+    it('is forwards-compatible to unknown privileges', () => {
+      const yamlRoles: YamlRoles = {
+        myRole: {REBUILD: {TABLE: ['acme.prod.numbers']}},
+      }
+      const cmds = snowflake.getRoleGrantQueries(yamlRoles, true /* granted */)
+      expect(cmds).to.have.length(1)
+      expect(cmds[0].query).to.deep.equal(['GRANT REBUILD ON TABLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['acme.prod.numbers', 'myRole']])
+    })
+
+    it('handles empty object ids', () => {
+      const yamlRoles = {myRole: {REBUILD: {TABLE: undefined}}} as any
+      expect(snowflake.getRoleGrantQueries(yamlRoles)).to.deep.equal([])
+    })
+
+    it('handles empty privileges', () => {
+      const yamlRoles = {myRole: {REBUILD: undefined}} as any
+      expect(snowflake.getRoleGrantQueries(yamlRoles)).to.deep.equal([])
+    })
+
+    it('handles empty role', () => {
+      const yamlRoles = {myRole: undefined} as any
+      expect(snowflake.getRoleGrantQueries(yamlRoles)).to.deep.equal([])
+    })
+
+    it('handles empty yamlRoles', () => {
+      expect(snowflake.getRoleGrantQueries({})).to.deep.equal([])
+      expect(snowflake.getRoleGrantQueries()).to.deep.equal([])
     })
   })
 })

@@ -5,7 +5,7 @@ import {readFile, writeFile} from 'node:fs/promises'
 import path = require('node:path')
 import {Connection, createConnection} from 'snowflake-sdk'
 import toml = require('@iarna/toml')
-import {PRIVILEGES, YamlDatabaseRoleDefinitions, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
+import {YamlDatabaseRoleDefinitions, YamlDiff, YamlRoleDefinitions, YamlRoles, YamlUserGrants, YamlWarehouses} from './yaml'
 import {AppliedCommand, Query, SqlCommand, sqlQueries, sqlQuery} from './sql'
 import {RateLimiter, WaitGroup} from './ratelimit'
 
@@ -602,16 +602,15 @@ function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolea
   return queries
 }
 
-function getRoleGrantQueries(yamlRoles?: YamlRoles, granted?: boolean, database?: boolean): SqlCommand[] {
+export function getRoleGrantQueries(yamlRoles?: YamlRoles, granted?: boolean, database?: boolean): SqlCommand[] {
   if (!yamlRoles) return []
 
   const queries: SqlCommand[] = []
 
   for (const [roleName, role] of Object.entries(yamlRoles)) {
-    for (const privilege of PRIVILEGES) {
-      const objectLists = role[privilege] ?? {}
-      for (const [objectType, objectIds] of Object.entries(objectLists)) {
-        for (const objectId of objectIds) {
+    for (const [privilege, objectLists] of Object.entries(role ?? {})) {
+      for (const [objectType, objectIds] of Object.entries(objectLists ?? {})) {
+        for (const objectId of objectIds ?? []) {
           const query = granted ? newGrantQuery({roleName, privilege, objectType, objectId, database}) : newRevokeQuery({roleName, privilege, objectType, objectId, database})
           queries.push(query)
         }
