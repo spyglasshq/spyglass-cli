@@ -122,6 +122,26 @@ describe('snowflake', () => {
         expect(cmd.query).to.deep.equal(['REVOKE SELECT ON ALL TABLES IN DATABASE IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['foo', 'foo_viewer']])
       })
     })
+
+    describe('role grants', () => {
+      it('generates database role grant', () => {
+        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privilege: 'USAGE', objectType: 'DATABASE_ROLE', objectId: 'ACME.READER'})
+        expect(cmd.query).to.deep.equal(['GRANT DATABASE ROLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['ACME.READER', 'FUNC_ROLE']])
+      })
+
+      it('generates normal role grant', () => {
+        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privilege: 'USAGE', objectType: 'ROLE', objectId: 'ACME_READER'})
+        expect(cmd.query).to.deep.equal(['GRANT ROLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['ACME_READER', 'FUNC_ROLE']])
+      })
+    })
+
+    describe('object types with underscore', () => {
+      it('generates grant', () => {
+        const cmd = snowflake.newGrantQuery({roleName: 'FOO_READER', privilege: 'SELECT', objectType: 'EXTERNAL_TABLE', objectId: 'FOO.BAR.BAZ'})
+        expect(cmd.query).to.deep.equal(['GRANT SELECT ON EXTERNAL TABLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['FOO.BAR.BAZ', 'FOO_READER']])
+        expect(cmd.entities).to.deep.equal([{type: 'ROLE', id: 'FOO_READER', action: 'create'}, {type: 'EXTERNAL TABLE', id: 'FOO.BAR.BAZ', action: 'create'}])
+      })
+    })
   })
 
   describe('normalizeRoleName', () => {

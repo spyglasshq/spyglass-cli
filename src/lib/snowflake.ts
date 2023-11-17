@@ -633,6 +633,13 @@ export function sanitizeObjectType(objectType: string): void {
   }
 }
 
+export function queryifyObjectType(objectType: string): string {
+  // Seems like objectType from Snowflake `SHOW GRANTS` queries includes an underscore ('_')
+  // But when we write a GRANT or REVOKE query, we don't want the underscore.
+  // List of objects: https://docs.snowflake.com/en/sql-reference/sql/show
+  return objectType.replace(/_/g, ' ')
+}
+
 interface NewQueryBaseArgs {
   roleName: string;
   privilege: string;
@@ -653,22 +660,23 @@ export function newRevokeQuery(args: NewQueryBaseArgs): SqlCommand {
   return newQuery({grant: false, ...args})
 }
 
-export function newQuery({roleName, privilege, objectType, objectId, grant, database}: NewQueryArgs): SqlCommand {
+export function newQuery({roleName, privilege, objectType: objType, objectId, grant, database}: NewQueryArgs): SqlCommand {
   const action = grant ? 'create' : 'delete'
   const grantOrRevoke = grant ? 'GRANT' : 'REVOKE'
   const toOrFrom = grant ? 'TO' : 'FROM'
   const roleOrDatabaseRole = database ? 'DATABASE ROLE' : 'ROLE'
 
   sanitizePrivilege(privilege)
-  sanitizeObjectType(objectType)
+  sanitizeObjectType(objType)
 
-  if (privilege === 'USAGE' && (objectType === 'ROLE' || objectType === 'DATABASE_ROLE')) {
-    const roleType = objectType === 'ROLE' ? 'ROLE' : 'DATABASE ROLE'
+  const objectType = queryifyObjectType(objType)
+
+  if (privilege === 'USAGE' && (objectType === 'ROLE' || objectType === 'DATABASE ROLE')) {
     return {
-      query: [`${grantOrRevoke} ${roleType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
+      query: [`${grantOrRevoke} ${objectType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
-        {type: roleType, id: objectId, action},
+        {type: objectType, id: objectId, action},
       ],
     }
   }
