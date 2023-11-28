@@ -5,7 +5,7 @@ import {PRIVILEGES, YamlRoles} from '../../src/lib/yaml'
 describe('snowflake', () => {
   it('sanitizePrivilege accepts good privileges', async () => {
     for (const privilege of PRIVILEGES) {
-      snowflake.sanitizePrivilege(privilege)
+      snowflake.sanitizePrivileges(privilege)
     }
   })
 
@@ -18,8 +18,13 @@ describe('snowflake', () => {
     ]
 
     for (const privilege of invalidPrivileges) {
-      expect(() => snowflake.sanitizePrivilege(privilege)).to.throw('invalid privilege')
+      expect(() => snowflake.sanitizePrivileges(privilege)).to.throw('invalid privilege')
     }
+  })
+
+  it('sanitizePrivilege rejects a list if any item is bad', async () => {
+    const privileges = [...PRIVILEGES, 'end;']
+    expect(() => snowflake.sanitizePrivileges(...privileges)).to.throw('invalid privilege')
   })
 
   it('sanitizeObject accepts good privileges', async () => {
@@ -68,12 +73,12 @@ describe('snowflake', () => {
   describe('query generation', () => {
     describe('basic grant', () => {
       it('generates grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'foo_usage', privilege: 'USAGE', objectType: 'SCHEMA', objectId: 'foo.bar'})
+        const cmd = snowflake.newGrantQuery({roleName: 'foo_usage', privileges: ['USAGE'], objectType: 'SCHEMA', objectId: 'foo.bar'})
         expect(cmd.query).to.deep.equal(['GRANT USAGE ON SCHEMA IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['foo.bar', 'foo_usage']])
         expect(cmd.entities).to.deep.equal([{type: 'ROLE', id: 'foo_usage', action: 'create'}, {type: 'SCHEMA', id: 'foo.bar', action: 'create'}])
       })
       it('generates revoke', () => {
-        const cmd = snowflake.newRevokeQuery({roleName: 'foo_usage', privilege: 'USAGE', objectType: 'SCHEMA', objectId: 'foo.bar'})
+        const cmd = snowflake.newRevokeQuery({roleName: 'foo_usage', privileges: ['USAGE'], objectType: 'SCHEMA', objectId: 'foo.bar'})
         expect(cmd.query).to.deep.equal(['REVOKE USAGE ON SCHEMA IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['foo.bar', 'foo_usage']])
         expect(cmd.entities).to.deep.equal([{type: 'ROLE', id: 'foo_usage', action: 'delete'}, {type: 'SCHEMA', id: 'foo.bar', action: 'delete'}])
       })
@@ -81,65 +86,73 @@ describe('snowflake', () => {
 
     describe('hierarchichal role grant', () => {
       it('generates grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'foo_usage', privilege: 'USAGE', objectType: 'ROLE', objectId: 'bar_usage'})
+        const cmd = snowflake.newGrantQuery({roleName: 'foo_usage', privileges: ['USAGE'], objectType: 'ROLE', objectId: 'bar_usage'})
         expect(cmd.query).to.deep.equal(['GRANT ROLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['bar_usage', 'foo_usage']])
       })
       it('generates revoke', () => {
-        const cmd = snowflake.newRevokeQuery({roleName: 'foo_usage', privilege: 'USAGE', objectType: 'ROLE', objectId: 'bar_usage'})
+        const cmd = snowflake.newRevokeQuery({roleName: 'foo_usage', privileges: ['USAGE'], objectType: 'ROLE', objectId: 'bar_usage'})
         expect(cmd.query).to.deep.equal(['REVOKE ROLE IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['bar_usage', 'foo_usage']])
       })
     })
 
     describe('schema future grants', () => {
       it('generates grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'foo_bar_viewer', privilege: 'INSERT', objectType: 'TABLE', objectId: 'foo.bar.<table>'})
+        const cmd = snowflake.newGrantQuery({roleName: 'foo_bar_viewer', privileges: ['INSERT'], objectType: 'TABLE', objectId: 'foo.bar.<table>'})
         expect(cmd.query).to.deep.equal(['GRANT INSERT ON FUTURE TABLES IN SCHEMA IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['foo.bar', 'foo_bar_viewer']])
       })
       it('generates revoke', () => {
-        const cmd = snowflake.newRevokeQuery({roleName: 'foo_bar_viewer', privilege: 'INSERT', objectType: 'TABLE', objectId: 'foo.bar.<table>'})
+        const cmd = snowflake.newRevokeQuery({roleName: 'foo_bar_viewer', privileges: ['INSERT'], objectType: 'TABLE', objectId: 'foo.bar.<table>'})
         expect(cmd.query).to.deep.equal(['REVOKE INSERT ON FUTURE TABLES IN SCHEMA IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['foo.bar', 'foo_bar_viewer']])
       })
     })
 
     describe('database future grants on tables', () => {
       it('generates grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'foo_viewer', privilege: 'INSERT', objectType: 'TABLE', objectId: 'foo.<table>'})
+        const cmd = snowflake.newGrantQuery({roleName: 'foo_viewer', privileges: ['INSERT'], objectType: 'TABLE', objectId: 'foo.<table>'})
         expect(cmd.query).to.deep.equal(['GRANT INSERT ON FUTURE TABLES IN DATABASE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['foo', 'foo_viewer']])
       })
       it('generates revoke', () => {
-        const cmd = snowflake.newRevokeQuery({roleName: 'foo_viewer', privilege: 'USAGE', objectType: 'SCHEMA', objectId: 'foo.<schema>'})
+        const cmd = snowflake.newRevokeQuery({roleName: 'foo_viewer', privileges: ['USAGE'], objectType: 'SCHEMA', objectId: 'foo.<schema>'})
         expect(cmd.query).to.deep.equal(['REVOKE USAGE ON FUTURE SCHEMAS IN DATABASE IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['foo', 'foo_viewer']])
       })
     })
 
     describe('all tables in schema / database', () => {
       it('generates grant on all in schema', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'foo_bar_viewer', privilege: 'SELECT', objectType: 'TABLE', objectId: 'foo.bar.*'})
+        const cmd = snowflake.newGrantQuery({roleName: 'foo_bar_viewer', privileges: ['SELECT'], objectType: 'TABLE', objectId: 'foo.bar.*'})
         expect(cmd.query).to.deep.equal(['GRANT SELECT ON ALL TABLES IN SCHEMA IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['foo.bar', 'foo_bar_viewer']])
       })
       it('generates revoke on all in database', () => {
-        const cmd = snowflake.newRevokeQuery({roleName: 'foo_viewer', privilege: 'SELECT', objectType: 'TABLE', objectId: 'foo.*'})
+        const cmd = snowflake.newRevokeQuery({roleName: 'foo_viewer', privileges: ['SELECT'], objectType: 'TABLE', objectId: 'foo.*'})
         expect(cmd.query).to.deep.equal(['REVOKE SELECT ON ALL TABLES IN DATABASE IDENTIFIER(?) FROM ROLE IDENTIFIER(?);', ['foo', 'foo_viewer']])
       })
     })
 
     describe('role grants', () => {
       it('generates database role grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privilege: 'USAGE', objectType: 'DATABASE_ROLE', objectId: 'ACME.READER'})
+        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privileges: ['USAGE'], objectType: 'DATABASE_ROLE', objectId: 'ACME.READER'})
         expect(cmd.query).to.deep.equal(['GRANT DATABASE ROLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['ACME.READER', 'FUNC_ROLE']])
       })
 
       it('generates normal role grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privilege: 'USAGE', objectType: 'ROLE', objectId: 'ACME_READER'})
+        const cmd = snowflake.newGrantQuery({roleName: 'FUNC_ROLE', privileges: ['USAGE'], objectType: 'ROLE', objectId: 'ACME_READER'})
         expect(cmd.query).to.deep.equal(['GRANT ROLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['ACME_READER', 'FUNC_ROLE']])
       })
     })
 
     describe('object types with underscore', () => {
       it('generates grant', () => {
-        const cmd = snowflake.newGrantQuery({roleName: 'FOO_READER', privilege: 'SELECT', objectType: 'EXTERNAL_TABLE', objectId: 'FOO.BAR.BAZ'})
+        const cmd = snowflake.newGrantQuery({roleName: 'FOO_READER', privileges: ['SELECT'], objectType: 'EXTERNAL_TABLE', objectId: 'FOO.BAR.BAZ'})
         expect(cmd.query).to.deep.equal(['GRANT SELECT ON EXTERNAL TABLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['FOO.BAR.BAZ', 'FOO_READER']])
         expect(cmd.entities).to.deep.equal([{type: 'ROLE', id: 'FOO_READER', action: 'create'}, {type: 'EXTERNAL TABLE', id: 'FOO.BAR.BAZ', action: 'create'}])
+      })
+    })
+
+    describe('object types with underscore', () => {
+      it('generates a grant with multiple privileges', () => {
+        const cmd = snowflake.newGrantQuery({roleName: 'FOO_VIEWER', privileges: ['SELECT', 'INSERT', 'UPDATE'], objectType: 'TABLE', objectId: 'FOO.BAR.BAZ'})
+        expect(cmd.query).to.deep.equal(['GRANT SELECT,INSERT,UPDATE ON TABLE IDENTIFIER(?) TO ROLE IDENTIFIER(?);', ['FOO.BAR.BAZ', 'FOO_VIEWER']])
+        expect(cmd.entities).to.deep.equal([{type: 'ROLE', id: 'FOO_VIEWER', action: 'create'}, {type: 'TABLE', id: 'FOO.BAR.BAZ', action: 'create'}])
       })
     })
   })

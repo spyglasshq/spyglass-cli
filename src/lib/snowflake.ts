@@ -605,25 +605,45 @@ function getRolesQueries(roles: YamlRoleDefinitions | undefined, granted: boolea
 export function getRoleGrantQueries(yamlRoles?: YamlRoles, granted?: boolean, database?: boolean): SqlCommand[] {
   if (!yamlRoles) return []
 
-  const queries: SqlCommand[] = []
+  const roleObjPrivs: Record<string, NewQueryBaseArgs> = {}
 
   for (const [roleName, role] of Object.entries(yamlRoles)) {
     for (const [privilege, objectLists] of Object.entries(role ?? {})) {
       for (const [objectType, objectIds] of Object.entries(objectLists ?? {})) {
         for (const objectId of objectIds ?? []) {
-          const query = granted ? newGrantQuery({roleName, privilege, objectType, objectId, database}) : newRevokeQuery({roleName, privilege, objectType, objectId, database})
-          queries.push(query)
+          const key = `${roleName}::${objectType}::${objectId}`
+          // eslint-disable-next-line max-depth
+          if (!roleObjPrivs[key]) {
+            roleObjPrivs[key] = {
+              roleName,
+              objectType,
+              objectId,
+              privileges: [],
+              database,
+            }
+          }
+
+          roleObjPrivs[key].privileges.push(privilege)
         }
       }
     }
   }
 
+  const queries: SqlCommand[] = []
+
+  for (const args of Object.values(roleObjPrivs)) {
+    const query = granted ? newGrantQuery(args) : newRevokeQuery(args)
+    queries.push(query)
+  }
+
   return queries
 }
 
-export function sanitizePrivilege(privilege: string): void {
-  if (!(/^[\w .]+$/.test(privilege))) {
-    throw new Error('invalid privilege')
+export function sanitizePrivileges(...privileges: string[]): void {
+  for (const privilege of privileges) {
+    if (!/^[\w .]+$/.test(privilege)) {
+      throw new Error('invalid privilege')
+    }
   }
 }
 
@@ -642,7 +662,7 @@ export function queryifyObjectType(objectType: string): string {
 
 interface NewQueryBaseArgs {
   roleName: string;
-  privilege: string;
+  privileges: string[];
   objectType: string;
   objectId: string;
   database?: boolean;
@@ -660,18 +680,18 @@ export function newRevokeQuery(args: NewQueryBaseArgs): SqlCommand {
   return newQuery({grant: false, ...args})
 }
 
-export function newQuery({roleName, privilege, objectType: objType, objectId, grant, database}: NewQueryArgs): SqlCommand {
+export function newQuery({roleName, privileges, objectType: objType, objectId, grant, database}: NewQueryArgs): SqlCommand {
   const action = grant ? 'create' : 'delete'
   const grantOrRevoke = grant ? 'GRANT' : 'REVOKE'
   const toOrFrom = grant ? 'TO' : 'FROM'
   const roleOrDatabaseRole = database ? 'DATABASE ROLE' : 'ROLE'
 
-  sanitizePrivilege(privilege)
+  sanitizePrivileges(...privileges)
   sanitizeObjectType(objType)
 
   const objectType = queryifyObjectType(objType)
 
-  if (privilege === 'USAGE' && (objectType === 'ROLE' || objectType === 'DATABASE ROLE')) {
+  if (privileges.length === 1 && privileges[0] === 'USAGE' && (objectType === 'ROLE' || objectType === 'DATABASE ROLE')) {
     return {
       query: [`${grantOrRevoke} ${objectType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
       entities: [
@@ -681,13 +701,15 @@ export function newQuery({roleName, privilege, objectType: objType, objectId, gr
     }
   }
 
+  const privs = privSql(privileges)
+
   // extract (db.schema).<(objtype)>
   const futureSchemaRx = /^(\w*\.\w*)\.<(.*)>$/g
   const futureSchemaMatches = futureSchemaRx.exec(objectId)
   if (futureSchemaMatches) {
     const [, schema] = futureSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} ON FUTURE ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privs} ON FUTURE ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'SCHEMA', id: schema, action},
@@ -701,7 +723,7 @@ export function newQuery({roleName, privilege, objectType: objType, objectId, gr
   if (futureDatabaseMatches) {
     const [, database] = futureDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} ON FUTURE ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privs} ON FUTURE ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'DATABASE', id: database, action},
@@ -715,7 +737,7 @@ export function newQuery({roleName, privilege, objectType: objType, objectId, gr
   if (allObjectsInSchemaMatches) {
     const [, schema] = allObjectsInSchemaMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} ON ALL ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
+      query: [`${grantOrRevoke} ${privs} ON ALL ${objectType}S IN SCHEMA IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [schema, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'SCHEMA', id: schema, action},
@@ -729,7 +751,7 @@ export function newQuery({roleName, privilege, objectType: objType, objectId, gr
   if (allObjectsInDatabaseMatches) {
     const [, database] = allObjectsInDatabaseMatches
     return {
-      query: [`${grantOrRevoke} ${privilege} ON ALL ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
+      query: [`${grantOrRevoke} ${privs} ON ALL ${objectType}S IN DATABASE IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [database, roleName]],
       entities: [
         {type: roleOrDatabaseRole, id: roleName, action},
         {type: 'DATABASE', id: database, action},
@@ -738,7 +760,7 @@ export function newQuery({roleName, privilege, objectType: objType, objectId, gr
   }
 
   return {
-    query: [`${grantOrRevoke} ${privilege} ON ${objectType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
+    query: [`${grantOrRevoke} ${privs} ON ${objectType} IDENTIFIER(?) ${toOrFrom} ${roleOrDatabaseRole} IDENTIFIER(?);`, [objectId, roleName]],
     entities: [
       {type: roleOrDatabaseRole, id: roleName, action},
       {type: objectType, id: objectId, action},
@@ -817,4 +839,8 @@ function getDatabaseRolesQueries(roles: YamlDatabaseRoleDefinitions | undefined,
   }
 
   return queries
+}
+
+function privSql(privileges: string[]): string {
+  return privileges.join(',')
 }
