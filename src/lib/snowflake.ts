@@ -170,6 +170,7 @@ export interface ShowRoleGrantOf {
 export interface ShowDatabase {
   created_on: Date;
   name: string;
+  origin: string;
   // ... more fields
 }
 
@@ -298,7 +299,8 @@ async function queryRoleGrantsOf(conn: Connection, roleNames: string[]): Promise
 
 async function getDatabaseRoles(conn: Connection): Promise<[string[], ShowDatabaseRole[]]> {
   const showDatabases = (await sqlQuery<ShowDatabase>(conn, 'SHOW DATABASES;', [])).results as ShowDatabase[]
-  const databaseNames = showDatabases.map(db => db.name).filter(db => db !== 'SNOWFLAKE')
+  // Exclude revoked databases, which we can't query because "Shared database is no longer available for use."
+  const databaseNames = showDatabases.filter(db => db.name !== 'SNOWFLAKE' && db.origin !== '<revoked>').map(db => db.name)
   const [batchedDatabaseNames] = getBatchedNames(databaseNames)
 
   let databaseRoles: ShowDatabaseRole[] = []
