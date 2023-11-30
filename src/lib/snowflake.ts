@@ -12,6 +12,7 @@ import {RateLimiter, WaitGroup} from './ratelimit'
 export const AUTHENTICATOR_PASSWORD = 'SNOWFLAKE'
 export const SNOWSQL_CONFIG_DIR = path.join(process.env.HOME ?? '', '.snowsql')
 export const SNOWSQL_CONFIG_FILE = path.join(SNOWSQL_CONFIG_DIR, 'config')
+const SPYGLASS_APPLICATION = 'SpyglassSoftware_Spyglass'
 
 export async function getConnection({accountname, username, password}: ConnectionConfig): Promise<Connection> {
   const conn = createConnection({
@@ -19,6 +20,7 @@ export async function getConnection({accountname, username, password}: Connectio
     username: username ?? '',
     password,
     authenticator: AUTHENTICATOR_PASSWORD,
+    application: SPYGLASS_APPLICATION,
   })
 
   return new Promise((resolve, reject) => {
