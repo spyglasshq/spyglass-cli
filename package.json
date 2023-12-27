@@ -23,7 +23,7 @@
     "@oclif/core": "^2",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.4.7",
-    "axios": "^1.6.2",
+    "axios": "^1.6.3",
     "deep-object-diff": "^1.1.9",
     "fs-extra": "^11.2.0",
     "isomorphic-git": "^1.25.1",
