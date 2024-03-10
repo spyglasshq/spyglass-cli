@@ -28,7 +28,7 @@
     "fs-extra": "^11.2.0",
     "isomorphic-git": "^1.25.6",
     "snowflake-sdk": "^1.10.0",
-    "winston": "^3.11.0",
+    "winston": "^3.12.0",
     "yaml": "^2.4.0"
   },
   "devDependencies": {
