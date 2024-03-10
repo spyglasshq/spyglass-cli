@@ -17,7 +17,7 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
-    "@google-cloud/logging-winston": "^5.3.0",
+    "@google-cloud/logging-winston": "^6.0.0",
     "@iarna/toml": "^2.2.5",
     "@oclif/color": "^1.0.13",
     "@oclif/core": "^2",
